@@ -1,0 +1,32 @@
+"use client"
+
+import CountdownTimer from "@/components/CountdownTimer";
+import CountdownTimer2 from "@/components/CountdownTimer2";
+import { useAccount } from "wagmi";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import Countdown2025 from "@/components/CountdownTimer2";
+
+export default function Cava() {
+
+  const { isConnected } = useAccount()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push('/')
+    }
+  }, [isConnected])
+
+  return (
+    <div className="">
+      <div className="w-layout-blockcontainer page-wrapper w-container">
+      <Header />
+      < CountdownTimer2 />
+      <Footer />
+    </div>
+    </div>
+  );
+}

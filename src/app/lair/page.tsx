@@ -83,24 +83,24 @@ export default function Lair() {
             <div className="user-stats-nfts"><img src="images/WQsCBUKs17zU.avif" loading="lazy" alt="" className="image-42" /></div>
           </div>
           <div className="w-layout-grid mingles-apps">
-            <a id="w-node-_54600c35-e5dd-2614-e194-53044eb6d60d-9696e6d5" href="#" className="bannersapps w-inline-block"><img src="images/CavaProgram.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/CavaProgram-p-500.png 500w, images/CavaProgram-p-800.png 800w, images/CavaProgram-p-1080.png 1080w, images/CavaProgram.png 1536w" alt="" className="image-36" />
+            <a id="w-node-_54600c35-e5dd-2614-e194-53044eb6d60d-9696e6d5" href="/cava" className="bannersapps w-inline-block"><img src="images/CavaProgram.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/CavaProgram-p-500.png 500w, images/CavaProgram-p-800.png 800w, images/CavaProgram-p-1080.png 1080w, images/CavaProgram.png 1536w" alt="" className="image-36" />
               <div className="bannerapp-overlay">
                 <div className="banner-texts">CAVA PROGRAM</div>
               </div>
             </a>
-            <a id="w-node-bcd68dac-25e8-01b4-ec8a-7e1b1779bf7f-9696e6d5" href="#" className="bannersapps w-inline-block"><img src="images/Raven.jpg" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/Raven-p-500.jpg 500w, images/Raven-p-800.jpg 800w, images/Raven-p-1080.jpg 1080w, images/Raven-p-1600.jpg 1600w, images/Raven-p-2000.jpg 2000w, images/Raven-p-2600.jpg 2600w, images/Raven.jpg 2630w" alt="" className="image-36 prisonbreak" />
+            <a id="w-node-bcd68dac-25e8-01b4-ec8a-7e1b1779bf7f-9696e6d5" href="/prison-break" className="bannersapps w-inline-block"><img src="images/Raven.jpg" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/Raven-p-500.jpg 500w, images/Raven-p-800.jpg 800w, images/Raven-p-1080.jpg 1080w, images/Raven-p-1600.jpg 1600w, images/Raven-p-2000.jpg 2000w, images/Raven-p-2600.jpg 2600w, images/Raven.jpg 2630w" alt="" className="image-36 prisonbreak" />
               <div className="bannerapp-overlay">
                 <div className="banner-texts">MINGLES PRISON BREAK</div>
               </div>
             </a>
-            <a id="w-node-_9a124655-3347-8b45-2a84-8488d2d801ba-9696e6d5" href="#" className="bannersapps w-inline-block"><img src="images/MInglesScratchOff.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/MInglesScratchOff-p-500.png 500w, images/MInglesScratchOff-p-800.png 800w, images/MInglesScratchOff-p-1080.png 1080w, images/MInglesScratchOff-p-1600.png 1600w, images/MInglesScratchOff-p-2000.png 2000w, images/MInglesScratchOff-p-2600.png 2600w, images/MInglesScratchOff-p-3200.png 3200w, images/MInglesScratchOff.png 8043w" alt="" className="image-36 scratchoff" />
+            <a id="w-node-_9a124655-3347-8b45-2a84-8488d2d801ba-9696e6d5" href="/scratch-off" className="bannersapps w-inline-block"><img src="images/MInglesScratchOff.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/MInglesScratchOff-p-500.png 500w, images/MInglesScratchOff-p-800.png 800w, images/MInglesScratchOff-p-1080.png 1080w, images/MInglesScratchOff-p-1600.png 1600w, images/MInglesScratchOff-p-2000.png 2000w, images/MInglesScratchOff-p-2600.png 2600w, images/MInglesScratchOff-p-3200.png 3200w, images/MInglesScratchOff.png 8043w" alt="" className="image-36 scratchoff" />
               <div className="bannerapp-overlay">
                 <div className="banner-texts">SCRATCH-OFF</div>
               </div>
             </a>
-            <a id="w-node-_552431aa-bde4-5c7a-e879-2e16327c675a-9696e6d5" href="#" className="bannersapps w-inline-block"><img src="images/AgaveSiege.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/AgaveSiege-p-500.png 500w, images/AgaveSiege-p-800.png 800w, images/AgaveSiege-p-1080.png 1080w, images/AgaveSiege.png 1536w" alt="" className="image-36 siege-agave" />
+            <a id="w-node-_552431aa-bde4-5c7a-e879-2e16327c675a-9696e6d5" href="/lair" className="bannersapps w-inline-block"><img src="images/AgaveSiege.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/AgaveSiege-p-500.png 500w, images/AgaveSiege-p-800.png 800w, images/AgaveSiege-p-1080.png 1080w, images/AgaveSiege.png 1536w" alt="" className="image-36 siege-agave" />
               <div className="bannerapp-overlay">
-                <div className="banner-texts">AGAVE SIEGE</div>
+                <div className="banner-texts">AGAVE SIEGE <br /> COMING SOON!</div>
               </div>
             </a>
           </div>
