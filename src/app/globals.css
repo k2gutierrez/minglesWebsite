@@ -5520,7 +5520,7 @@ figcaption {
   grid-template-columns: 20% 80%;
   place-content: space-around space-between;
   width: 100%;
-  font-family: Gt Pressura Mono;
+  /*font-family: Gt Pressura Mono;*/
   overflow: clip;
 }
 
@@ -5547,7 +5547,7 @@ figcaption {
 
 .info-minglesaped-text, .info-tequila-text, .info-mgls-text {
   text-align: right;
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
   font-size: 16px;
 }
 
@@ -5557,7 +5557,7 @@ figcaption {
 }
 
 .block-mingles-aped, .block-tequila, .block-mgls {
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
 }
 
 .mingles-aped-stats, .mingles-aped-staked, .tequila-tokens, .mgls {
@@ -5568,12 +5568,12 @@ figcaption {
 
 .info-staked-text {
   text-align: right;
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
   font-size: 16px;
 }
 
 .blockc-staked {
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
 }
 
 .news-info-text {
@@ -5581,7 +5581,7 @@ figcaption {
   align-self: stretch;
   width: 100%;
   height: auto;
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
   font-size: 16px;
   overflow: hidden;
 }
@@ -5782,7 +5782,7 @@ figcaption {
   width: 100%;
   height: auto;
   margin-top: 0;
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
   font-size: 200%;
 }
 
@@ -6051,7 +6051,7 @@ figcaption {
 .text-main-next-logo {
   text-align: center;
   width: 25vw;
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
   font-size: 20px;
   line-height: 1.4em;
 }
@@ -6098,7 +6098,7 @@ figcaption {
 
 .cta-mingles, .cta2-mingles {
   text-align: center;
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
   font-size: 16px;
 }
 
@@ -6136,7 +6136,7 @@ figcaption {
 }
 
 .value-prop, .value-explanation {
-  font-family: Droid Sans, sans-serif;
+  /*font-family: Droid Sans, sans-serif;*/
 }
 
 .wormleft-container {

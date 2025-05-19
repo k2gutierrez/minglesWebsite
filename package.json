@@ -11,6 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@next/font": "^14.2.15",
     "@privy-io/react-auth": "^2.13.2",
     "@privy-io/wagmi": "^1.0.3",
     "@rainbow-me/rainbowkit": "^2.2.5",

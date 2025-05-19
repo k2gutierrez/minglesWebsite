@@ -20,7 +20,7 @@ export default function Home() {
   }, [isConnected])
   
   return (
-    <div className="mainsitebody">
+    <div className="mainsitebody font-[family-name:var(--font-hogfish)]">
       <div className="pagewrapperhome">
         <div className="background-container">
           <div className="main-footer"> <Link href={'https://apechain.com/'}  target="_blank"><img src="images/ApechainLogo.png" loading="lazy" id="w-node-e2417b1f-5e5c-faa7-1335-970d50d7ef14-6f23bd87" alt="" className="image-footer" /></Link> <Link href={'https://madeby.boredapeyachtclub.com/'}  target="_blank"><img src="images/MadeByApesLogo.png" loading="lazy" alt="" className="image-footer" /></Link> <Link href={'https://discord.gg/8XcEAhWFEH'}  target="_blank"><img src="images/DiscordLogo.png" loading="lazy" alt="" className="image-footer" /></Link>
@@ -32,7 +32,7 @@ export default function Home() {
           <div className="agaveright"><img src="images/AgaveDerecho.png" loading="lazy" sizes="(max-width: 4804px) 100vw, 4804px" srcSet="images/AgaveDerecho-p-500.png 500w, images/AgaveDerecho-p-800.png 800w, images/AgaveDerecho-p-1080.png 1080w, images/AgaveDerecho-p-1600.png 1600w, images/AgaveDerecho-p-2000.png 2000w, images/AgaveDerecho-p-2600.png 2600w, images/AgaveDerecho-p-3200.png 3200w, images/AgaveDerecho.png 4804w" alt="" className="agave-right-fixed" /></div>
           <div className="content-container">
             <div className="logo-container"><img src="images/Mingles_Logo_Negro.png" loading="lazy" sizes="(max-width: 2110px) 100vw, 2110px" srcSet="images/Mingles_Logo_Negro-p-500.png 500w, images/Mingles_Logo_Negro-p-800.png 800w, images/Mingles_Logo_Negro-p-1080.png 1080w, images/Mingles_Logo_Negro-p-1600.png 1600w, images/Mingles_Logo_Negro.png 2110w" alt="" className="logo-image" /></div>
-            <div className="w-layout-grid grid-text-main">
+            <div className="w-layout-grid grid-text-main font-[family-name:var(--font-pressura)]">
               <div className="text-main-next-logo">OWN Tequila</div>
               <div className="text-main-next-logo">EARN Gifts</div>
               <div className="text-main-next-logo">BELONG to a community</div>
@@ -53,11 +53,11 @@ export default function Home() {
                   label="CONNECT WALLET"
                 />
             </div>
-            <div className="w-layout-grid grid-text-main betweenworms">
+            <div className="w-layout-grid grid-text-main betweenworms font-[family-name:var(--font-pressura)]">
               <div className="cta-mingles">MINGLES NEED YOU</div>
               <div className="cta2-mingles">Adopt one and help them RAID their Distillery back from the Giant Raven</div>
             </div>
-            <div className="black-box">
+            <div className="black-box font-[family-name:var(--font-pressura)] ">
               <div className="wormleft-container"><img src="images/White_Hearts_Right.png" loading="lazy" sizes="(max-width: 1525px) 100vw, 1525px" srcSet="images/White_Hearts_Right-p-500.png 500w, images/White_Hearts_Right-p-800.png 800w, images/White_Hearts_Right-p-1080.png 1080w, images/White_Hearts_Right.png 1525w" alt="" className="worms-images" /></div>
               <div className="wormrightcontainer"><img src="images/Red_Dizzy_Left.png" loading="lazy" sizes="(max-width: 1525px) 100vw, 1525px" srcSet="images/Red_Dizzy_Left-p-500.png 500w, images/Red_Dizzy_Left-p-800.png 800w, images/Red_Dizzy_Left-p-1080.png 1080w, images/Red_Dizzy_Left.png 1525w" alt="" className="worms-images" /></div>
               <div className="w-layout-grid grid-value-proposition-main">

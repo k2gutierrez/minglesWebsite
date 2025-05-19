@@ -18,7 +18,7 @@ export default function Prison() {
   }, [isConnected])
 
   return (
-    <div className="body">
+    <div className="body font-[family-name:var(--font-pressura)]">
       <Header />
       <div className="w-layout-blockcontainer page-wrapper w-container">
 

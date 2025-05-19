@@ -50,25 +50,25 @@ export default function Lair() {
               <div className="w-layout-grid grid-15">
                 <div id="w-node-_1e6c7ae0-be9f-292b-da78-961237b2a259-9696e6d5" className="div-mingleslair-text">
                   <div className="div-lair">
-                    <div id="w-node-c7ab43d8-42f2-775d-6639-c9c41d28e657-9696e6d5" className="text-lair">MINGLES LAIR</div>
+                    <div id="w-node-c7ab43d8-42f2-775d-6639-c9c41d28e657-9696e6d5" className="text-lair font-[family-name:var(--font-hogfish)]">MINGLES LAIR</div>
                   </div>
-                  <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="w-layout-grid gm-user">
+                  <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="w-layout-grid gm-user font-[family-name:var(--font-pressura)]">
                     <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM</div>
                     <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{address}</div>
                   </div>
                 </div>
                 <div id="w-node-d415ca5e-612c-626f-b930-3bfa401ee4c7-9696e6d5" className="w-layout-grid blockchain-info">
                   <div className="w-layout-grid mingles-aped-stats">
-                    <div className="info-minglesaped-text">Mingles Aped</div>
-                    <div className="block-mingles-aped">{mingles.length}</div>
+                    <div className="info-minglesaped-text font-[family-name:var(--font-pressura)]">Mingles Aped</div>
+                    <div className="block-mingles-aped font-[family-name:var(--font-pressura)]">{mingles.length}</div>
                   </div>
                   <div className="w-layout-grid mingles-aped-staked">
-                    <div className="info-staked-text">Aging (Staked)</div>
-                    <div className="blockc-staked">0</div>
+                    <div className="info-staked-text font-[family-name:var(--font-pressura)]">Aging (Staked)</div>
+                    <div className="blockc-staked font-[family-name:var(--font-pressura)]">0</div>
                   </div>
                   <div className="w-layout-grid tequila-tokens">
-                    <div className="info-tequila-text">Tequila Bottles</div>
-                    <div className="block-tequila">0</div>
+                    <div className="info-tequila-text font-[family-name:var(--font-pressura)]">Tequila Bottles</div>
+                    <div className="block-tequila font-[family-name:var(--font-pressura)]">0</div>
                   </div>
                   <div className="w-layout-grid mgls">
                     <div className="info-mgls-text"></div>
@@ -76,7 +76,7 @@ export default function Lair() {
                   </div>
                 </div>
                 <div id="w-node-_9a9015d1-e1a8-bffb-8a81-7f0e20ab80f8-9696e6d5" className="div-news-grid">
-                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text">Cava programa coming May 24th<br />{/*Stake your MINGLES APED and claim TEQUILA*/}</div>
+                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text font-[family-name:var(--font-pressura)]">Cava programa coming May 24th<br />{/*Stake your MINGLES APED and claim TEQUILA*/}</div>
                 </div>
               </div>
             </div>
