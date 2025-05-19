@@ -54,7 +54,7 @@ export default function Lair() {
                   </div>
                   <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="w-layout-grid gm-user">
                     <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM</div>
-                    <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">0x679345b73458</div>
+                    <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{address}</div>
                   </div>
                 </div>
                 <div id="w-node-d415ca5e-612c-626f-b930-3bfa401ee4c7-9696e6d5" className="w-layout-grid blockchain-info">
@@ -64,11 +64,11 @@ export default function Lair() {
                   </div>
                   <div className="w-layout-grid mingles-aped-staked">
                     <div className="info-staked-text">Aging (Staked)</div>
-                    <div className="blockc-staked">40</div>
+                    <div className="blockc-staked">0</div>
                   </div>
                   <div className="w-layout-grid tequila-tokens">
                     <div className="info-tequila-text">Tequila Bottles</div>
-                    <div className="block-tequila">47</div>
+                    <div className="block-tequila">0</div>
                   </div>
                   <div className="w-layout-grid mgls">
                     <div className="info-mgls-text"></div>
@@ -76,7 +76,7 @@ export default function Lair() {
                   </div>
                 </div>
                 <div id="w-node-_9a9015d1-e1a8-bffb-8a81-7f0e20ab80f8-9696e6d5" className="div-news-grid">
-                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text">Cava program is live!<br />Stake your MINGLES APED and claim TEQUILA</div>
+                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text">Cava program coming soon!<br />{/*Stake your MINGLES APED and claim TEQUILA*/}</div>
                 </div>
               </div>
             </div>
