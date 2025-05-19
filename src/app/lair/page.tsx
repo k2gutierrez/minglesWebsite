@@ -12,12 +12,11 @@ export default function Lair() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isConnected) {
+    /*if (!isConnected) {
       router.push('/')
-    }
+    }*/
     getMingles()
 
-    console.log(mingles.length)
   }, [isConnected])
 
   async function getMingles() {

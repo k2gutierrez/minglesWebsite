@@ -1,20 +1,9 @@
 "use client"
-import { useAccount } from "wagmi";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export default function About() {
-
-  const { isConnected } = useAccount()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (!isConnected) {
-      router.push('/')
-    }
-  }, [isConnected])
 
   return (
     <div className="body">

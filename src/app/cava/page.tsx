@@ -15,10 +15,10 @@ export default function Cava() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isConnected) {
+    /*if (!isConnected) {
       router.push('/')
-    }
-  }, [isConnected])
+    }*/
+  }, [])
 
   return (
     <div className="body">

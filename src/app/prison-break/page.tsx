@@ -12,10 +12,10 @@ export default function Prison() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isConnected) {
+    /*if (!isConnected) {
       router.push('/')
-    }
-  }, [isConnected])
+    }*/
+  }, [])
 
   return (
     <div className="body font-[family-name:var(--font-pressura)]">
