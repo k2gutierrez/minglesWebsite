@@ -37,9 +37,9 @@ export default function Home() {
               <div className="text-main-next-logo">EARN Gifts</div>
               <div className="text-main-next-logo">BELONG to a community</div>
             </div>
-            <div className="w-layout-grid grid-bottons-main">
+            {/*<div className="w-layout-grid grid-bottons-main flex">
               <div id="w-node-ea1f47d2-f0c0-193c-af53-0aa4e8d2ee8b-6f23bd87" className="div-login">
-                <a href="lair-holders.html" className="button-login w-button" >LOG IN</a>
+                <a href="lair-holders.html" className="button-login w-button" aria-disabled={true}>LOG IN WITH EMAIL</a>
               </div>
               <div id="w-node-fffb23d0-a68b-3ee4-feed-574ce9a6226e-6f23bd87" className="div-connect">
                 <ConnectButton
@@ -47,6 +47,11 @@ export default function Home() {
                 />
                 
               </div>
+            </div>*/}
+            <div className="my-3">
+              <ConnectButton
+                  label="CONNECT WALLET"
+                />
             </div>
             <div className="w-layout-grid grid-text-main betweenworms">
               <div className="cta-mingles">MINGLES NEED YOU</div>

@@ -76,7 +76,7 @@ export default function Lair() {
                   </div>
                 </div>
                 <div id="w-node-_9a9015d1-e1a8-bffb-8a81-7f0e20ab80f8-9696e6d5" className="div-news-grid">
-                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text">Cava program coming soon!<br />{/*Stake your MINGLES APED and claim TEQUILA*/}</div>
+                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text">Cava programa coming May 24th<br />{/*Stake your MINGLES APED and claim TEQUILA*/}</div>
                 </div>
               </div>
             </div>
