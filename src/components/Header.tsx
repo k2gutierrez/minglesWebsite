@@ -40,7 +40,7 @@ export default function Header() {
                         ABOUT
                     </Link>
                     <div className="pl-4">
-                        <ConnectButton />
+                        <ConnectButton label='CONNECT WALLET'/>
                     </div>
                 </div>
 
@@ -94,7 +94,7 @@ export default function Header() {
                         ABOUT
                     </Link>
                     <div className="pt-2">
-                        <ConnectButton />
+                        <ConnectButton label='CONNECT WALLET'/>
                     </div>
                 </div>
             </div>
