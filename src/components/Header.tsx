@@ -6,7 +6,7 @@ export default function Header() {
             <div className="w-container">
                 <a href="/lair" className="brand w-nav-brand"><img src="images/Mingles_Simbolo_Blanco.png" loading="lazy" sizes="(max-width: 767px) 98vw, (max-width: 991px) 728px, 940px" srcSet="images/Mingles_Simbolo_Blanco-p-500.png 500w, images/Mingles_Simbolo_Blanco-p-800.png 800w, images/Mingles_Simbolo_Blanco-p-1080.png 1080w, images/Mingles_Simbolo_Blanco.png 1652w" alt="" className="image-49" /></a>
                 <nav role="navigation" className="w-nav-menu">
-                    <a href="#" className="nav-link-12 w-nav-link">LAIR</a>
+                    <a href="/lair" className="nav-link-12 w-nav-link">LAIR</a>
                     <a href="#" className="nav-link-13 w-nav-link">CAVA</a>
                     <a href="#" className="nav-link-14 w-nav-link">PRISON BREAK</a>
                     <a href="#" className="nav-link-14 w-nav-link">SCRATCH-OFF</a>
