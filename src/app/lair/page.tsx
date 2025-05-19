@@ -71,8 +71,8 @@ export default function Lair() {
                     <div className="block-tequila">47</div>
                   </div>
                   <div className="w-layout-grid mgls">
-                    <div className="info-mgls-text">$MGLS</div>
-                    <div className="block-mgls">0</div>
+                    <div className="info-mgls-text"></div>
+                    <div className="block-mgls"></div>
                   </div>
                 </div>
                 <div id="w-node-_9a9015d1-e1a8-bffb-8a81-7f0e20ab80f8-9696e6d5" className="div-news-grid">
