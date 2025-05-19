@@ -50,10 +50,10 @@ const CountdownTimer2 = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-purple-900">
-      <div className="text-center space-y-8">
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-purple-900">
+      <div className="text-center">
         
-        <h1 className="text-base md:text-2xl font-bold text-white mb-6 animate-pulse border">
+        <h1 className="text-base md:text-2xl font-bold text-white animate-pulse border">
           <Image src={barrel} alt='Cava Program' width={80} height={80} />Coming May 24, 2025
         </h1>
         

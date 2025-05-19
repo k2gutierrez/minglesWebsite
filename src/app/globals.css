@@ -5526,8 +5526,8 @@ figcaption {
 
 .gm-text {
   width: 100%;
-  font-family: Droid Sans, sans-serif;
-  font-size: 16px;
+  /*font-family: Droid Sans, sans-serif;*/
+  font-size: 12px;
   position: static;
   top: 0;
 }
@@ -9540,11 +9540,11 @@ figcaption {
   }
 
   .gm-text {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .userwallet-text {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   .mingles-aped-stats, .mingles-aped-staked, .tequila-tokens {

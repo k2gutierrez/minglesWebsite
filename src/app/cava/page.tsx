@@ -21,12 +21,14 @@ export default function Cava() {
   }, [isConnected])
 
   return (
-    <div className="">
-      <div className="w-layout-blockcontainer page-wrapper w-container">
+    <div className="body">
       <Header />
-      < CountdownTimer2 />
+      <div className="w-layout-blockcontainer page-wrapper w-container">
+
+        < CountdownTimer2 />
+
+      </div>
       <Footer />
-    </div>
     </div>
   );
 }

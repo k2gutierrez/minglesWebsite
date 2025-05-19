@@ -1,22 +1,103 @@
+"use client";
+
+import { useState } from 'react';
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Header() {
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
-        <div data-animation="default" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" className="navbar-4 w-nav sm:px-10">
-            <div className="w-container font-[family-name:var(--font-pressura)]">
-                <a href="/lair" className="brand w-nav-brand"><img src="images/Mingles_Simbolo_Blanco.png" loading="lazy" sizes="(max-width: 767px) 98vw, (max-width: 991px) 728px, 940px" srcSet="images/Mingles_Simbolo_Blanco-p-500.png 500w, images/Mingles_Simbolo_Blanco-p-800.png 800w, images/Mingles_Simbolo_Blanco-p-1080.png 1080w, images/Mingles_Simbolo_Blanco.png 1652w" alt="" className="image-49" /></a>
-                <nav role="navigation" className="w-nav-menu">
-                    <a href="/lair" className="nav-link-12 w-nav-link">LAIR</a>
-                    <a href="/cava" className="nav-link-13 w-nav-link">CAVA</a>
-                    <a href="/prison-break" className="nav-link-14 w-nav-link">PRISON BREAK</a>
-                    <a href="/scratch-off" className="nav-link-14 w-nav-link">SCRATCH-OFF</a>
-                    <a href="/about" className="nav-link-14 w-nav-link">ABOUT</a>
-                    <div className="nav-link-14 w-nav-link pt-3"><ConnectButton /></div>
-                </nav>
-                <div className="w-nav-button">
-                    <div className="w-icon-nav-menu"></div>
+        <nav className="navbar-4 w-nav sm:px-10 py-2 font-[family-name:var(--font-pressura)]">
+            <div className="flex items-center justify-between max-w-7xl mx-auto">
+                {/* Logo */}
+                <Link href="/lair" className="flex items-start">
+                    <Image
+                        src="/images/Mingles_Simbolo_Blanco.png"
+                        alt="Mingles Logo"
+                        width={45}
+                        height={45}
+                        className=""
+                    />
+                </Link>
+
+                {/* Desktop Menu */}
+                <div className="hidden md:flex items-center space-x-10">
+                    <Link href="/lair" className="text-white hover:text-red-300 transition-colors">
+                        LAIR
+                    </Link>
+                    <Link href="/cava" className="text-white hover:text-red-300 transition-colors">
+                        CAVA
+                    </Link>
+                    <Link href="/prison-break" className="text-white hover:text-red-300 transition-colors">
+                        PRISON BREAK
+                    </Link>
+                    <Link href="/scratch-off" className="text-white hover:text-red-500 transition-colors">
+                        SCRATCH-OFF
+                    </Link>
+                    <Link href="/about" className="text-white hover:text-red-300 transition-colors">
+                        ABOUT
+                    </Link>
+                    <div className="pl-4">
+                        <ConnectButton />
+                    </div>
+                </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="md:hidden text-white focus:outline-none"
+                    aria-label="Toggle menu"
+                >
+                    <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        {isOpen ? (
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        ) : (
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 6h16M4 12h16M4 18h16"
+                            />
+                        )}
+                    </svg>
+                </button>
+            </div>
+
+            {/* Mobile Menu Dropdown */}
+            <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} mt-4 pb-4`}>
+                <div className="flex flex-col space-y-4">
+                    <Link href="/lair" className="text-white hover:text-gray-300 transition-colors">
+                        LAIR
+                    </Link>
+                    <Link href="/cava" className="text-white hover:text-gray-300 transition-colors">
+                        CAVA
+                    </Link>
+                    <Link href="/prison-break" className="text-white hover:text-gray-300 transition-colors">
+                        PRISON BREAK
+                    </Link>
+                    <Link href="/scratch-off" className="text-white hover:text-gray-300 transition-colors">
+                        SCRATCH-OFF
+                    </Link>
+                    <Link href="/about" className="text-white hover:text-gray-300 transition-colors">
+                        ABOUT
+                    </Link>
+                    <div className="pt-2">
+                        <ConnectButton />
+                    </div>
                 </div>
             </div>
-        </div>
+        </nav>
     );
 }

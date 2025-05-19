@@ -8,15 +8,15 @@ import Footer from "@/components/Footer";
 
 export default function Lair() {
   const [mingles, setMingles] = useState([])
-  const {isConnected, address} = useAccount()
+  const { isConnected, address } = useAccount()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isConnected){
+    if (!isConnected) {
       router.push('/')
     }
     getMingles()
-    
+
     console.log(mingles.length)
   }, [isConnected])
 
@@ -42,8 +42,9 @@ export default function Lair() {
 
   return (
     <div className="body">
+      <Header />
       <div className="w-layout-blockcontainer page-wrapper w-container">
-        <Header />
+
         <div className="w-layout-grid grid-main">
           <div className="w-layout-grid user-stats">
             <div className="user-stats-info">
@@ -98,15 +99,16 @@ export default function Lair() {
                 <div className="banner-texts">SCRATCH-OFF</div>
               </div>
             </a>
-            <a id="w-node-_552431aa-bde4-5c7a-e879-2e16327c675a-9696e6d5" href="/lair" className="bannersapps w-inline-block"><img src="images/AgaveSiege.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/AgaveSiege-p-500.png 500w, images/AgaveSiege-p-800.png 800w, images/AgaveSiege-p-1080.png 1080w, images/AgaveSiege.png 1536w" alt="" className="image-36 siege-agave" />
+            <a id="w-node-_552431aa-bde4-5c7a-e879-2e16327c675a-9696e6d5" href="#" className="bannersapps w-inline-block"><img src="images/AgaveSiege.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/AgaveSiege-p-500.png 500w, images/AgaveSiege-p-800.png 800w, images/AgaveSiege-p-1080.png 1080w, images/AgaveSiege.png 1536w" alt="" className="image-36 siege-agave" />
               <div className="bannerapp-overlay">
                 <div className="banner-texts">AGAVE SIEGE <br /> COMING SOON!</div>
               </div>
             </a>
           </div>
         </div>
-        <Footer />
+
       </div>
+      <Footer />
     </div>
   );
 }
