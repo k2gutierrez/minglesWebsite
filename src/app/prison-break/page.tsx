@@ -18,11 +18,11 @@ export default function Prison() {
   }, [])
 
   return (
-    <div className="body font-[family-name:var(--font-pressura)]">
+    <div className=" font-[family-name:var(--font-pressura)]">
       <Header />
       <div className="w-layout-blockcontainer page-wrapper w-container">
 
-        <div className="text-center align-items-center">
+        <div className="text-center align-items-center p-3">
           <MinglesPrison />
         </div>
 

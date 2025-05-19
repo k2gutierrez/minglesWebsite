@@ -40,7 +40,7 @@ export default function Lair() {
   }
 
   return (
-    <div className="body">
+    <div className="">
       <Header />
       <div className="w-layout-blockcontainer page-wrapper w-container">
 

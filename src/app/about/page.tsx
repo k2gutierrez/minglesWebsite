@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 export default function About() {
 
   return (
-    <div className="body">
+    <div className="">
       <Header />
       <div className="w-layout-blockcontainer page-wrapper w-container">
 
@@ -76,9 +76,9 @@ export default function About() {
             </div>
           </div>
         </div>
-
+        
       </div>
-      <Footer />
+<Footer />
     </div>
   );
 }
