@@ -87,7 +87,7 @@ export default function Header() {
                     <Link href="/prison-break" className="text-white hover:text-gray-300 transition-colors">
                         PRISON BREAK
                     </Link>
-                    <Link href="#" className="text-white hover:text-gray-300 transition-colors">
+                    <Link href="/scratch-off" className="text-white hover:text-gray-300 transition-colors">
                         SCRATCH-OFF
                     </Link>
                     <Link href="/about" className="text-white hover:text-gray-300 transition-colors">

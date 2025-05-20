@@ -8,7 +8,7 @@ export default function About() {
   return (
     <div className="">
       <Header />
-      <div className="w-layout-blockcontainer page-wrapper w-container">
+      <div className="text-center w-layout-blockcontainer page-wrapper w-container">
 
         <div className="w-layout-grid grid-main">
           <div className="w-layout-grid aboutsection-icons">

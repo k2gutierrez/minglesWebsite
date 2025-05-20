@@ -1,15 +1,12 @@
 "use client"
-
-import CountdownTimer from "@/components/CountdownTimer";
-import CountdownTimer2 from "@/components/CountdownTimer2";
 import { useAccount } from "wagmi";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Countdown2025 from "@/components/CountdownTimer2";
+import MinglesScratch from "@/components/MinglesScratch";
 
-export default function Cava() {
+export default function ScratchOff() {
 
   const { isConnected } = useAccount()
   const router = useRouter()
@@ -21,14 +18,16 @@ export default function Cava() {
   }, [])
 
   return (
-    <div className="">
+    <div className=" font-[family-name:var(--font-pressura)]">
       <Header />
       <div className="w-layout-blockcontainer page-wrapper w-container">
 
-        < CountdownTimer2 />
-        <Footer />
-      </div>
-    </div>
+        <div className="text-center align-items-center p-3">
+          <MinglesScratch />
+        </div>
 
+      </div>
+      <Footer />
+    </div>
   );
 }

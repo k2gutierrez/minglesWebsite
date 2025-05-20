@@ -109,7 +109,7 @@ export default function Lair() {
                 <div className="banner-texts">MINGLES PRISON BREAK</div>
               </div>
             </a>
-            <a id="w-node-_9a124655-3347-8b45-2a84-8488d2d801ba-9696e6d5" href="#" className="bannersapps w-inline-block"><img src="images/MInglesScratchOff.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/MInglesScratchOff-p-500.png 500w, images/MInglesScratchOff-p-800.png 800w, images/MInglesScratchOff-p-1080.png 1080w, images/MInglesScratchOff-p-1600.png 1600w, images/MInglesScratchOff-p-2000.png 2000w, images/MInglesScratchOff-p-2600.png 2600w, images/MInglesScratchOff-p-3200.png 3200w, images/MInglesScratchOff.png 8043w" alt="" className="image-36 scratchoff" />
+            <a id="w-node-_9a124655-3347-8b45-2a84-8488d2d801ba-9696e6d5" href="/scratch-off" className="bannersapps w-inline-block"><img src="images/MInglesScratchOff.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/MInglesScratchOff-p-500.png 500w, images/MInglesScratchOff-p-800.png 800w, images/MInglesScratchOff-p-1080.png 1080w, images/MInglesScratchOff-p-1600.png 1600w, images/MInglesScratchOff-p-2000.png 2000w, images/MInglesScratchOff-p-2600.png 2600w, images/MInglesScratchOff-p-3200.png 3200w, images/MInglesScratchOff.png 8043w" alt="" className="image-36 scratchoff" />
               <div className="bannerapp-overlay">
                 <div className="banner-texts">SCRATCH-OFF</div>
               </div>

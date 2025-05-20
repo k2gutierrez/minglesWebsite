@@ -2432,7 +2432,7 @@ figcaption {
 .dashboard-footer-wrapper {
   z-index: 10;
   border-top: .6px solid var(--black-collection);
-  background-color: var(--transparent);
+  background-color: #EDEDD9;/*var(--transparent);*/
   color: var(--black-collection);
   text-align: center;
   object-fit: fill;
