@@ -11,6 +11,8 @@ export default function Lair() {
   const { isConnected, address } = useAccount()
   const router = useRouter()
 
+  const mingleImage = `https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${mingles[0].token.tokenId}.png`
+
   useEffect(() => {
     /*if (!isConnected) {
       router.push('/')
@@ -18,6 +20,7 @@ export default function Lair() {
     getMingles()
 
   }, [isConnected])
+  console.log(mingleImage)
 
   async function getMingles() {
     const mingles_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=0x9AD70bAE14e13BD39E92b88fd767a9F9370Dc63f&sortDirection=asc&limit=200`
@@ -35,6 +38,7 @@ export default function Lair() {
         let data1 = res.data
         console.log("data", data1)
         setMingles(data1.tokens)
+        console.log(data1.tokens)
       })
       .catch(err => console.error(err));
   }
@@ -80,7 +84,12 @@ export default function Lair() {
                 </div>
               </div>
             </div>
-            <div className="user-stats-nfts"><img src="images/WQsCBUKs17zU.avif" loading="lazy" alt="" className="image-42" /></div>
+            {mingles.length != 0 ? (
+              <div className="user-stats-nfts"><img src={mingleImage} loading="lazy" alt="" className="image-42" /></div>
+            ):(
+              <div className="user-stats-nfts"><img src="images/WQsCBUKs17zU.avif" loading="lazy" alt="" className="image-42" /></div>
+            )}
+            
           </div>
           <div className="w-layout-grid mingles-apps">
             <a id="w-node-_54600c35-e5dd-2614-e194-53044eb6d60d-9696e6d5" href="/cava" className="bannersapps w-inline-block"><img src="images/CavaProgram.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/CavaProgram-p-500.png 500w, images/CavaProgram-p-800.png 800w, images/CavaProgram-p-1080.png 1080w, images/CavaProgram.png 1536w" alt="" className="image-36" />
