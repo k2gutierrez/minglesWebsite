@@ -8,19 +8,21 @@ import Footer from "@/components/Footer";
 
 export default function Lair() {
   const [mingles, setMingles] = useState([])
+  const [tokenId, setTokenId] = useState("")
   const { isConnected, address } = useAccount()
   const router = useRouter()
 
-  const mingleImage = `https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${mingles[0].token.tokenId}.png`
+  
 
   useEffect(() => {
     /*if (!isConnected) {
       router.push('/')
     }*/
     getMingles()
+    
 
   }, [isConnected])
-  console.log(mingleImage)
+
 
   async function getMingles() {
     const mingles_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=0x9AD70bAE14e13BD39E92b88fd767a9F9370Dc63f&sortDirection=asc&limit=200`
@@ -38,6 +40,8 @@ export default function Lair() {
         let data1 = res.data
         console.log("data", data1)
         setMingles(data1.tokens)
+        const tId = data1.tokens[0].token.tokenId
+        setTokenId(tId)
         console.log(data1.tokens)
       })
       .catch(err => console.error(err));
@@ -57,8 +61,10 @@ export default function Lair() {
                     <div id="w-node-c7ab43d8-42f2-775d-6639-c9c41d28e657-9696e6d5" className="text-lair font-[family-name:var(--font-hogfish)]">MINGLES LAIR</div>
                   </div>
                   <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="w-layout-grid gm-user font-[family-name:var(--font-pressura)]">
-                    <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM</div>
-                    <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{address}</div>
+                    <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM <br /></div>
+                    {isConnected ? (
+                      <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{address}</div>
+                    ):(<div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{"0x000..."}</div>)}
                   </div>
                 </div>
                 <div id="w-node-d415ca5e-612c-626f-b930-3bfa401ee4c7-9696e6d5" className="w-layout-grid blockchain-info">
@@ -85,7 +91,7 @@ export default function Lair() {
               </div>
             </div>
             {mingles.length != 0 ? (
-              <div className="user-stats-nfts"><img src={mingleImage} loading="lazy" alt="" className="image-42" /></div>
+              <div className="user-stats-nfts"><img src={`https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${tokenId}.png`} loading="lazy" alt="" className="image-42" /></div>
             ):(
               <div className="user-stats-nfts"><img src="images/WQsCBUKs17zU.avif" loading="lazy" alt="" className="image-42" /></div>
             )}
