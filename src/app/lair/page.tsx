@@ -2,24 +2,27 @@
 import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
+import { Tokens } from "@/components/engine/atoms";
 import axios from "axios";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export default function Lair() {
-  const [mingles, setMingles] = useState([])
-  const [tokenId, setTokenId] = useState("")
+  const [tokens, setTokens] = useAtom(Tokens)
+  const [tokenId, setTokenId] = useState("Nan")
+  const [currentAddress, setCurrentAddress] = useState<string>("0x000...")
   const { isConnected, address } = useAccount()
   const router = useRouter()
 
-  
+
 
   useEffect(() => {
-    /*if (!isConnected) {
-      router.push('/')
-    }*/
-    getMingles()
-    
+    if (isConnected) {
+      //router.push('/')
+      getMingles()
+      setCurrentAddress
+    }
 
   }, [isConnected])
 
@@ -38,14 +41,24 @@ export default function Lair() {
       .request(options)
       .then(res => {
         let data1 = res.data
-        console.log("data", data1)
-        setMingles(data1.tokens)
-        const tId = data1.tokens[0].token.tokenId
-        setTokenId(tId)
-        console.log(tId)
-        console.log(data1.tokens)
+        let tokensArr: string[] = []
+        for (let i = 0; i < data1.tokens.length; i++) {
+          tokensArr.push(data1.tokens[i].token.tokenId)
+        }
+        console.log("tokens", tokensArr)
+        setTokens(tokensArr)
+
+        setTokenId(getRandomElement(tokensArr))
+        console.log(typeof(getRandomElement(tokensArr)))
+
       })
       .catch(err => console.error(err));
+  }
+
+  function getRandomElement<T>(array: string[]): string {
+    if (array.length === 0) return "Nan";
+    const randomIndex = Math.floor(Math.random() * array.length);
+    return array[Number(randomIndex)]; 
   }
 
   return (
@@ -63,15 +76,15 @@ export default function Lair() {
                   </div>
                   <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="w-layout-grid gm-user font-[family-name:var(--font-pressura)]">
                     <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM <br /></div>
-                    {isConnected ? (
-                      <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{address}</div>
-                    ):(<div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{"0x000..."}</div>)}
+                    
+                    <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{currentAddress}</div>
+                
                   </div>
                 </div>
                 <div id="w-node-d415ca5e-612c-626f-b930-3bfa401ee4c7-9696e6d5" className="w-layout-grid blockchain-info">
                   <div className="w-layout-grid mingles-aped-stats">
                     <div className="info-minglesaped-text font-[family-name:var(--font-pressura)]">Mingles Aped</div>
-                    <div className="block-mingles-aped font-[family-name:var(--font-pressura)]">{mingles.length}</div>
+                    <div className="block-mingles-aped font-[family-name:var(--font-pressura)]">{tokens.length}</div>
                   </div>
                   <div className="w-layout-grid mingles-aped-staked">
                     <div className="info-staked-text font-[family-name:var(--font-pressura)]">Aging (Staked)</div>
@@ -91,12 +104,12 @@ export default function Lair() {
                 </div>
               </div>
             </div>
-            {/*mingles.length != 0 ? (
+            {tokens.length > 0 && tokenId != "Nan" ? (
               <div className="user-stats-nfts"><img src={`https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${tokenId}.png`} loading="lazy" alt="" className="image-42" /></div>
             ):(
               <div className="user-stats-nfts"><img src="images/WQsCBUKs17zU.avif" loading="lazy" alt="" className="image-42" /></div>
-            )*/}
-            <div className="user-stats-nfts"><img src="images/WQsCBUKs17zU.avif" loading="lazy" alt="" className="image-42" /></div>
+            )}
+            
           </div>
           <div className="w-layout-grid mingles-apps">
             <a id="w-node-_54600c35-e5dd-2614-e194-53044eb6d60d-9696e6d5" href="/cava" className="bannersapps w-inline-block"><img src="images/CavaProgram.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/CavaProgram-p-500.png 500w, images/CavaProgram-p-800.png 800w, images/CavaProgram-p-1080.png 1080w, images/CavaProgram.png 1536w" alt="" className="image-36" />
