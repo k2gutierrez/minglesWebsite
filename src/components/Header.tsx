@@ -22,7 +22,7 @@ export default function Header() {
                     />
                 </Link>
 
-                {/* Desktop Menu */}
+                {/* Desktop Menu 
                 <div className="hidden md:flex items-center space-x-10">
                     <Link href="/lair" className="text-white hover:text-red-300 transition-colors">
                         LAIR
@@ -43,11 +43,12 @@ export default function Header() {
                         <ConnectButton label='CONNECT WALLET'/>
                     </div>
                 </div>
+                */}
 
                 {/* Mobile Menu Button */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="md:hidden text-white focus:outline-none"
+                    className=" text-white focus:outline"
                     aria-label="Toggle menu"
                 >
                     <svg
@@ -73,10 +74,14 @@ export default function Header() {
                         )}
                     </svg>
                 </button>
+                <div className="hidden md:block ms-4 pt-2">
+                        <ConnectButton label='CONNECT WALLET'/>
+                    </div>
+                
             </div>
 
             {/* Mobile Menu Dropdown */}
-            <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} mt-4 pb-4`}>
+            <div className={` ${isOpen ? 'block' : 'hidden'} mt-4 pb-4`}>
                 <div className="flex flex-col space-y-4">
                     <Link href="/lair" className="text-white hover:text-gray-300 transition-colors">
                         LAIR
@@ -93,7 +98,7 @@ export default function Header() {
                     <Link href="/about" className="text-white hover:text-gray-300 transition-colors">
                         ABOUT
                     </Link>
-                    <div className="pt-2">
+                    <div className="md:hidden pt-2">
                         <ConnectButton label='CONNECT WALLET'/>
                     </div>
                 </div>

@@ -12,7 +12,7 @@ interface TimeLeft {
 }
 
 const CountdownTimer2 = () => {
-  const targetDate = new Date('2025-05-24T00:00:00').getTime();
+  const targetDate = new Date('2025-05-24T20:00:00').getTime();
 
   const calculateTimeLeft = (): TimeLeft => {
     const now = Date.now();

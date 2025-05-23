@@ -25,6 +25,7 @@ export default function Prison() {
         <div className="text-center align-items-center p-3">
           <MinglesPrison />
         </div>
+        
 
       </div>
       <Footer />

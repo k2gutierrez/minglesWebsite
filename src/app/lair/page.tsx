@@ -62,6 +62,7 @@ export default function Lair() {
   }
 
   return (
+    <>
     <div className="">
       <Header />
       <div className="w-layout-blockcontainer page-wrapper w-container">
@@ -136,7 +137,9 @@ export default function Lair() {
         </div>
 
       </div>
-      <Footer />
+      
     </div>
+    <Footer />
+    </>
   );
 }

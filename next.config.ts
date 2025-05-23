@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
             {
                 protocol: 'https',
                 hostname: 'bafybeifrjmhpuf34cv6sy4lqhs5gmmusznpunyfik3rqoqfi73abpcpnbi.ipfs.w3s.link'
+            },
+            {
+                protocol: 'https',
+                hostname: 'd3e54v103j8qbb.cloudfront.net'
             }
         ]
     }
