@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Countdown2025 from "@/components/CountdownTimer2";
 import Panel from "@/components/cava/Panel";
+import StakeModal from "@/components/cava/Stakemodal";
 
 export default function Cava() {
 
@@ -38,9 +39,9 @@ export default function Cava() {
             <div className="cavabutton">
               <div className="text-buttons-cava">CAVA PROGRAM</div>
             </div>
-            <div className="cavabutton">
-              <div className="text-buttons-cava">STAKE</div>
-            </div>
+            {<div className="cavabutton">
+              <div className="text-buttons-cava"><StakeModal /></div>
+            </div>}
             <div className="cavabutton">
               <div className="text-buttons-cava">CLAIM</div>
             </div>
