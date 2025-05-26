@@ -7,6 +7,8 @@ import { Tokens } from "@/components/engine/atoms";
 import axios from "axios";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useChainId } from "wagmi";
+import { MinglesAddress, MinglesCurtis } from "@/components/engine/CONSTANTS";
 
 export default function Lair() {
   const [tokens, setTokens] = useAtom(Tokens)
@@ -14,6 +16,7 @@ export default function Lair() {
   const [currentAddress, setCurrentAddress] = useState<string>("0x000...")
   const { isConnected, address } = useAccount()
   const router = useRouter()
+  const chainId = useChainId()
 
 
 
@@ -28,12 +31,20 @@ export default function Lair() {
 
 
   async function getMingles() {
-    const mingles_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=0x9AD70bAE14e13BD39E92b88fd767a9F9370Dc63f&sortDirection=asc&limit=200`
-    const mingles_ape = `https://api-apechain.reservoir.tools/users/${address}/tokens/v10?contract=0x6579cfD742D8982A7cDc4C00102D3087F6c6dd8E&sortDirection=asc&limit=200`
+    
+    const mingles_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${MinglesCurtis}&sortDirection=asc&limit=200`
+    const mingles_ape = `https://api-apechain.reservoir.tools/users/${address}/tokens/v10?contract=${MinglesAddress}&sortDirection=asc&limit=200`
     //api-apechain
+    let adrr = ""
+    if (chainId == 33111){
+      adrr = mingles_curtis
+    } else {
+      adrr = mingles_ape
+    }
+
     const options = {
       method: 'GET',
-      url: mingles_ape,
+      url: adrr,
       headers: { accept: '*/*', 'x-api-key': process.env.NEXT_PUBLIC_RESERVOIR }
     };
 
