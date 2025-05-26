@@ -193,7 +193,7 @@ export default function StakeModal() {
                             {amount} MINGLES STAKED SUCCESFULLY
                         </p>
                         <p className='text-xs md:text-md font-[family-name:var(--font-pressura)]'>
-                            Go Claim your Cava NFTs!
+                            Go CLAIM your CAVA NFTs!
                         </p>
                         <button
                             onClick={closeModal}
