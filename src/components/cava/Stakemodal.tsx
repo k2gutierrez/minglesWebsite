@@ -27,8 +27,14 @@ export default function StakeModal() {
 
     const [loading, setLoading] = useAtom(loadingAtom)
 
+    const [message, setMessage] = useState(false)
+
     const openModal = () => setIsOpen(true);
-    const closeModal = () => setIsOpen(false);
+    const closeModal = () => {
+        getMingles()
+        setIsOpen(false);
+        setMessage(false)
+    }
 
     useEffect(() => {
         if (isConnected) {
@@ -37,7 +43,7 @@ export default function StakeModal() {
         }
         getArray(amount)
 
-    }, [isConnected, amount, loading])
+    }, [isConnected, amount, loading, chainId])
 
     async function getMingles() {
 
@@ -111,10 +117,9 @@ export default function StakeModal() {
                     tokens
                 ],
             })
-            setLoading(false)
+            setMessage(true)
             await getMingles()
-
-            closeModal()
+            setLoading(false)
 
         } else {
             const approvalHash = await writeContractAsync({
@@ -142,10 +147,9 @@ export default function StakeModal() {
                     ],
                 })
                 
+                setMessage(true)
                 await getMingles()
                 setLoading(false)
-                
-                closeModal()
 
             }
 
@@ -175,7 +179,7 @@ export default function StakeModal() {
                         <p className='text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
                             Cava Program
                         </p>
-                        <p className='my-3 text-xs md:text-md font-[family-name:var(--font-pressura)]'>
+                        {message == false &&(<><p className='my-3 text-xs md:text-md font-[family-name:var(--font-pressura)]'>
                             {numTokens} Mingles to stack
                         </p>
                         <p className='my-3 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
@@ -183,8 +187,24 @@ export default function StakeModal() {
                         </p>
                         <p className='text-xs md:text-md font-[family-name:var(--font-pressura)]'>
                             {numTokens} Bottles
+                        </p></>)}
+                        {message == true &&(<>
+                        <p className='my-3 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
+                            {amount} MINGLES STAKED SUCCESFULLY
                         </p>
-                        {!loading && (<><div>
+                        <p className='text-xs md:text-md font-[family-name:var(--font-pressura)]'>
+                            Go Claim your Cava NFTs!
+                        </p>
+                        <button
+                            onClick={closeModal}
+                            className={cls(styles.backColor, "py-1 px-2 my-4 rounded hover:bg-red-600")}
+                        >
+                            <p>Close</p>
+
+                        </button>
+                        
+                        </>)}
+                        {!loading && message == false && (<><div>
                             <input className="bg-white text-black text-center px-3 py-1 text-base" min={1} max={numTokens} type="number" onChange={e => setAmount(Number(e.target.value))} />
                         </div>
                         <div>

@@ -39,7 +39,7 @@ export default function Cava() {
 
   const aproxUsd = numTokens * target
   const liters = numTokens * .750
-  const apeUsd = round((aproxUsd / ape), 2)
+  const apeUsd = String(round((aproxUsd / ape), 2))
 
   useEffect(() => {
     if (isConnected) {
@@ -47,7 +47,7 @@ export default function Cava() {
       getApePrice()
       getCavaNFTs()
     }
-  }, [isConnected, loading])
+  }, [isConnected, loading, chainId])
 
   async function getCavaNFTs() {
     const cava_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${CavaNFTAddressCurtis}&sortDirection=asc&limit=200`
@@ -190,7 +190,7 @@ export default function Cava() {
                   </div>
                 </div>
                 <div className="w-layout-grid grid-cavainfototal">
-                  <div id="w-node-b62dcbf5-e51d-d2bc-e796-b15da87e55c9-0fdcf260" className="text-cavausers-info">LITTERS</div>
+                  <div id="w-node-b62dcbf5-e51d-d2bc-e796-b15da87e55c9-0fdcf260" className="text-cavausers-info">LITERS</div>
                   <div id="w-node-dcdbfa0d-44f9-9808-2418-53d3c4aed4b2-0fdcf260" className="text-cavausers-info">BOTTLES</div>
                   <div id="w-node-_5cbd1778-389a-a68f-7479-60b7b2c7e3cf-0fdcf260" className="text-cavausers-info">TARGET PRICE REPO BOTTLE</div>
                   <div id="w-node-_5aac0e94-fe9f-dac9-ab3a-f741a71e58e5-0fdcf260" className="text-cavausers-info">TOTAL USD APPROX</div>

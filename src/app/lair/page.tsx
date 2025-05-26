@@ -8,7 +8,8 @@ import axios from "axios";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useChainId } from "wagmi";
-import { MinglesAddress, MinglesCurtis } from "@/components/engine/CONSTANTS";
+import { MinglesAddress, MinglesCurtis, CavaNFTAddress, CavaNFTAddressCurtis } from "@/components/engine/CONSTANTS";
+import { CavaTokens } from "@/components/engine/atoms";
 
 export default function Lair() {
   const [tokens, setTokens] = useAtom(Tokens)
@@ -18,16 +19,20 @@ export default function Lair() {
   const router = useRouter()
   const chainId = useChainId()
 
+  const [cavaTokens, setCavaTokens] = useAtom(CavaTokens);
+  const [numTokens, setNumTokens] = useState(0)
+
 
 
   useEffect(() => {
     if (isConnected) {
       //router.push('/')
       getMingles()
-      setCurrentAddress
+      getCavaNFTs()
+      setCurrentAddress(String(address))
     }
 
-  }, [isConnected])
+  }, [isConnected, chainId])
 
 
   async function getMingles() {
@@ -72,6 +77,39 @@ export default function Lair() {
     return array[Number(randomIndex)]; 
   }
 
+  async function getCavaNFTs() {
+    const cava_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${CavaNFTAddressCurtis}&sortDirection=asc&limit=200`
+    const cava_ape = `https://api-apechain.reservoir.tools/users/${address}/tokens/v10?contract=${CavaNFTAddress}&sortDirection=asc&limit=200`
+    //api-apechain
+    let adrr = ""
+    if (chainId == 33111) {
+      adrr = cava_curtis
+    } else {
+      adrr = cava_ape
+    }
+
+    const options = {
+      method: 'GET',
+      url: adrr,
+      headers: { accept: '*/*', 'x-api-key': process.env.NEXT_PUBLIC_RESERVOIR }
+    };
+
+    axios
+      .request(options)
+      .then(res => {
+        let data1 = res.data
+        let tokensArr: string[] = []
+        for (let i = 0; i < data1.tokens.length; i++) {
+          tokensArr.push(data1.tokens[i].token.tokenId)
+        }
+        setCavaTokens(tokensArr)
+        setNumTokens(tokensArr.length)
+        console.log(tokensArr)
+
+      })
+      .catch(err => console.error(err));
+  }
+
   return (
     <>
     <div className="">
@@ -87,7 +125,7 @@ export default function Lair() {
                     <div id="w-node-c7ab43d8-42f2-775d-6639-c9c41d28e657-9696e6d5" className="text-lair font-[family-name:var(--font-hogfish)]">MINGLES LAIR</div>
                   </div>
                   <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="w-layout-grid gm-user font-[family-name:var(--font-pressura)]">
-                    <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM <br /></div>
+                    <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM <br /><br /><br /></div>
                     
                     <div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text">{currentAddress}</div>
                 
@@ -100,11 +138,11 @@ export default function Lair() {
                   </div>
                   <div className="w-layout-grid mingles-aped-staked">
                     <div className="info-staked-text font-[family-name:var(--font-pressura)]">Aging (Staked)</div>
-                    <div className="blockc-staked font-[family-name:var(--font-pressura)]">0</div>
+                    <div className="blockc-staked font-[family-name:var(--font-pressura)]">{numTokens}</div>
                   </div>
                   <div className="w-layout-grid tequila-tokens">
                     <div className="info-tequila-text font-[family-name:var(--font-pressura)]">Tequila Bottles</div>
-                    <div className="block-tequila font-[family-name:var(--font-pressura)]">0</div>
+                    <div className="block-tequila font-[family-name:var(--font-pressura)]">{numTokens}</div>
                   </div>
                   <div className="w-layout-grid mgls">
                     <div className="info-mgls-text"></div>
@@ -112,7 +150,7 @@ export default function Lair() {
                   </div>
                 </div>
                 <div id="w-node-_9a9015d1-e1a8-bffb-8a81-7f0e20ab80f8-9696e6d5" className="div-news-grid">
-                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text font-[family-name:var(--font-pressura)]">Cava programa coming May 24th<br />{/*Stake your MINGLES APED and claim TEQUILA*/}</div>
+                  <div id="w-node-_1e58195a-0943-6cde-41ab-9697023e0db7-9696e6d5" className="news-info-text font-[family-name:var(--font-pressura)]">Cava Program Is now live!!<br />{/*Stake your MINGLES APED and claim TEQUILA*/}</div>
                 </div>
               </div>
             </div>

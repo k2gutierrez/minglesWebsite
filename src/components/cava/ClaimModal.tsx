@@ -8,6 +8,7 @@ import { CavaNFTABI } from "../engine/CavaNFTABI";
 import { CavaStakeABI } from "../engine/CavaStakeABI";
 import { readContract, waitForTransactionReceipt } from "@wagmi/core"
 import { CavaNFTAddress, CavaStakeAddress, CavaNFTAddressCurtis, CavaStakeAddressCurtis } from "../engine/CONSTANTS";
+import Image from "next/image";
 
 export default function ClaimModal() {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,15 +20,20 @@ export default function ClaimModal() {
 
     const [loading, setLoading] = useAtom(loadingAtom)
 
+    const [message, setMessage] = useState(false)
+
     const openModal = () => setIsOpen(true);
-    const closeModal = () => setIsOpen(false);
+    const closeModal = () => {
+        setIsOpen(false);
+        setMessage(false)
+    }
 
     useEffect(() => {
         if (isConnected) {
             stakedNumber()
         }
 
-    }, [isConnected, loading])
+    }, [isConnected, loading, chainId])
 
     async function claimTequilaTokens() {
 
@@ -58,8 +64,8 @@ export default function ClaimModal() {
         
         await stakedNumber()
         setLoading(false)
+        setMessage(true)
         
-        closeModal()
         
     }
 
@@ -113,14 +119,25 @@ export default function ClaimModal() {
                         <p className='text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
                             Cava Program
                         </p>
+                            {message == true &&(<>
+                            <Image src={"/assets/ClaimCAVA.jpg"} width={500} height={500} alt="Claimed Cava" />
+                            <button
+                                onClick={closeModal}
+                                className={cls(styles.backColor, "py-1 px-2 my-4 rounded hover:bg-red-600")}
+                            >
+                                <p>Close</p>
 
-                            <p className='my-3 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
+                            </button>
+                            </>
+                            )}
+                            {!loading && message == false &&(<><p className='my-3 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
                                 HERO CAN CLAIM
                             </p>
+                            
                             <p className='text-xs md:text-md font-[family-name:var(--font-pressura)]'>
                                 {numTokens} CavaNFTs
-                            </p>
-                            {!loading && (<><div>
+                            </p></>)}
+                            {!loading && message == false && (<><div>
                                 <button
                                     onClick={claimTequilaTokens}
                                     className={cls(styles.backColor, " px-3 py-2 my-4 rounded hover:bg-red-600")}
