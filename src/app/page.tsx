@@ -39,7 +39,7 @@ export default function Home() {
             </div>
             <div className="w-layout-grid grid-bottons-main flex">
               <div id="w-node-ea1f47d2-f0c0-193c-af53-0aa4e8d2ee8b-6f23bd87" className="div-login">
-                <a href="/lair" className="button-login w-button" aria-disabled={true}>ENTER LAIR</a>
+                <a href="/lair" className="button-login w-button p-3" aria-disabled={true}>ENTER LAIR</a>
               </div>
               <div id="w-node-fffb23d0-a68b-3ee4-feed-574ce9a6226e-6f23bd87" className="div-connect">
                 <ConnectButton
