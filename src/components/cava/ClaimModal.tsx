@@ -15,7 +15,7 @@ export default function ClaimModal() {
     const config = useConfig()
     const chainId = useChainId()
 
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
 
     const openModal = () => setIsOpen(true);
     const closeModal = () => setIsOpen(false);

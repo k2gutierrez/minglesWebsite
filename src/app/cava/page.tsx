@@ -18,10 +18,12 @@ import { CavaNFTAddress, CavaStakeAddress, CavaNFTAddressCurtis } from "@/compon
 import { useAtom } from "jotai";
 import { CavaTokens } from "@/components/engine/atoms";
 import { parseEther } from "viem";
+import { loadingAtom } from "@/components/engine/atoms";
 
 export default function Cava() {
 
   const [cavaTokens, setCavaTokens] = useAtom(CavaTokens);
+
   const [numTokens, setNumTokens] = useState(0)
   const { isConnected, address } = useAccount()
   const { data: hash, isPending, writeContractAsync } = useWriteContract()
@@ -43,7 +45,7 @@ export default function Cava() {
       getApePrice()
       getCavaNFTs()
     }
-  }, [isConnected])
+  }, [isConnected, loadingAtom])
 
   async function getCavaNFTs() {
     const cava_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${CavaNFTAddressCurtis}&sortDirection=asc&limit=200`

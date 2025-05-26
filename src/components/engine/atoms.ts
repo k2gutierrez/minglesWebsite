@@ -3,8 +3,9 @@ import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 
 // Simple atom example
-export const Tokens = atom<string[]>([])
-export const CavaTokens = atom<string[]>([])
+export let Tokens = atom<string[]>([])
+export let CavaTokens = atom<string[]>([])
+export let loadingAtom = atom(false)
 
 // Derived atom example
 //export const doubledCountAtom = atom((get) => get(countAtom)[randomColor(countAtom)])
