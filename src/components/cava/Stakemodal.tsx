@@ -4,6 +4,7 @@ import cls from "classnames"
 import Link from "next/link";
 import { Tokens } from "../engine/atoms";
 import { useAtom } from "jotai";
+import { loadingAtom } from "../engine/atoms";
 import axios from "axios";
 import { useChainId, useConfig, useAccount, useWriteContract, useReadContract } from "wagmi";
 import { MinglesABI } from "../engine/MinglesABI";
@@ -24,7 +25,7 @@ export default function StakeModal() {
     const config = useConfig()
     const chainId = useChainId()
 
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useAtom(loadingAtom)
 
     const openModal = () => setIsOpen(true);
     const closeModal = () => setIsOpen(false);
@@ -82,7 +83,7 @@ export default function StakeModal() {
     }
 
     async function handleApprovalAndStaking() {
-
+        setLoading(true)
         //MinglesAddress, MinglesCurtis, CavaNFTAddress, CavaStakeAddress, CavaNFTAddressCurtis, CavaStakeAddressCurtis
         let MingleAddrr = ""
         let CavaStakeAddrr = ""
@@ -111,10 +112,9 @@ export default function StakeModal() {
                 ],
             })
             setLoading(false)
-            getMingles()
+            await getMingles()
 
-            closeModal
-            return
+            closeModal()
 
         } else {
             const approvalHash = await writeContractAsync({
@@ -141,9 +141,11 @@ export default function StakeModal() {
                         tokens
                     ],
                 })
+                
+                await getMingles()
                 setLoading(false)
-                getMingles()
-                closeModal
+                
+                closeModal()
 
             }
 

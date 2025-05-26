@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import styles from "./profile.module.css"
 import cls from "classnames"
 import { useChainId, useConfig, useAccount, useWriteContract, useReadContract } from "wagmi";
+import { useAtom } from "jotai";
+import { loadingAtom } from "../engine/atoms";
 import { CavaNFTABI } from "../engine/CavaNFTABI";
 import { CavaStakeABI } from "../engine/CavaStakeABI";
 import { readContract, waitForTransactionReceipt } from "@wagmi/core"
@@ -15,7 +17,7 @@ export default function ClaimModal() {
     const config = useConfig()
     const chainId = useChainId()
 
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useAtom(loadingAtom)
 
     const openModal = () => setIsOpen(true);
     const closeModal = () => setIsOpen(false);
@@ -53,11 +55,12 @@ export default function ClaimModal() {
         })
 
         console.log("Mint confirmed", mintReceipt)
+        
+        await stakedNumber()
         setLoading(false)
-        if (mintReceipt) {
-            await stakedNumber()
-            closeModal
-        }
+        
+        closeModal()
+        
     }
 
     async function stakedNumber() {

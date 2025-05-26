@@ -23,7 +23,7 @@ import { loadingAtom } from "@/components/engine/atoms";
 export default function Cava() {
 
   const [cavaTokens, setCavaTokens] = useAtom(CavaTokens);
-
+  
   const [numTokens, setNumTokens] = useState(0)
   const { isConnected, address } = useAccount()
   const { data: hash, isPending, writeContractAsync } = useWriteContract()
@@ -35,6 +35,8 @@ export default function Cava() {
 
   const [amount, setAmount] = useState(0)
 
+  const [loading, setLoading] = useAtom(loadingAtom)
+
   const aproxUsd = numTokens * target
   const liters = numTokens * .750
   const apeUsd = round((aproxUsd / ape), 2)
@@ -45,7 +47,7 @@ export default function Cava() {
       getApePrice()
       getCavaNFTs()
     }
-  }, [isConnected, loadingAtom])
+  }, [isConnected, loading])
 
   async function getCavaNFTs() {
     const cava_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${CavaNFTAddressCurtis}&sortDirection=asc&limit=200`
