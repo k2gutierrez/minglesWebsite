@@ -15,6 +15,8 @@ export default function ClaimModal() {
     const config = useConfig()
     const chainId = useChainId()
 
+    const [loading, setLoading] = useState(true)
+
     const openModal = () => setIsOpen(true);
     const closeModal = () => setIsOpen(false);
 
@@ -23,15 +25,16 @@ export default function ClaimModal() {
             stakedNumber()
         }
 
-    }, [isConnected])
+    }, [isConnected, loading])
 
     async function claimTequilaTokens() {
 
         //CavaNFTAddress, CavaStakeAddress, CavaNFTAddressCurtis, CavaStakeAddressCurtis
+        setLoading(true)
 
         let CavaNFTAddrr = ""
         let CavaStakeAddrr = ""
-        if (chainId == 33111){
+        if (chainId == 33111) {
             CavaNFTAddrr = CavaNFTAddressCurtis
             CavaStakeAddrr = CavaStakeAddressCurtis
         } else {
@@ -50,7 +53,7 @@ export default function ClaimModal() {
         })
 
         console.log("Mint confirmed", mintReceipt)
-
+        setLoading(false)
         if (mintReceipt) {
             await stakedNumber()
             closeModal
@@ -60,7 +63,7 @@ export default function ClaimModal() {
     async function stakedNumber() {
 
         let CavaStakeAddrr = ""
-        if (chainId == 33111){
+        if (chainId == 33111) {
             CavaStakeAddrr = CavaStakeAddressCurtis
         } else {
             CavaStakeAddrr = CavaStakeAddress
@@ -79,9 +82,6 @@ export default function ClaimModal() {
             functionName: 'getUserAlreadyStaked',
             args: [address],
         })
-
-        console.log("totalStaked", Number(result))
-        console.log("alreadyStaked", Number(result2))
 
         let num = Number(result) - Number(result2)
 
@@ -111,31 +111,40 @@ export default function ClaimModal() {
                             Cava Program
                         </p>
 
-                        <p className='my-3 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
-                            HERO CAN CLAIM
-                        </p>
-                        <p className='text-xs md:text-md font-[family-name:var(--font-pressura)]'>
-                            {numTokens} CavaNFTs
-                        </p>
-                        <div>
+                            <p className='my-3 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
+                                HERO CAN CLAIM
+                            </p>
+                            <p className='text-xs md:text-md font-[family-name:var(--font-pressura)]'>
+                                {numTokens} CavaNFTs
+                            </p>
+                            {!loading && (<><div>
+                                <button
+                                    onClick={claimTequilaTokens}
+                                    className={cls(styles.backColor, " px-3 py-2 my-4 rounded hover:bg-red-600")}
+                                >
+                                    <p>Claim Cava NFTs</p>
+
+                                </button>
+                            </div>
                             <button
-                                onClick={claimTequilaTokens}
-                                className={cls(styles.backColor, " px-3 py-2 my-4 rounded hover:bg-red-600")}
+                                onClick={closeModal}
+                                className={cls(styles.backColor, "py-1 px-2 my-4 rounded hover:bg-red-600")}
                             >
-                                <p>Claim Cava NFTs</p>
+                                <p>Close</p>
 
-                            </button>
-                        </div>
-                        <button
-                            onClick={closeModal}
-                            className={cls(styles.backColor, "py-1 px-2 my-4 rounded hover:bg-red-600")}
-                        >
-                            <p>Close</p>
-
-                        </button>
+                            </button></>
+                        )}
+                        {loading &&
+                            (
+                                <div className="flex justify-center items-center">
+                                    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                            )
+                        }
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

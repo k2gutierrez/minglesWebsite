@@ -24,6 +24,8 @@ export default function StakeModal() {
     const config = useConfig()
     const chainId = useChainId()
 
+    const [loading, setLoading] = useState(false)
+
     const openModal = () => setIsOpen(true);
     const closeModal = () => setIsOpen(false);
 
@@ -34,7 +36,7 @@ export default function StakeModal() {
         }
         getArray(amount)
 
-    }, [isConnected, amount])
+    }, [isConnected, amount, loading])
 
     async function getMingles() {
 
@@ -99,7 +101,7 @@ export default function StakeModal() {
             args: [address, CavaStakeAddrr]
         })
 
-        if (check){
+        if (check) {
             const staking = await writeContractAsync({
                 abi: CavaStakeABI,
                 address: CavaStakeAddrr as `0x${string}`,
@@ -108,37 +110,43 @@ export default function StakeModal() {
                     tokens
                 ],
             })
-
+            setLoading(false)
             getMingles()
+
+            closeModal
+            return
+
         } else {
             const approvalHash = await writeContractAsync({
-            abi: MinglesABI,
-            address: MingleAddrr as `0x${string}`,
-            functionName: "setApprovalForAll",
-            args: [
-                CavaStakeAddrr,
-                true
-            ],
-        })
-        const approvalReceipt = await waitForTransactionReceipt(config, {
-            hash: approvalHash,
-        })
-
-        console.log("Approval confirmed", approvalReceipt)
-
-        if (approvalReceipt) {
-            const staking = await writeContractAsync({
-                abi: CavaStakeABI,
-                address: CavaStakeAddrr as `0x${string}`,
-                functionName: "stakeNfts",
+                abi: MinglesABI,
+                address: MingleAddrr as `0x${string}`,
+                functionName: "setApprovalForAll",
                 args: [
-                    tokens
+                    CavaStakeAddrr,
+                    true
                 ],
             })
+            const approvalReceipt = await waitForTransactionReceipt(config, {
+                hash: approvalHash,
+            })
 
-            getMingles()
-        }
-            
+            console.log("Approval confirmed", approvalReceipt)
+
+            if (approvalReceipt) {
+                const staking = await writeContractAsync({
+                    abi: CavaStakeABI,
+                    address: CavaStakeAddrr as `0x${string}`,
+                    functionName: "stakeNfts",
+                    args: [
+                        tokens
+                    ],
+                })
+                setLoading(false)
+                getMingles()
+                closeModal
+
+            }
+
         }
 
     }
@@ -174,7 +182,7 @@ export default function StakeModal() {
                         <p className='text-xs md:text-md font-[family-name:var(--font-pressura)]'>
                             {numTokens} Bottles
                         </p>
-                        <div>
+                        {!loading && (<><div>
                             <input className="bg-white text-black text-center px-3 py-1 text-base" min={1} max={numTokens} type="number" onChange={e => setAmount(Number(e.target.value))} />
                         </div>
                         <div>
@@ -192,7 +200,12 @@ export default function StakeModal() {
                         >
                             <p>Close</p>
 
-                        </button>
+                        </button></>)}
+                        {loading && (
+                            <div className="flex justify-center items-center">
+                                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
