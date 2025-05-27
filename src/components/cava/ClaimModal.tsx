@@ -9,6 +9,7 @@ import { CavaStakeABI } from "../engine/CavaStakeABI";
 import { readContract, waitForTransactionReceipt } from "@wagmi/core"
 import { CavaNFTAddress, CavaStakeAddress, CavaNFTAddressCurtis, CavaStakeAddressCurtis } from "../engine/CONSTANTS";
 import Image from "next/image";
+import { RefreshCava } from "../engine/atoms";
 
 export default function ClaimModal() {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +20,7 @@ export default function ClaimModal() {
     const chainId = useChainId()
 
     const [loading, setLoading] = useAtom(loadingAtom)
+    const [refresh, setRefresh] = useAtom(RefreshCava)
 
     const [message, setMessage] = useState(false)
 
@@ -39,6 +41,7 @@ export default function ClaimModal() {
 
         //CavaNFTAddress, CavaStakeAddress, CavaNFTAddressCurtis, CavaStakeAddressCurtis
         setLoading(true)
+        setRefresh(true)
 
         let CavaNFTAddrr = ""
         let CavaStakeAddrr = ""
@@ -60,9 +63,10 @@ export default function ClaimModal() {
             hash: mintHash,
         })
 
-        console.log("Mint confirmed", mintReceipt)
+        //console.log("Mint confirmed", mintReceipt)
         
         await stakedNumber()
+        setRefresh(false)
         setLoading(false)
         setMessage(true)
         
@@ -107,7 +111,7 @@ export default function ClaimModal() {
             </button>*/}
             <div className="">
                 <button onClick={openModal} type="button" >
-                    <div className="cavabutton py-5 px-10">CLAIM</div>
+                    <div className="py-1 px-1 sm:py-3 sm:px-7 py-1">CLAIM</div>
                 </button>
 
             </div>

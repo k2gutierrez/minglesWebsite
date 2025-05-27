@@ -72,7 +72,6 @@ export default function StakeModal() {
                 }
                 setMingles(tokensArr)
                 setNumTokens(tokensArr.length)
-                console.log(tokensArr)
 
             })
             .catch(err => console.error(err));
@@ -135,7 +134,7 @@ export default function StakeModal() {
                 hash: approvalHash,
             })
 
-            console.log("Approval confirmed", approvalReceipt)
+            //console.log("Approval confirmed", approvalReceipt)
 
             if (approvalReceipt) {
                 const staking = await writeContractAsync({
@@ -167,7 +166,7 @@ export default function StakeModal() {
             </button>*/}
             <div className="">
                 <button onClick={openModal} type="button" >
-                    <div className="cavabutton py-5 px-10">STAKE</div>
+                    <div className="py-1 px-1 sm:py-3 sm:px-7 py-1">STAKE</div>
                 </button>
 
             </div>

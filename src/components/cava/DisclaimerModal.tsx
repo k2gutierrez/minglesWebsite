@@ -18,7 +18,7 @@ export default function DisclaimerModal() {
             </button>*/}
             <div className="">
                 <button onClick={openModal} type="button" >
-                    <div className="cavabutton py-5 px-6">DISCLAIMER</div>
+                    <div className="border border-solid py-1 px-1 sm:py-3 sm:px-7 py-1">DISCLAIMER</div>
                 </button>
 
             </div>

@@ -8,7 +8,7 @@ export const CavaStakeAddress = "0x8FD1942b961ed13aC50a5873bA06fABE37168f6D"
 
 
 //Curtis
-export const MinglesCurtis = "0x0641fb636e842b043671247989b9F9456643107d"
+export const MinglesCurtis = "0x15f4e543F6869e43baDF3C6365D7C759c1B397D8"
 
 export const CavaNFTAddressCurtis = "0x1965131c250d128a2336F85bC7DEca803762770f"
 

@@ -19,12 +19,11 @@ import { useAtom } from "jotai";
 import { CavaTokens } from "@/components/engine/atoms";
 import { parseEther } from "viem";
 import { loadingAtom } from "@/components/engine/atoms";
-import { RefreshCava } from "@/components/engine/atoms";
 
 export default function Cava() {
 
   const [cavaTokens, setCavaTokens] = useAtom(CavaTokens);
-
+  
   const [numTokens, setNumTokens] = useState(0)
   const { isConnected, address } = useAccount()
   const { data: hash, isPending, writeContractAsync } = useWriteContract()
@@ -37,7 +36,6 @@ export default function Cava() {
   const [amount, setAmount] = useState(0)
 
   const [loading, setLoading] = useAtom(loadingAtom)
-  const [refresh, setRefresh] = useAtom(RefreshCava)
 
   const aproxUsd = numTokens * target
   const liters = numTokens * .750
@@ -49,15 +47,7 @@ export default function Cava() {
       getApePrice()
       getCavaNFTs()
     }
-
-  }, [isConnected, chainId])
-
-  useEffect(() => {
-    if (refresh == false && isConnected == true){
-      getCavaNFTs()
-    }
-
-  }, [refresh])
+  }, [isConnected, loading, chainId])
 
   async function getCavaNFTs() {
     const cava_curtis = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${CavaNFTAddressCurtis}&sortDirection=asc&limit=200`
@@ -86,6 +76,7 @@ export default function Cava() {
         }
         setCavaTokens(tokensArr)
         setNumTokens(tokensArr.length)
+        console.log(tokensArr)
 
       })
       .catch(err => console.error(err));
@@ -126,7 +117,7 @@ export default function Cava() {
       hash: approvalHash,
     })
 
-    //console.log("Approval confirmed", approvalReceipt)
+    console.log("Approval confirmed", approvalReceipt)
 
     if (approvalReceipt) {
 
@@ -145,7 +136,6 @@ export default function Cava() {
         <Footer />
       </div>
     </div>*/
-
     <div className="body pagre-wrapper-layout">
       <div className="navbardummy"><Header /></div>
       <div id="w-node-_0d59f50a-56e4-eee1-f6ef-71f651fb8a6b-0fdcf260" className="mainsectionlayout">
@@ -154,19 +144,23 @@ export default function Cava() {
             <div className="cavabutton">
               <div className="text-buttons-cava">CAVA PROGRAM</div>
             </div>
-            
+            <StakeModal />
+            {/*{<div className="cavabutton">
+              {/*<div className="text-buttons-cava"></div>
+            </div>}
             <div className="cavabutton">
-              <div className="text-buttons-cava"><StakeModal /></div>
+              <div className="text-buttons-cava">CLAIM</div>
             </div>
             <div className="cavabutton">
-              <div className="text-buttons-cava"><ClaimModal /></div>
+              <div className="text-buttons-cava">DISCLAIMER</div>
             </div>
-            <div className="cavabutton">
-              <div className="text-buttons-cava"><DisclaimerModal /></div>
-            </div>
+            */}
+            <ClaimModal />
+            <DisclaimerModal />
+
           </div>
           <div className="w-layout-grid grid-cava-program-main">
-            <div id="w-node-_5aeade1c-4de0-d533-11bc-3989dafde745-0fdcf260" className="w-layout-grid grid-cavaprogram1">
+            <div className="w-layout-grid grid-cavaprogram1">
               <div id="w-node-_60cdcf82-e47a-25c8-bc6f-5e2a9c911fca-0fdcf260" className="image-cavaprogram-worms"><img src="images/CavaMinglesWorms.png" loading="lazy" sizes="(max-width: 5267px) 100vw, 5267px" srcSet="images/CavaMinglesWorms-p-500.png 500w, images/CavaMinglesWorms-p-800.png 800w, images/CavaMinglesWorms-p-1080.png 1080w, images/CavaMinglesWorms-p-1600.png 1600w, images/CavaMinglesWorms-p-2000.png 2000w, images/CavaMinglesWorms-p-2600.png 2600w, images/CavaMinglesWorms-p-3200.png 3200w, images/CavaMinglesWorms.png 5267w" alt="" className="image-wormscava" /></div>
               <div className="cavaprograminfo">
                 <div className="text-blanco">TEQUILA BLANCO</div>
@@ -196,7 +190,7 @@ export default function Cava() {
                   </div>
                 </div>
                 <div className="w-layout-grid grid-cavainfototal">
-                  <div id="w-node-b62dcbf5-e51d-d2bc-e796-b15da87e55c9-0fdcf260" className="text-cavausers-info">LITTERS</div>
+                  <div id="w-node-b62dcbf5-e51d-d2bc-e796-b15da87e55c9-0fdcf260" className="text-cavausers-info">LITERS</div>
                   <div id="w-node-dcdbfa0d-44f9-9808-2418-53d3c4aed4b2-0fdcf260" className="text-cavausers-info">BOTTLES</div>
                   <div id="w-node-_5cbd1778-389a-a68f-7479-60b7b2c7e3cf-0fdcf260" className="text-cavausers-info">TARGET PRICE REPO BOTTLE</div>
                   <div id="w-node-_5aac0e94-fe9f-dac9-ab3a-f741a71e58e5-0fdcf260" className="text-cavausers-info">TOTAL USD APPROX</div>
@@ -210,11 +204,11 @@ export default function Cava() {
                   <div id="w-node-_30817ceb-9e99-e760-ac2b-70049ec6bb7a-0fdcf260" className="text-cavausers-info-2">{apeUsd}</div>
                 </div>
               </div>
-             {/* <div className="w-layout-grid grid-cavausers2">
+              {/*<div className="w-layout-grid grid-cavausers2">
                 <div id="w-node-_7532e0ca-9747-d2e0-0020-99b0dd057eff-0fdcf260" className="div-minglechecker">
                   <div className="text-mingleid">ENTER MINGLE ID</div>
                   <div className="gridminglecheker">
-                    <div className="div-mingle-checker"><img src="images/MeLogo.png" loading="lazy" sizes="(max-width: 512px) 100vw, 512px" srcSet="images/MeLogo-p-500.png 500w, images/MeLogo.png 512w" alt="" className="me-logo" /></div>
+                    <div className="div-mingle-checker"><img src="images/MeLogo.png" loading="lazy" sizes="(max-width: 512px) 100vw, 512px" srcSet="images/MeLogo.png 500w, images/MeLogo.png 512w" alt="" className="me-logo" /></div>
                     <div className="div-mingle-checker">
                       <div className="div-mingle-checker-input"></div>
                       <a href="#" className="link-mingle-checker w-inline-block">
@@ -229,11 +223,11 @@ export default function Cava() {
                   <div className="text-mingleid-claimed">ONLY 200 MORE AVAILABLE @15 APE</div>
                   <div className="div-buymorebuttons">
                     <div className="div-20-100">
-                      <div className="text-button-mint-supply">0/100</div>
+                      <div className="text-button-mint-supply">0/200</div>
                     </div>
-                    <a href="#" className="link-mintmore w-inline-block">
-                      <div className="text-button-minglecheck">MINT</div>
-                    </a>
+                    <button onClick={() => console.log("hi")} type="button" className="link-mintmore text-button-minglecheck">
+                      MINT
+                    </button>
                   </div>
                 </div>
               </div>*/}
@@ -242,7 +236,6 @@ export default function Cava() {
         </div>
         <div className="bg-wrapper-cava"><img src="images/CavaImage.png" loading="lazy" sizes="(max-width: 1546px) 100vw, 1546px" srcSet="images/CavaImage-p-500.png 500w, images/CavaImage-p-800.png 800w, images/CavaImage-p-1080.png 1080w, images/CavaImage.png 1546w" alt="" className="bg-image-cava" /></div>
       </div>
-      
       <div className="footerlayout"><Footer /></div>
     </div>
   );
