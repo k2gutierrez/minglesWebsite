@@ -121,8 +121,8 @@ export default function Lair() {
                     <div className="div-lair">
                       <div id="w-node-c7ab43d8-42f2-775d-6639-c9c41d28e657-9696e6d5" className="text-lair">MINGLES LAIR</div>
                     </div>
-                    <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="w-layout-grid gm-user">
-                      <div id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text">GM</div>
+                    <div id="w-node-_1c204f5c-5741-573e-a309-b7e977d2b356-9696e6d5" className="gm-user">
+                      <p id="w-node-_52c6b39d-5c05-841c-ab32-9dd92c08e59f-9696e6d5" className="gm-text flex">GM</p>
                       {/*<div id="w-node-_62a5e38f-6180-14c8-a484-d60eff083164-9696e6d5" className="userwallet-text}">{currentAddress}</div>*/}
                     </div>
                   </div>
