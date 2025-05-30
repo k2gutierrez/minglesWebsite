@@ -1,6 +1,5 @@
 "use client"
 
-
 import CountdownTimer2 from "@/components/CountdownTimer2";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +19,7 @@ import { CavaTokens } from "@/components/engine/atoms";
 import { parseEther } from "viem";
 import { loadingAtom } from "@/components/engine/atoms";
 import { RefreshCava } from "@/components/engine/atoms";
+import ProgressBar from "@/components/cava/ProgressBar";
 
 export default function Cava() {
 
@@ -53,7 +53,7 @@ export default function Cava() {
   }, [isConnected, chainId])
 
   useEffect(() => {
-    if (refresh == false && isConnected == true){
+    if (refresh == false && isConnected == true) {
       getCavaNFTs()
     }
 
@@ -154,7 +154,7 @@ export default function Cava() {
             <div className="cavabutton">
               <div className="text-buttons-cava">CAVA PROGRAM</div>
             </div>
-            
+
             <div className="cavabutton">
               <div className="text-buttons-cava"><StakeModal /></div>
             </div>
@@ -171,9 +171,7 @@ export default function Cava() {
               <div className="cavaprograminfo">
                 <div className="text-blanco">TEQUILA BLANCO</div>
                 <div className="div-cava-time w-clearfix">
-                  <div className="div-red-cava-time">
-                    <div className="text-percentage">1%</div>
-                  </div>
+                  <ProgressBar />
                 </div>
                 <div className="text-reposado">TEQUILA REPOSADO</div>
               </div>
@@ -210,7 +208,7 @@ export default function Cava() {
                   <div id="w-node-_30817ceb-9e99-e760-ac2b-70049ec6bb7a-0fdcf260" className="text-cavausers-info-2">{apeUsd}</div>
                 </div>
               </div>
-             {/* <div className="w-layout-grid grid-cavausers2">
+              {/* <div className="w-layout-grid grid-cavausers2">
                 <div id="w-node-_7532e0ca-9747-d2e0-0020-99b0dd057eff-0fdcf260" className="div-minglechecker">
                   <div className="text-mingleid">ENTER MINGLE ID</div>
                   <div className="gridminglecheker">
@@ -242,7 +240,7 @@ export default function Cava() {
         </div>
         <div className="bg-wrapper-cava"><img src="images/CavaImage.png" loading="lazy" sizes="(max-width: 1546px) 100vw, 1546px" srcSet="images/CavaImage-p-500.png 500w, images/CavaImage-p-800.png 800w, images/CavaImage-p-1080.png 1080w, images/CavaImage.png 1546w" alt="" className="bg-image-cava" /></div>
       </div>
-      
+
       <div className="footerlayout"><Footer /></div>
     </div>
   );

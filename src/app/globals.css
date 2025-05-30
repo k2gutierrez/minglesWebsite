@@ -7312,7 +7312,6 @@ figcaption {
 .div-cava-time {
   grid-column-gap: 5px;
   grid-row-gap: 5px;
-  background-color: var(--minglesmain2);
   border-radius: 15px;
   justify-content: flex-start;
   align-self: auto;
