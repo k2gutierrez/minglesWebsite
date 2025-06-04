@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
 import { ReactNode } from "react";
-import { Providers } from "./providers";
 import localFont from 'next/font/local';
 import "./globals.css";
+import { Providers } from "./providers";
 
-/*const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});*/
 
 const pressura = localFont({ 
   src: '../../public/fonts/GT-Pressura-Mono.otf',
