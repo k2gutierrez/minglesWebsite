@@ -21,6 +21,8 @@ import { loadingAtom } from "@/components/engine/atoms";
 import { RefreshCava } from "@/components/engine/atoms";
 import ProgressBar from "@/components/cava/ProgressBar";
 
+import UnstakeModal from "@/components/cava/UnstakeModal";
+
 export default function Cava() {
 
   const [cavaTokens, setCavaTokens] = useAtom(CavaTokens);
@@ -152,7 +154,7 @@ export default function Cava() {
         <div className="cava-card-wrapper">
           <div id="w-node-_2dc5565d-c6cd-6cea-6f7c-9b2d90f1ce8c-0fdcf260" className="cavabuttons">
             <div className="cavabutton">
-              <div className="text-buttons-cava">CAVA PROGRAM</div>
+              <div className="text-buttons-cava"><UnstakeModal /> {/*CAVA PROGRAM*/}</div>
             </div>
 
             <div className="cavabutton">
