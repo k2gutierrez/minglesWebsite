@@ -157,12 +157,12 @@ export default function Cava() {
               <div className="text-buttons-cava"><UnstakeModal /> {/*CAVA PROGRAM*/}</div>
             </div>
 
-            <div className="cavabutton">
+            {/*<div className="cavabutton">
               <div className="text-buttons-cava"><StakeModal /></div>
             </div>
             <div className="cavabutton">
               <div className="text-buttons-cava"><ClaimModal /></div>
-            </div>
+            </div>*/}
             <div className="cavabutton">
               <div className="text-buttons-cava"><DisclaimerModal /></div>
             </div>
