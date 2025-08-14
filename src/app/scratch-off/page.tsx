@@ -1,11 +1,9 @@
 "use client"
-import { useAccount, useConfig } from "wagmi";
+import { useAccount, useConfig, useReadContract } from "wagmi";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import MinglesScratch from "@/components/MinglesScratch";
-/*
 import Image from "next/image";
 import styles from "./profile.module.css";
 import { saveAs } from "file-saver";
@@ -17,12 +15,13 @@ import { TwitterShareButton } from "react-twitter-embed";
 import Link from "next/link";
 
 import { readContract, waitForTransactionReceipt } from "@wagmi/core"
+import { stringify } from "querystring";
 
 
 export default function ScratchOff() {
 
   const CONTRACT = '0x6579cfD742D8982A7cDc4C00102D3087F6c6dd8E'
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
   const config = useConfig()
   //let functionMetadata = 'tokenURI'
   //let metadataTest = 'https://ipfs.io/ipfs/QmcoeRsFYeHzPD9Gx84aKD3tjLUKjvPEMSmoPs2GQmHR1t/1'
@@ -41,6 +40,14 @@ export default function ScratchOff() {
   const [inpu, setInpu] = useState(false)
   const [fix, setFixed] = useState("items-center justify-items-center max-h-screen pt-5 pb-1 gap-16 sm:p-5 font-[family-name:var(--font-geist-sans)]")
   const [PFPUrl, setPFPUrl] = useState("")
+
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push('/')
+    }
+  }, [])
 
   const truePfp = () => {
     setPfp(true)
@@ -62,13 +69,16 @@ export default function ScratchOff() {
     setTw("")
 
     const response = await readContract(config, {
-            abi: erc20Abi,
-            address: tokenAddress as `0x${string}`,
-            functionName: "allowance",
-            args: [account.address, tsSenderAddress as `0x${string}`]
+            abi: ABI,
+            address: CONTRACT as `0x${string}`,
+            functionName: "tokenURI",
+            args: [id] //account.address, tsSenderAddress as `0x${string}`
         })
 
-    const mingleContract = new ethers.Contract(CONTRACT, ABI, provider)
+    const URI = JSON.stringify(response)
+    
+    console.log("r: ", URI)
+    //const mingleContract = new ethers.Contract(CONTRACT, ABI, provider)
     if (id == "") return
 
     if (id == "4355" || id == "5453" || id == "4927" || id == "4288" || id == "4245" || id == "4175"
@@ -81,9 +91,10 @@ export default function ScratchOff() {
     }
 
     try {
-      const metadataMingles = await mingleContract.tokenURI(id)
-
-      let url = 'https://ipfs.io/ipfs/' + metadataMingles.split("/")[2] + "/" + id
+      //const metadataMingles = await mingleContract.tokenURI(id)
+      
+      let url = 'https://ipfs.io/ipfs/' + URI.split("/")[2] + "/" + id //
+      console.log(url)
       let meta = await fetch(url)
       let dataJson = await meta.json()
 
@@ -115,7 +126,7 @@ export default function ScratchOff() {
   const saveImage = async () => {
     const name = "Mingle#" + id + ".png"
     const imge = document.getElementById("mingle")
-    const data = await fetch(imge.src)
+    const data = await fetch(imge?.src)
     const blob = await data.blob()
       .then(function (blob) {
         saveAs(blob, name);
@@ -125,7 +136,7 @@ export default function ScratchOff() {
   const savepfp = async () => {
     const name = "PFPMingle#" + id + ".png"
     const imge = document.getElementById("pfpmingle")
-    const data = await fetch(imge.src)
+    const data = await fetch(imge?.src)
     const blob = await data.blob()
       .then(function (blob) {
         saveAs(blob, name);
@@ -135,7 +146,7 @@ export default function ScratchOff() {
 
   const getImage = async () => {
     const imge = document.getElementById("mingle")
-    const data = await fetch(imge.src)
+    const data = await fetch(imge?.src)
     const blob = await data.blob()
 
     try {
@@ -183,7 +194,7 @@ export default function ScratchOff() {
           <div className="flex justify-center">
             <ScratchCard onComplete={truePfp} finishPercent={50} brushSize={40} width={300} height={300}>
 
-              {/*<Image src={bg} className="" alt="BG" width={300} height={300} />
+              <Image src={bg} className="" alt="BG" width={300} height={300} />
               <Image src={tw} className={styles.divabsolute} alt="Face" width={300} height={300} />
               <Image src={face} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
               <Image id="mingle" src={driveUrl} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
@@ -266,31 +277,5 @@ export default function ScratchOff() {
     </div>
 
 
-  );
-}*/
-
-export default function ScratchOff() {
-
-  const { isConnected } = useAccount()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (!isConnected) {
-      router.push('/')
-    }
-  }, [])
-
-  return (
-    <div className=" font-[family-name:var(--font-pressura)]">
-      <Header />
-      <div className="w-layout-blockcontainer page-wrapper w-container">
-
-        <div className="text-center align-items-center p-3">
-          <MinglesScratch />
-        </div>
-
-      </div>
-      <Footer />
-    </div>
   );
 }

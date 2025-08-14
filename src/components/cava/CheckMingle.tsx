@@ -71,7 +71,7 @@ export default function CheckMingle() {
                         <div>
                             {!loading && check == true && mingleCheck == true &&(
                                 <>
-                                    <Image className="p-1 mb-2" src={"https://d9emswcmuvawb.cloudfront.net/" + tokens +".png"} alt={"Mingle #" + tokens} width={150} height={150} />
+                                    <Image className="p-1 mb-2" src={"https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/" + tokens +".png"} alt={"Mingle #" + tokens} width={150} height={150} />
                                     <p className='text-red-500 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
                                         Claimed!
                                     </p>
@@ -79,7 +79,7 @@ export default function CheckMingle() {
                             )}
                             {!loading && check == true && mingleCheck == false &&(
                                 <>
-                                    <Image className="p-1 mb-2" src={"https://d9emswcmuvawb.cloudfront.net/" + tokens +".png"} alt={"Mingle #" + tokens} width={150} height={150} />
+                                    <Image className="p-1 mb-2" src={"https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/" + tokens +".png"} alt={"Mingle #" + tokens} width={150} height={150} />
                                     <p className='text-green-500 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
                                         Unclaimed!
                                     </p>
