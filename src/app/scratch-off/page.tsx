@@ -119,7 +119,7 @@ export default function ScratchOff() {
 
   const saveImage = async () => {
     const name = "Mingle#" + id + ".png"
-    const imge = document.getElementById("mingle")
+    const imge = document.getElementById("mingle") as HTMLImageElement
     const data = await fetch(imge?.src)
     const blob = await data.blob()
       .then(function (blob) {
@@ -129,7 +129,7 @@ export default function ScratchOff() {
 
   const savepfp = async () => {
     const name = "PFPMingle#" + id + ".png"
-    const imge = document.getElementById("pfpmingle")
+    const imge = document.getElementById("pfpmingle") as HTMLImageElement
     const data = await fetch(imge?.src)
     const blob = await data.blob()
       .then(function (blob) {
@@ -139,7 +139,7 @@ export default function ScratchOff() {
   }
 
   const getImage = async () => {
-    const imge = document.getElementById("mingle")
+    const imge = document.getElementById("mingle") as HTMLImageElement
     const data = await fetch(imge?.src)
     const blob = await data.blob()
 

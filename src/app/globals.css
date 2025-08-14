@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --mainwebsite2: #456479;
+  /*--mainwebsite2: #456479;*/
+  --mainwebsite2: #ededd9;
   --neutral--300: #d1dbf9;
   --neutral--100: white;
   --bloquestexto: #f7f7ec;
@@ -402,7 +403,7 @@ background-color: var(--minglesmain2);
   align-items: stretch;
   width: 100vw;
   max-width: none;
-  
+  height: auto;
   margin-left: 0;
   margin-right: 0;
   display: flex;
@@ -2455,9 +2456,9 @@ background-color: var(--minglesmain2);
   object-fit: fill;
   width: 100vw;
   min-width: 100vw;
-  min-height: 65px;
-  max-height: 65px;
-  padding-top: 0;
+  min-height: 78px;
+  max-height: 78px;
+  padding-top: 5px;
   padding-bottom: 0;
   display: block;
   position: fixed;
