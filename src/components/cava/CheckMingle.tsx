@@ -4,6 +4,7 @@ import cls from "classnames"
 import { useChainId, useConfig, useAccount } from "wagmi";
 import { MinglesAddress, MinglesCurtis, CavaNFTAddress, CavaStakeAddress, CavaNFTAddressCurtis, CavaStakeAddressCurtis } from "../engine/CONSTANTS";
 import { CheckCavaClaim } from "../engine/ClaimedTokens";
+import Image from "next/image";
 
 export default function CheckMingle() {
     const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +41,7 @@ export default function CheckMingle() {
             </button>*/}
             <div className="">
                 <button onClick={openModal} type="button" >
-                    <div className="py-1 px-1 sm:py-3 sm:px-7 py-1">Check Unclaimed Mingle</div>
+                    <div className="py-1 px-1 sm:py-3 sm:px-7 py-1">CHECK UNCLAIMED MINGLE</div>
                 </button>
 
             </div>
@@ -68,12 +69,22 @@ export default function CheckMingle() {
                         </div>
 
                         <div>
-                            {!loading && check == true && mingleCheck == true &&(<p className='text-red-500 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
-                                Claimed!
-                            </p>)}
-                            {!loading && check == true && mingleCheck == false &&(<p className='text-green-500 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
-                                Unclaimed!
-                            </p>)}
+                            {!loading && check == true && mingleCheck == true &&(
+                                <>
+                                    <Image className="p-1 mb-2" src={"https://d9emswcmuvawb.cloudfront.net/" + tokens +".png"} alt={"Mingle #" + tokens} width={150} height={150} />
+                                    <p className='text-red-500 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
+                                        Claimed!
+                                    </p>
+                                </>
+                            )}
+                            {!loading && check == true && mingleCheck == false &&(
+                                <>
+                                    <Image className="p-1 mb-2" src={"https://d9emswcmuvawb.cloudfront.net/" + tokens +".png"} alt={"Mingle #" + tokens} width={150} height={150} />
+                                    <p className='text-green-500 text-md md:text-xl font-[family-name:var(--font-hogfish)]'>
+                                        Unclaimed!
+                                    </p>
+                                </>
+                            )}
                         </div>
 
                         <button
