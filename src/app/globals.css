@@ -392,6 +392,23 @@ figcaption {
   overflow: hidden;
 }
 
+.w-container2 {
+background-color: var(--minglesmain2);
+  color: var(--black-collection);
+  flex-flow: column;
+  flex: 1;
+  justify-content: space-between;
+  align-self: auto;
+  align-items: stretch;
+  width: 100vw;
+  max-width: none;
+  
+  margin-left: 0;
+  margin-right: 0;
+  display: flex;
+  overflow: hidden;
+}
+
 .grid-2-columns {
   grid-column-gap: 24px;
   grid-row-gap: 24px;

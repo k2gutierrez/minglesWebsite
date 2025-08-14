@@ -1,7 +1,7 @@
 
 export default function Footer() {
     return (
-        <div className="dashboard-footer-wrapper mb-2 font-[family-name:var(--font-pressura)]">
+        <div className="dashboard-footer-wrapper font-[family-name:var(--font-pressura)]">
             <div className="w-layout-grid grid-19 mt-1">
                 <a id="w-node-_483370f9-aeb0-07db-af15-9c5c4aa34f91-5a1b4a63" href="https://apechain.com/" target="_blank" className="footer-link-1 w-inline-block"><img src="images/ApeChain-Outlined---Black-1.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/ApeChain-Outlined---Black-1-p-500.png 500w, images/ApeChain-Outlined---Black-1-p-800.png 800w, images/ApeChain-Outlined---Black-1-p-1080.png 1080w, images/ApeChain-Outlined---Black-1.png 1785w" alt="" className="imagesfooter" /></a>
                 <a id="w-node-bba79f26-8a50-91b0-391c-f651ea3b134a-5a1b4a63" href="https://madeby.boredapeyachtclub.com/" target="_blank" className="footer-link-1 w-inline-block"><img src="images/MBALicense.png" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 728px, 940px" srcSet="images/MBALicense-p-500.png 500w, images/MBALicense-p-800.png 800w, images/MBALicense-p-1080.png 1080w, images/MBALicense-p-1600.png 1600w, images/MBALicense.png 2084w" alt="" className="imagesfooter" /></a>

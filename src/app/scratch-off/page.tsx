@@ -43,12 +43,6 @@ export default function ScratchOff() {
 
   const router = useRouter()
 
-  useEffect(() => {
-    if (!isConnected) {
-      router.push('/')
-    }
-  }, [])
-
   const truePfp = () => {
     setPfp(true)
     setFixed("text-center px-5 justify-items-center min-h-screen px-7 pt-5 pb-1 gap-16 sm:p-5 font-[family-name:var(--font-geist-sans)]")
@@ -69,14 +63,14 @@ export default function ScratchOff() {
     setTw("")
 
     const response = await readContract(config, {
-            abi: ABI,
-            address: CONTRACT as `0x${string}`,
-            functionName: "tokenURI",
-            args: [id] //account.address, tsSenderAddress as `0x${string}`
-        })
+      abi: ABI,
+      address: CONTRACT as `0x${string}`,
+      functionName: "tokenURI",
+      args: [id] //account.address, tsSenderAddress as `0x${string}`
+    })
 
     const URI = JSON.stringify(response)
-    
+
     console.log("r: ", URI)
     //const mingleContract = new ethers.Contract(CONTRACT, ABI, provider)
     if (id == "") return
@@ -92,7 +86,7 @@ export default function ScratchOff() {
 
     try {
       //const metadataMingles = await mingleContract.tokenURI(id)
-      
+
       let url = 'https://ipfs.io/ipfs/' + URI.split("/")[2] + "/" + id //
       console.log(url)
       let meta = await fetch(url)
@@ -165,117 +159,124 @@ export default function ScratchOff() {
   }
 
   return (
-
-    <div className={fix}>
-
-      <h1 className={"text-center text-4xl text-black font-[family-name:var(--font-hogfish)]"}>CONGRATULATIONS</h1>
-
-      {!inpu && (
-        <div className="text-center space-y-2 mb-6">
-          <p className={"text-xl mt-5 mb-2 text-black font-[family-name:var(--font-pressura)]"}>Mingles:APED ID #</p>
-          <input placeholder="Mingle ID" className={"text-black text-center text-base border border-red-500  rounded-md font-[family-name:var(--font-pressura)]"} onChange={e => setId(e.target.value)}></input>
-          <button
-            className="ms-2 center uppercase rounded-lg bg-red-500 p-1 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-            data-ripple-light="true"
-            onClick={getMingleMetadata}
-          >Check Mingle
-          </button>
-        </div>
-      )
-
-      }
-
-      {bg != "" && (
+    <div className=" font-[family-name:var(--font-pressura)]">
+      <Header />
+      <div className="w-layout-blockcontainer w-container2">
+      <div className={fix}>
 
 
-        <div className={"text-center space-y-5 space-x-2"}>
+        <p className={"mt-2 text-center border-none text-4xl text-black font-[family-name:var(--font-hogfish)]"}>CONGRATULATIONS</p>
 
-          <p className="text-md text-center text-black my-1 font-[family-name:var(--font-pressura)]">Scratch to unbottle your Baby Mingle #{id}</p>
-          <div className="flex justify-center">
-            <ScratchCard onComplete={truePfp} finishPercent={50} brushSize={40} width={300} height={300}>
-
-              <Image src={bg} className="" alt="BG" width={300} height={300} />
-              <Image src={tw} className={styles.divabsolute} alt="Face" width={300} height={300} />
-              <Image src={face} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
-              <Image id="mingle" src={driveUrl} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
-
-
-            </ScratchCard>
+        {!inpu && (
+          <div className="text-center space-y-2 mb-6">
+            <p className={"text-xl mt-5 mb-2 text-black font-[family-name:var(--font-pressura)]"}>Mingles:APED ID #</p>
+            <input placeholder="Mingle ID" className={"text-black text-center text-base border border-red-500  rounded-md font-[family-name:var(--font-pressura)]"} onChange={e => setId(e.target.value)}></input>
+            <button
+              className="ms-2 center uppercase rounded-lg bg-red-500 p-1 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+              data-ripple-light="true"
+              onClick={getMingleMetadata}
+            >Check Mingle
+            </button>
           </div>
-          <p className="text-md text-center text-black my-3 font-[family-name:var(--font-pressura)]">Scratch the above card by swiping on it</p>
+        )
 
-          {pfp && (
-            <>
-              <button
-                className="ms-2 center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                data-ripple-light="true"
-                onClick={saveImage}
-              >Download
-              </button>
-              <button
-                className="center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                data-ripple-light="true"
-                onClick={getImage} ////////////////////// falta   //////////
-              >Copy to Share on x
-              </button>
-            </>
-          )
+        }
 
-          }
-          {copied && (
-            <>
-              <p className="text-xl text-center text-black my-3 font-[family-name:var(--font-pressura)]">Use CTRL+V on X</p>
-              <div className="flex justify-center me-10">
-                
-                <TwitterShareButton
-                  url="are finally unbottled! @minglesnft Tequila Worms"
-
-                />
-              </div>
-            </>
-          )
-          }
+        {bg != "" && (
 
 
-          {pfp &&
-            (
-              <div className="mt-10 text-center">
-                <h1 className={(styles.title, "text-4xl mt-10 text-black font-[family-name:var(--font-hogfish)]")}>PFP FORMAT</h1>
-                <div className="flex justify-center">
-                  <Image className="my-2 my-5 text-center" id="pfpmingle" src={PFPUrl} alt="PFP Mingle" width={300} height={300} />
-                </div>
+          <div className={"text-center space-y-5 space-x-2"}>
+
+            <p className="text-xl text-center text-black my-1 font-[family-name:var(--font-pressura)]">Scratch to unbottle your Baby Mingle #{id}</p>
+            <div className="flex justify-center">
+              <ScratchCard onComplete={truePfp} finishPercent={50} brushSize={40} width={300} height={300}>
+
+                <Image src={bg} className="" alt="BG" width={300} height={300} />
+                <Image src={tw} className={styles.divabsolute} alt="Face" width={300} height={300} />
+                <Image src={face} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
+                <Image id="mingle" src={driveUrl} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
+
+
+              </ScratchCard>
+            </div>
+            <p className="text-xl text-center text-black my-3 font-[family-name:var(--font-pressura)]">Scratch the above card by swiping on it</p>
+
+            {pfp && (
+              <>
+                <button
+                  className="ms-2 center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                  data-ripple-light="true"
+                  onClick={saveImage}
+                >Download
+                </button>
                 <button
                   className="center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                   data-ripple-light="true"
-                  onClick={savepfp}
-                >
-
-                  Download
-
+                  onClick={getImage} ////////////////////// falta   //////////
+                >Copy to Share on x
                 </button>
-              </div>
+              </>
             )
-          }
+
+            }
+            {copied && (
+              <>
+                <p className="text-xl text-center text-black my-3 font-[family-name:var(--font-pressura)]">Use CTRL+V on X</p>
+                <div className="flex justify-center me-10">
+
+                  <TwitterShareButton
+                    url="are finally unbottled! @minglesnft Tequila Worms"
+
+                  />
+                </div>
+              </>
+            )
+            }
+
+
+            {pfp &&
+              (
+                <div className="mt-10 text-center">
+                  <p className={(styles.title, "text-4xl mt-10 text-black font-[family-name:var(--font-hogfish)]")}>PFP FORMAT</p>
+                  <div className="flex justify-center">
+                    <Image className="my-2 my-5 text-center" id="pfpmingle" src={PFPUrl} alt="PFP Mingle" width={300} height={300} />
+                  </div>
+                  <button
+                    className="center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                    data-ripple-light="true"
+                    onClick={savepfp}
+                  >
+
+                    Download
+
+                  </button>
+                </div>
+              )
+            }
 
 
 
 
+          </div>
+        )
+        }
+
+
+        <div className="text-center mt-5 pb-5">
+          <Link href={"/scratch-off"} onClick={resetAll}>
+            <p className="text-black font-[family-name:var(--font-hogfish)]">Try another</p>
+
+          </Link>
+          <div className="flex justify-center">
+            <Image className="mt-3" src={"/assets/MinglesLogo_Black 2.png"} alt="Mingles Logo" width={150} height={150} />
+          </div>
         </div>
-      )
-      }
 
-
-      <div className="text-center mt-2">
-        <Link href={"/"} onClick={resetAll}>
-          <p className="text-black font-[family-name:var(--font-hogfish)]">Try another</p>
-          
-        </Link>
-        <div className="flex justify-center">
-        <Image className="" src={"/assets/MinglesLogo_Black 2.png"} alt="Mingles Logo" width={150} height={150} />
-        </div>
       </div>
+      
+      </div>
+      <Footer />
     </div>
-
 
   );
 }
