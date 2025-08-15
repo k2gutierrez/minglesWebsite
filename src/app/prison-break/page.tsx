@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import MinglesPrison from "@/components/MinglesPrison";
+import MinglesPrison from "@/components/prison/MinglesPrison";
 
 export default function Prison() {
 
-  const { isConnected } = useAccount()
+  const { isConnected, address } = useAccount()
   const router = useRouter()
 
   useEffect(() => {

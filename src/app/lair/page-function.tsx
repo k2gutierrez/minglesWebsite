@@ -61,11 +61,11 @@ export default function Lair() {
         for (let i = 0; i < data1.tokens.length; i++) {
           tokensArr.push(data1.tokens[i].token.tokenId)
         }
-        console.log("tokens", tokensArr)
+        //console.log("tokens", tokensArr)
         setTokens(tokensArr)
 
         setTokenId(getRandomElement(tokensArr))
-        console.log(typeof(getRandomElement(tokensArr)))
+        //console.log(typeof(getRandomElement(tokensArr)))
 
       })
       .catch(err => console.error(err));
@@ -104,7 +104,7 @@ export default function Lair() {
         }
         setCavaTokens(tokensArr)
         setNumTokens(tokensArr.length)
-        console.log(tokensArr)
+        //console.log(tokensArr)
 
       })
       .catch(err => console.error(err));

@@ -88,7 +88,6 @@ export default function ScratchOff() {
       //const metadataMingles = await mingleContract.tokenURI(id)
 
       let url = 'https://ipfs.io/ipfs/' + URI.split("/")[2] + "/" + id //
-      console.log(url)
       let meta = await fetch(url)
       let dataJson = await meta.json()
 
@@ -156,7 +155,6 @@ export default function ScratchOff() {
         })
       ])
       setCopied(true)
-      console.log("Success")
 
     } catch (e) {
       console.error(e)
@@ -166,143 +164,146 @@ export default function ScratchOff() {
   }
 
   return (
-    <div className=" font-[family-name:var(--font-pressura)]">
-      <Header />
-      <div className="w-layout-blockcontainer w-container2">
-        <div className={fix}>
+    <>
+      <div className=" font-[family-name:var(--font-pressura)]">
+        <Header />
+        <div className="w-layout-blockcontainer w-container2">
+          <div className={fix}>
 
 
-          <p className={"mt-2 text-center border-none text-4xl text-black font-[family-name:var(--font-hogfish)]"}>CONGRATULATIONS</p>
+            <p className={"mt-2 text-center border-none text-4xl text-black font-[family-name:var(--font-hogfish)]"}>CONGRATULATIONS</p>
 
-          {!inpu && (
-            <div className="text-center space-y-2 mb-6">
-              <p className={"text-xl mt-5 mb-2 text-black font-[family-name:var(--font-pressura)]"}>Mingles:APED ID #</p>
-              <input placeholder="Mingle ID" className={"text-black text-center text-base border border-red-500  rounded-md font-[family-name:var(--font-pressura)]"} onChange={e => setId(e.target.value)}></input>
-              <button
-                className="ms-2 center uppercase rounded-lg bg-red-500 p-1 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                data-ripple-light="true"
-                onClick={getMingleMetadata}
-              >{loading ? (
-                <div className="flex justify-center items-center">
-                  <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : ("Check Mingle")}
-              </button>
-            </div>
-          )
-
-          }
-
-          {bg != "" && (
-
-
-            <div className={"text-center space-y-5 space-x-2"}>
-
-              <p className="text-xl text-center text-black my-1 font-[family-name:var(--font-pressura)]">Scratch to unbottle your Baby Mingle #{id}</p>
-              <div className="flex justify-center">
-                <ScratchCard onComplete={truePfp} finishPercent={50} brushSize={40} width={300} height={300}>
-
-                  <Image src={bg} className="" alt="BG" width={300} height={300} />
-                  <Image src={tw} className={styles.divabsolute} alt="Face" width={300} height={300} />
-                  <Image src={face} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
-                  <Image id="mingle" src={driveUrl} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
-
-
-                </ScratchCard>
+            {!inpu && (
+              <div className="text-center space-y-2 mb-6">
+                <p className={"text-xl mt-5 mb-2 text-black font-[family-name:var(--font-pressura)]"}>Mingles:APED ID #</p>
+                <input placeholder="Mingle ID" className={"text-black text-center text-base border border-red-500  rounded-md font-[family-name:var(--font-pressura)]"} onChange={e => setId(e.target.value)}></input>
+                <button
+                  className="ms-2 center uppercase rounded-lg bg-red-500 p-1 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                  data-ripple-light="true"
+                  onClick={getMingleMetadata}
+                >{loading ? (
+                  <div className="flex justify-center items-center">
+                    <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : ("Check Mingle")}
+                </button>
               </div>
-              <p className="text-xl text-center text-black my-3 font-[family-name:var(--font-pressura)]">Scratch the above card by swiping on it</p>
+            )
 
-              {pfp && (
-                <>
-                  <button
-                    className="ms-2 center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                    data-ripple-light="true"
-                    onClick={saveImage}
-                  >{loading ? (
-                    <div className="flex justify-center items-center">
-                      <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  ) : ("Download")}
-                  </button>
-                  <button
-                    className="center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                    data-ripple-light="true"
-                    onClick={getImage} ////////////////////// falta   //////////
-                  >
+            }
 
-                    {loading ? (
+            {bg != "" && (
+
+
+              <div className={"text-center space-y-5 space-x-2"}>
+
+                <p className="text-xl text-center text-black my-1 font-[family-name:var(--font-pressura)]">Scratch to unbottle your Baby Mingle #{id}</p>
+                <div className="flex justify-center">
+                  <ScratchCard onComplete={truePfp} finishPercent={50} brushSize={40} width={300} height={300}>
+
+                    <Image src={bg} className="" alt="BG" width={300} height={300} />
+                    <Image src={tw} className={styles.divabsolute} alt="Face" width={300} height={300} />
+                    <Image src={face} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
+                    <Image id="mingle" src={driveUrl} className={styles.divabsolute} alt="Tequila Worm" width={300} height={300} />
+
+
+                  </ScratchCard>
+                </div>
+                <p className="text-xl text-center text-black my-3 font-[family-name:var(--font-pressura)]">Scratch the above card by swiping on it</p>
+
+                {pfp && (
+                  <>
+                    <button
+                      className="ms-2 center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                      data-ripple-light="true"
+                      onClick={saveImage}
+                    >{loading ? (
                       <div className="flex justify-center items-center">
                         <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                       </div>
-                    ) : ("Copy to Share on x")}
-
-                  </button>
-                </>
-              )
-
-              }
-              {copied && (
-                <>
-                  <p className="text-xl text-center text-black my-3 font-[family-name:var(--font-pressura)]">Use CTRL+V on X</p>
-                  <div className="flex justify-center me-10">
-
-                    <TwitterShareButton
-                      url="are finally unbottled! @minglesnft Tequila Worms"
-
-                    />
-                  </div>
-                </>
-              )
-              }
-
-
-              {pfp &&
-                (
-                  <div className="mt-10 text-center">
-                    <p className={(styles.title, "text-4xl mt-10 text-black font-[family-name:var(--font-hogfish)]")}>PFP FORMAT</p>
-                    <div className="flex justify-center">
-                      <Image className="my-2 my-5 text-center" id="pfpmingle" src={PFPUrl} alt="PFP Mingle" width={300} height={300} />
-                    </div>
+                    ) : ("Download")}
+                    </button>
                     <button
                       className="center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                       data-ripple-light="true"
-                      onClick={savepfp}
+                      onClick={getImage} ////////////////////// falta   //////////
                     >
 
                       {loading ? (
                         <div className="flex justify-center items-center">
                           <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                         </div>
-                      ) : ("Download")}
+                      ) : ("Copy to Share on x")}
 
                     </button>
-                  </div>
+                  </>
                 )
-              }
+
+                }
+                {copied && (
+                  <>
+                    <p className="text-xl text-center text-black my-3 font-[family-name:var(--font-pressura)]">Use CTRL+V on X</p>
+                    <div className="flex justify-center me-10">
+
+                      <TwitterShareButton
+                        url="are finally unbottled! @minglesnft Tequila Worms"
+
+                      />
+                    </div>
+                  </>
+                )
+                }
+
+
+                {pfp &&
+                  (
+                    <div className="mt-10 text-center">
+                      <p className={(styles.title, "text-4xl mt-10 text-black font-[family-name:var(--font-hogfish)]")}>PFP FORMAT</p>
+                      <div className="flex justify-center">
+                        <Image className="my-2 my-5 text-center" id="pfpmingle" src={PFPUrl} alt="PFP Mingle" width={300} height={300} />
+                      </div>
+                      <button
+                        className="center uppercase rounded-lg bg-red-500 p-2 font-[family-name:var(--font-pressura)] text-sm font-bold  text-white shadow-md shadow-red-500/20 transition-all hover:shadow-lg hover:shadow-red-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        data-ripple-light="true"
+                        onClick={savepfp}
+                      >
+
+                        {loading ? (
+                          <div className="flex justify-center items-center">
+                            <div className="w-5 h-5 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        ) : ("Download")}
+
+                      </button>
+                    </div>
+                  )
+                }
 
 
 
 
+              </div>
+            )
+            }
+
+
+            <div className="text-center mt-5 pb-5">
+              <Link href={"/scratch-off"} onClick={resetAll}>
+                <p className="text-black font-[family-name:var(--font-hogfish)]">Try another</p>
+
+              </Link>
+              <div className="flex justify-center">
+                <Image className="mt-3" src={"/assets/MinglesLogo_Black 2.png"} alt="Mingles Logo" width={150} height={150} />
+              </div>
             </div>
-          )
-          }
 
-
-          <div className="text-center mt-5 pb-5">
-            <Link href={"/scratch-off"} onClick={resetAll}>
-              <p className="text-black font-[family-name:var(--font-hogfish)]">Try another</p>
-
-            </Link>
-            <div className="flex justify-center">
-              <Image className="mt-3" src={"/assets/MinglesLogo_Black 2.png"} alt="Mingles Logo" width={150} height={150} />
-            </div>
           </div>
 
         </div>
 
       </div>
       <Footer />
-    </div>
+    </>
 
   );
 }

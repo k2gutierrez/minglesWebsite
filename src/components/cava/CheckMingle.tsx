@@ -25,7 +25,6 @@ export default function CheckMingle() {
         setCheck(false)
         setLoading(true)
         let checking: boolean = await CheckCavaClaim(tokens)
-        console.log(checking)
         setMingleCheck(checking)
         setCheck(true)
         setLoading(false)
