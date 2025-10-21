@@ -3,7 +3,7 @@ import { beginCell, toNano } from "@ton/core";
 import { storeMintPack, type MintPack } from "@/server/wrappers/StickerCollection";
 import { validateTelegramInitData } from "@/lib/telegram";
 
-const BOT_TOKEN = process.env.NEXT_PUBLIC_BOT_TOKEN || "";
+const BOT_TOKEN = process.env.BOT_TOKEN || "";
 
 // Keys for your 10 URIs
 const URI_KEYS = [
