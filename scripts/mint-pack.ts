@@ -37,7 +37,7 @@ async function main() {
   const payloadCell = beginCell().store(storeMintPack(msg)).endCell();
 
   // 5 TON + buffer
-  const totalAmount = toNano("6.1");
+  const totalAmount = toNano("5.6");
 
   console.log("Minting pack...");
   await walletContract.sendTransfer({

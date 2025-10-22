@@ -33,7 +33,14 @@ function MintButton() {
     try {
       setLoading(true);
 
-      // 🔸 Browser-friendly API (no Telegram initData)
+      // (optional) guard: make sure wallet is on TESTNET for your test contract
+      const chain = (tonConnectUI as any)?.account?.chain; // 'mainnet' | 'testnet'
+      if (chain !== "testnet") {
+        alert("Please switch your wallet to TESTNET for this collection.");
+        return;
+      }
+
+      // Ask backend for payload + suggested amount
       const resp = await fetch("/api/mintpack-browser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -42,14 +49,29 @@ function MintButton() {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || "Failed to create payload");
 
+      // 🔒 Ensure at least 5.6 TON (in nanotons)
+      const MIN_56 = 5_600_000_000n; // 5.6 TON
+      const amountNano = (() => {
+        try {
+          const v = BigInt(data.amountNano ?? "0");
+          return (v < MIN_56 ? MIN_56 : v).toString();
+        } catch {
+          return MIN_56.toString();
+        }
+      })();
+
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 300,
         messages: [
-          { address: COLLECTION_ADDRESS, amount: data.amountNano, payload: data.payloadBase64 },
+          {
+            address: COLLECTION_ADDRESS,
+            amount: amountNano,
+            payload: data.payloadBase64, // base64 BOC from your API
+          },
         ],
       });
 
-      alert("Mint submitted! Check explorer for confirmation.");
+      alert("Mint submitted! Check the testnet explorer for confirmation.");
     } catch (e: any) {
       console.error(e);
       alert(e?.message || "Mint failed");

@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     const payloadBase64 = payloadCell.toBoc({ idx: false }).toString("base64");
 
     // 5 TON + buffer (~0.6 TON for 10 internal deploys)
-    const amountNano = (toNano("5") + toNano("0.6")).toString();
+    const amountNano = (toNano("5") + toNano("0.8")).toString();
 
     return NextResponse.json({ payloadBase64, amountNano });
   } catch (err: any) {
