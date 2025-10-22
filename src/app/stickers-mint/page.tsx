@@ -95,7 +95,7 @@ function MintButton() {
 
 export default function TgMintPage() {
   return (
-    <TonConnectUIProvider manifestUrl={"https://mingles.wtf/tonconnect-manifest.json"}>
+    <TonConnectUIProvider manifestUrl={"https://www.mingles.wtf/tonconnect-manifest.json"}>
       <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column", gap: 16, alignItems: "center", justifyContent: "center" }}>
         <h1 className="text-black text-md md:text-xl font-[family-name:var(--font-hogfish)]" style={{ fontSize: 22, fontWeight: 800 }}>Mingles Tequila — Mint en Telegram</h1>
         <TonConnectButton />
