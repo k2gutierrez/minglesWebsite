@@ -6,7 +6,7 @@ import { TonConnectUIProvider, TonConnectButton, useTonConnectUI } from "@toncon
 import worm from "../../../public/images/White_Hearts_Right-p-500.png";
 
 const MANIFEST_URL = "https://www.mingles.wtf/tonconnect-manifest.json";
-const COLLECTION_ADDRESS = "EQDo1a0B_JYrH2mXLgae8E1yRi3SGiSCGiKUxgt3rH4Y4xgr";
+const COLLECTION_ADDRESS = "EQA1qg9-ge8gmUn1UkjAe7gcrNUdCW9XnnIC7BpTrXXmDoKS";
 const CID = "bafybeiejti2pggxqo5r2guonr5fz2gddkavhxxlmmkhyqzllnzk62meury";
 
 function MintButton() {

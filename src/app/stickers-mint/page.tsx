@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { TonConnectUIProvider, TonConnectButton, useTonConnectUI } from "@tonconnect/ui-react";
 
-const COLLECTION_ADDRESS = "EQDo1a0B_JYrH2mXLgae8E1yRi3SGiSCGiKUxgt3rH4Y4xgr";
+const COLLECTION_ADDRESS = "EQA1qg9-ge8gmUn1UkjAe7gcrNUdCW9XnnIC7BpTrXXmDoKS";
 const CID = "bafybeiejti2pggxqo5r2guonr5fz2gddkavhxxlmmkhyqzllnzk62meury";
 const MANIFEST_URL = "/tonconnect-manifest.json";
 
