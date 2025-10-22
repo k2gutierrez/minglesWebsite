@@ -43,14 +43,23 @@ function MintButton() {
     }
   }, []);
 
+  useEffect(() => {
+  const tg = (window as any)?.Telegram?.WebApp;
+  console.log("TG present?", !!tg, "initData length:", tg?.initData?.length);
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+}, []);
+
   const onMint = async () => {
     try {
       setLoading(true);
 
       // Pide al server el payload (body) y el monto total (5 TON + buffer)
       // 🔹 Lee el initData que Telegram inyecta dentro de su WebApp
-      const initData = (window as any)?.Telegram?.WebApp?.initData || "";
-
+      const tg = (window as any)?.Telegram?.WebApp;
+      const initData: string = tg?.initData || "";
       if(!initData) {
         // Not inside Telegram → show a friendly instruction and stop
         alert("Open this page inside Telegram to mint. (initData is missing)");
