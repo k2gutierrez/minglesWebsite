@@ -22,8 +22,12 @@ export async function POST(req: Request) {
     };
 
     // ✅ Basic validation
-    if (!initData || !BOT_TOKEN) {
-      return NextResponse.json({ error: "Missing Telegram initData or BOT_TOKEN" }, { status: 400 });
+    if (!initData) {
+      return NextResponse.json({ error: "Missing Telegram initData" }, { status: 400 });
+    }
+
+    if (!BOT_TOKEN) {
+      return NextResponse.json({ error: "Missing Telegram BOT_TOKEN" }, { status: 400 });
     }
 
     const validation = validateTelegramInitData(initData, BOT_TOKEN);

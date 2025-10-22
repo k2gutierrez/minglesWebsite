@@ -19,7 +19,7 @@ function MintButton() {
     const base = `ipfs://${CID}/metadata`;
     return {
       uri0: `${base}/0.json`,
-      uri1: `${base}/1.json`,
+      uri1: `${base}/1.json`, 
       uri2: `${base}/2.json`,
       uri3: `${base}/3.json`,
       uri4: `${base}/4.json`,
@@ -50,6 +50,13 @@ function MintButton() {
       // Pide al server el payload (body) y el monto total (5 TON + buffer)
       // 🔹 Lee el initData que Telegram inyecta dentro de su WebApp
       const initData = (window as any)?.Telegram?.WebApp?.initData || "";
+
+      if(!initData) {
+        // Not inside Telegram → show a friendly instruction and stop
+        alert("Open this page inside Telegram to mint. (initData is missing)");
+        setLoading(false);
+        return;
+      }
 
       // 🔹 Envía initData junto con los demás datos al backend
       const resp = await fetch("/api/mintpack", {
@@ -98,6 +105,7 @@ export default function TgMintPage() {
     <TonConnectUIProvider manifestUrl={"https://www.mingles.wtf/tonconnect-manifest.json"}>
       <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column", gap: 16, alignItems: "center", justifyContent: "center" }}>
         <h1 className="text-black text-md md:text-xl font-[family-name:var(--font-hogfish)]" style={{ fontSize: 22, fontWeight: 800 }}>Mingles Tequila — Mint en Telegram</h1>
+
         <TonConnectButton />
         <MintButton />
         <p className="text-black text-md md:text-xl font-[family-name:var(--font-hogfish)]" style={{ opacity: 0.7, fontSize: 12, textAlign: "center", maxWidth: 320 }}>
