@@ -85,6 +85,7 @@ function MintButton() {
     <button
       onClick={onMint}
       disabled={loading}
+      className="text-white font-[family-name:var(--font-hogfish)] bg-red-600"
       style={{ padding: "12px 18px", borderRadius: 12, boxShadow: "0 4px 16px rgba(0,0,0,.1)" }}
     >
       {loading ? "Minting..." : "Mint 10 (5 TON)"}
@@ -94,12 +95,12 @@ function MintButton() {
 
 export default function TgMintPage() {
   return (
-    <TonConnectUIProvider manifestUrl={MANIFEST_URL}>
+    <TonConnectUIProvider manifestUrl={"https://mingles.wtf/tonconnect-manifest.json"}>
       <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column", gap: 16, alignItems: "center", justifyContent: "center" }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800 }}>Mingles Tequila — Mint en Telegram</h1>
+        <h1 className="text-black text-md md:text-xl font-[family-name:var(--font-hogfish)]" style={{ fontSize: 22, fontWeight: 800 }}>Mingles Tequila — Mint en Telegram</h1>
         <TonConnectButton />
         <MintButton />
-        <p style={{ opacity: 0.7, fontSize: 12, textAlign: "center", maxWidth: 320 }}>
+        <p className="text-black text-md md:text-xl font-[family-name:var(--font-hogfish)]" style={{ opacity: 0.7, fontSize: 12, textAlign: "center", maxWidth: 320 }}>
           Cada compra mintea 10 stickers (pack). Max supply: 1100 packs.
         </p>
       </main>
