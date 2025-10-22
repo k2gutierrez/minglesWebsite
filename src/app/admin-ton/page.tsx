@@ -8,7 +8,7 @@ import { useState } from "react";
 
 const MANIFEST_URL = "https://mingles.wtf/tonconnect-manifest.json";
 // ⬇️ put your deployed StickerCollection address here (same network as your wallet)
-const COLLECTION_ADDRESS = "EQDo1a0B_JYrH2mXLgae8E1yRi3SGiSCGiKUxgt3rH4Y4xgr";
+const COLLECTION_ADDRESS = "EQBRJsgaX9VDsK4Qi3PIVGFC2jrMyy6nXnwxfoeVe-KpSrrf";
 
 function AdminButtons() {
   const [tonConnectUI] = useTonConnectUI();
