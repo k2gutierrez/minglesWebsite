@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     const payloadBase64 = payloadCell.toBoc({ idx: false }).toString("base64");
 
     // ✅ Calculate TON amount (5 TON + ~0.6 TON fees)
-    const amountNano = (toNano("5") + toNano("0.6")).toString();
+    const amountNano = (toNano("1") + toNano("0.2")).toString();
 
     return NextResponse.json({
       payloadBase64,

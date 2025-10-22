@@ -50,7 +50,7 @@ function MintButton() {
       if (!resp.ok) throw new Error(data?.error || "Failed to create payload");
 
       // 🔒 Ensure at least 5.6 TON (in nanotons)
-      const MIN_56 = 5_600_000_000n; // 5.6 TON
+      const MIN_56 = 1_200_000_000n; // 5.62 TON
       const amountNano = (() => {
         try {
           const v = BigInt(data.amountNano ?? "0");
