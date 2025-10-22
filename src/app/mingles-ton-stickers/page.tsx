@@ -35,10 +35,10 @@ function MintButton() {
 
       // (optional) guard: make sure wallet is on TESTNET for your test contract
       const chain = (tonConnectUI as any)?.account?.chain; // 'mainnet' | 'testnet'
-      if (chain !== "testnet") {
-        alert("Please switch your wallet to TESTNET for this collection.");
-        return;
-      }
+      // if (chain !== "testnet") {
+      //   alert("Please switch your wallet to TESTNET for this collection.");
+      //   return;
+      // }
 
       // Ask backend for payload + suggested amount
       const resp = await fetch("/api/mintpack-browser", {
