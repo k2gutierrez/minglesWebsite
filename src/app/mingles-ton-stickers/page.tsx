@@ -6,7 +6,7 @@ import { TonConnectUIProvider, TonConnectButton, useTonConnectUI } from "@toncon
 import worm from "../../../public/images/White_Hearts_Right-p-500.png";
 
 const MANIFEST_URL = "https://www.mingles.wtf/tonconnect-manifest.json";
-const COLLECTION_ADDRESS = "EQBRJsgaX9VDsK4Qi3PIVGFC2jrMyy6nXnwxfoeVe-KpSrrf";
+const COLLECTION_ADDRESS = "EQA39ZfdZ3E6sO0XPe32Uxi64CITY21MmkKhq5H3dcxs7-Od";
 const CID = "bafybeiejti2pggxqo5r2guonr5fz2gddkavhxxlmmkhyqzllnzk62meury";
 
 function MintButton() {
@@ -50,7 +50,7 @@ function MintButton() {
       if (!resp.ok) throw new Error(data?.error || "Failed to create payload");
 
       // 🔒 Ensure at least 5.6 TON (in nanotons)
-      const MIN_56 = 1_200_000_000n; // 5.62 TON
+      const MIN_56 = 1_600_000_000n; // 5.62 TON
       const amountNano = (() => {
         try {
           const v = BigInt(data.amountNano ?? "0");

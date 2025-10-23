@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const packPrice    = pricePerItem * packSize;        // 0.2 TON in nano
 
     // Add generous buffer for 10 internal deployments (adjust if you see consistent over/under)
-    const buffer       = toNano("1.2");                  // 👈 gas buffer
+    const buffer       = toNano("1.6");                  // 👈 gas buffer
     const amountNano   = (packPrice + buffer).toString();
 
     const msg: MintPack = { $$type: "MintPack", ...uris };
