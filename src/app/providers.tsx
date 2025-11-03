@@ -9,6 +9,7 @@ import { WagmiProvider, createConfig } from "wagmi";
 import { Transport, Chain, http } from "viem";
 import { apeChain, curtis, anvil } from "wagmi/chains";
 import { useState, type ReactNode } from "react";
+import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import "@rainbow-me/rainbowkit/styles.css"
 
 export function Providers(props: { children: ReactNode }) {
@@ -50,7 +51,14 @@ export function Providers(props: { children: ReactNode }) {
                         askForSignature={true}
                     >
                         <JotaiProviders>
-                            {props.children}
+                            <TonConnectUIProvider 
+                                manifestUrl="https://www.mingles.wtf/tonconnect-manifest.json"
+                                actionsConfiguration={{
+                                    twaReturnUrl: 'https://t.me/your_bot_username'
+                                }}
+                            >
+                                {props.children}
+                            </TonConnectUIProvider>
                         </JotaiProviders>
                     </GlyphProvider>
                 </RainbowKitProvider>
