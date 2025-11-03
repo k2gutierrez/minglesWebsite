@@ -9,7 +9,7 @@ import { Address, toNano, beginCell } from "@ton/core";
 
 // Your contract address
 const collectionAddress = Address.parse(
-  'EQBRF_OcMEnJQ1ub72csljBIRav6-cKgPZ6K9CBG8JISf1C6'
+  'EQB7jLrx5Klof8EIOzcGawzxgdZiOeXEScs3zQLcVX5ntIhH'
   //'kQBRF_OcMEnJQ1ub72csljBIRav6-cKgPZ6K9CBG8JISf-sw'
 );
 
@@ -17,7 +17,7 @@ const collectionAddress = Address.parse(
 const MINT_PACK_OP_CODE = 0x1;
 
 // Testnet mint price (0.1 for pack + 0.55 for gas)
-const MINT_PRICE = toNano('0.75');
+const MINT_PRICE = toNano('0.65');
 
 export function MintComponent() {
   const [tonConnectUI] = useTonConnectUI();
