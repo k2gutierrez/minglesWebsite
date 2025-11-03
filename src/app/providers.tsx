@@ -54,7 +54,7 @@ export function Providers(props: { children: ReactNode }) {
                             <TonConnectUIProvider 
                                 manifestUrl="https://www.mingles.wtf/tonconnect-manifest.json"
                                 actionsConfiguration={{
-                                    twaReturnUrl: 'https://t.me/your_bot_username'
+                                    twaReturnUrl: 'http://t.me/MinglesTequilaStickersBot'
                                 }}
                             >
                                 {props.children}
