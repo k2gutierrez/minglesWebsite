@@ -12,7 +12,7 @@ import { Address, toNano, beginCell } from "@ton/core";
 
 // 2. 🚀 UPDATE THESE VALUES 🚀
 const collectionAddress = Address.parse(
-  'EQD5ohgJipfMZvGTauDP3vj_roVjaR-dTd6-nDsNKqb566Lb' // 👈 Your latest contract address
+  'EQAu_V5yikzOB8S_V-mSrt0A48VPi5uQZMT1iAsj-myyQ_EZ' // 👈 Your latest contract address
 );
 const STICKER_PACK_URL = 'https://t.me/addstickers/MinglesTequila'; // 👈 Your sticker pack link
 
@@ -28,10 +28,15 @@ export function MintComponent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isHolder, setIsHolder] = useState(false);
+  const [counter, setCounter] = useState(0)
 
   useEffect(() => {
-    
-    async function checkHolderStatus() {
+
+    checkHolderStatus();
+
+  }, [wallet, counter]);
+
+  async function checkHolderStatus() {
       if (!wallet) {
         setIsHolder(false);
         return;
@@ -66,10 +71,6 @@ export function MintComponent() {
       }
     }
 
-    checkHolderStatus();
-
-  }, [wallet]);
-
   const handleMint = async () => {
     if (!wallet) return;
 
@@ -97,6 +98,12 @@ export function MintComponent() {
     try {
       await tonConnectUI.sendTransaction(transaction);
       alert("Mint transaction sent! Check your wallet.");
+      setCounter(1);
+      await checkHolderStatus();
+      setTimeout(() => {
+        setCounter(2);
+      }, 2000); // 2000 milliseconds = 2 seconds
+      
     } catch (error) {
       console.error("Mint failed:", error);
       alert("Mint failed. See console for details.");
