@@ -2,9 +2,9 @@
 
 // 1. 🚀 IMPORT 'CHAIN' HERE
 import { useState, useEffect } from 'react';
-import { 
-  TonConnectButton, 
-  useTonConnectUI, 
+import {
+  TonConnectButton,
+  useTonConnectUI,
   useTonWallet,
   CHAIN // 👈 Add this import
 } from "@tonconnect/ui-react";
@@ -28,48 +28,48 @@ export function MintComponent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isHolder, setIsHolder] = useState(false);
-  const [counter, setCounter] = useState(0)
+  const [isMinted, setIsMinted] = useState(false);
 
   useEffect(() => {
 
     checkHolderStatus();
 
-  }, [wallet, counter]);
+  }, [wallet]);
 
   async function checkHolderStatus() {
-      if (!wallet) {
-        setIsHolder(false);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const userAddress = Address.parse(wallet.account.address).toString();
-        const collectionAddr = collectionAddress.toString();
-
-        //
-        // 🚀 2. FIX THE API URL CHECK
-        //
-        const isTestnet = wallet.account.chain === CHAIN.TESTNET;
-        const apiUrl = isTestnet ? 'https://testnet.tonapi.io' : 'https://tonapi.io';
-
-        const response = await fetch(
-          `${apiUrl}/v2/accounts/${userAddress}/nfts?collection=${collectionAddr}&limit=1`
-        );
-        const data = await response.json();
-
-        if (data.nft_items && data.nft_items.length > 0) {
-          setIsHolder(true);
-        } else {
-          setIsHolder(false);
-        }
-      } catch (error) {
-        console.error("Failed to check holder status:", error);
-        setIsHolder(false);
-      } finally {
-        setIsLoading(false);
-      }
+    if (!wallet) {
+      setIsHolder(false);
+      return;
     }
+
+    setIsLoading(true);
+    try {
+      const userAddress = Address.parse(wallet.account.address).toString();
+      const collectionAddr = collectionAddress.toString();
+
+      //
+      // 🚀 2. FIX THE API URL CHECK
+      //
+      const isTestnet = wallet.account.chain === CHAIN.TESTNET;
+      const apiUrl = isTestnet ? 'https://testnet.tonapi.io' : 'https://tonapi.io';
+
+      const response = await fetch(
+        `${apiUrl}/v2/accounts/${userAddress}/nfts?collection=${collectionAddr}&limit=1`
+      );
+      const data = await response.json();
+
+      if (data.nft_items && data.nft_items.length > 0) {
+        setIsHolder(true);
+      } else {
+        setIsHolder(false);
+      }
+    } catch (error) {
+      console.error("Failed to check holder status:", error);
+      setIsHolder(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const handleMint = async () => {
     if (!wallet) return;
@@ -98,12 +98,13 @@ export function MintComponent() {
     try {
       await tonConnectUI.sendTransaction(transaction);
       alert("Mint transaction sent! Check your wallet.");
-      setCounter(1);
-      await checkHolderStatus();
-      setTimeout(() => {
-        setCounter(2);
-      }, 2000); // 2000 milliseconds = 2 seconds
+      setIsMinted(true);
+
       
+      // setTimeout(() => {
+      //   checkHolderStatus();
+      // }, 4000); // 2000 milliseconds = 2 seconds
+
     } catch (error) {
       console.error("Mint failed:", error);
       alert("Mint failed. See console for details.");
@@ -150,13 +151,30 @@ export function MintComponent() {
       );
     }
 
+    if (isMinted) {
+      return (
+        <div className="flex flex-col items-center gap-4 text-center">
+          <p className="text-2xl font-bold text-green-400">✅ Mint Succesfull!</p>
+          <p className="text-gray-300">Here is your exclusive access to the TGS sticker pack.</p>
+          <a
+            href={STICKER_PACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg"
+          >
+            Add Sticker Pack to Telegram
+          </a>
+        </div>
+      );
+    }
+
     return <p className="text-gray-400">Connect your wallet to begin.</p>;
   };
 
   return (
     <div className="flex flex-col items-center gap-6 p-8 bg-gray-900 rounded-lg shadow-xl">
       <p className="text-3xl font-bold text-white">Mingles Tequila Stickers</p>
-      
+
       <TonConnectButton />
 
       <div className="mt-4">
