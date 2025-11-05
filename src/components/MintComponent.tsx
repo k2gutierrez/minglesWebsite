@@ -18,7 +18,7 @@ const STICKER_PACK_URL = 'https://t.me/addstickers/MinglesTequila'; // 👈 Your
 
 // --- Contract Constants ---
 const MINT_PACK_OP_CODE = 0x1;
-const TESTNET_MINT_PRICE = toNano('1.15'); // 0.5 (price) + 1.0 (gas) + 0.05 (buffer)
+const TESTNET_MINT_PRICE = toNano('1.4'); // 0.3 (price) + 1.0 (gas) + 0.05 (buffer)
 const MAINNET_MINT_PRICE = toNano('6.05'); // 5.0 (price) + 1.0 (gas) + 0.05 (buffer)
 
 
