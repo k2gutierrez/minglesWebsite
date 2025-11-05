@@ -1,83 +1,160 @@
 'use client';
 
+// 1. 🚀 IMPORT 'CHAIN' HERE
+import { useState, useEffect } from 'react';
 import { 
   TonConnectButton, 
   useTonConnectUI, 
-  useTonWallet 
+  useTonWallet,
+  CHAIN // 👈 Add this import
 } from "@tonconnect/ui-react";
 import { Address, toNano, beginCell } from "@ton/core";
 
-// Your contract address
+// 2. 🚀 UPDATE THESE VALUES 🚀
 const collectionAddress = Address.parse(
-  'EQB7jLrx5Klof8EIOzcGawzxgdZiOeXEScs3zQLcVX5ntIhH'
-  //'kQBRF_OcMEnJQ1ub72csljBIRav6-cKgPZ6K9CBG8JISf-sw'
+  'EQCo7hf25HUWYzGC0OWW4wXiHYgO2vHg3ktiXQhqTM8vTdqU' // 👈 Your latest contract address
 );
+const STICKER_PACK_URL = 'https://t.me/addstickers/MinglesTequila'; // 👈 Your sticker pack link
 
-// Your mint op-code (from the contract)
+// --- Contract Constants ---
 const MINT_PACK_OP_CODE = 0x1;
+const TESTNET_MINT_PRICE = toNano('1.15'); // 0.5 (price) + 1.0 (gas) + 0.05 (buffer)
+const MAINNET_MINT_PRICE = toNano('6.05'); // 5.0 (price) + 1.0 (gas) + 0.05 (buffer)
 
-// Testnet mint price (0.1 for pack + 0.55 for gas)
-const MINT_PRICE = toNano('0.65');
 
 export function MintComponent() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
 
-  const handleMint = async () => {
-    if (!wallet) {
-      alert("Please connect your wallet first.");
-      return;
+  const [isLoading, setIsLoading] = useState(false);
+  const [isHolder, setIsHolder] = useState(false);
+
+  useEffect(() => {
+    
+    async function checkHolderStatus() {
+      if (!wallet) {
+        setIsHolder(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const userAddress = Address.parse(wallet.account.address).toString();
+        const collectionAddr = collectionAddress.toString();
+
+        //
+        // 🚀 2. FIX THE API URL CHECK
+        //
+        const isTestnet = wallet.account.chain === CHAIN.TESTNET;
+        const apiUrl = isTestnet ? 'https://testnet.tonapi.io' : 'https://tonapi.io';
+
+        const response = await fetch(
+          `${apiUrl}/v2/accounts/${userAddress}/nfts?collection=${collectionAddr}&limit=1`
+        );
+        const data = await response.json();
+
+        if (data.nft_items && data.nft_items.length > 0) {
+          setIsHolder(true);
+        } else {
+          setIsHolder(false);
+        }
+      } catch (error) {
+        console.error("Failed to check holder status:", error);
+        setIsHolder(false);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
-    // 1. Build the message payload (the op-code)
-    // This creates a cell with 'storeUint(1, 32)'
+    checkHolderStatus();
+
+  }, [wallet]);
+
+  const handleMint = async () => {
+    if (!wallet) return;
+
+    //
+    // 🚀 3. FIX THE MINT PRICE CHECK (This was your error)
+    //
+    const isTestnet = wallet.account.chain === CHAIN.TESTNET;
+    const mintPrice = isTestnet ? TESTNET_MINT_PRICE : MAINNET_MINT_PRICE;
+
     const payload = beginCell()
       .storeUint(MINT_PACK_OP_CODE, 32)
       .endCell();
 
-    // 2. Define the transaction
     const transaction = {
-      validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+      validUntil: Math.floor(Date.now() / 1000) + 600,
       messages: [
         {
           address: collectionAddress.toString(),
-          amount: MINT_PRICE.toString(),
-          payload: payload.toBoc().toString("base64"), // Body as base64
+          amount: mintPrice.toString(),
+          payload: payload.toBoc().toString("base64"),
         },
       ],
     };
 
     try {
-      // 3. Send the transaction
-      const result = await tonConnectUI.sendTransaction(transaction);
-      alert("Transaction sent! Check your wallet.");
-      
-      // You can check the transaction BOC in result.boc
-      // and monitor its status
-
+      await tonConnectUI.sendTransaction(transaction);
+      alert("Mint transaction sent! Check your wallet.");
     } catch (error) {
       console.error("Mint failed:", error);
       alert("Mint failed. See console for details.");
     }
   };
 
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="text-white">
+          Checking your wallet for NFTs...
+        </div>
+      );
+    }
+
+    if (isHolder) {
+      return (
+        <div className="flex flex-col items-center gap-4 text-center">
+          <h2 className="text-2xl font-bold text-green-400">✅ Welcome, Holder!</h2>
+          <p className="text-gray-300">Here is your exclusive access to the TGS sticker pack.</p>
+          <a
+            href={STICKER_PACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg"
+          >
+            Add Sticker Pack to Telegram
+          </a>
+        </div>
+      );
+    }
+
+    if (wallet) {
+      return (
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-gray-300">You don't own a sticker NFT yet. Mint a pack to get access!</p>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg"
+            onClick={handleMint}
+          >
+            Mint 10-Pack
+          </button>
+        </div>
+      );
+    }
+
+    return <p className="text-gray-400">Connect your wallet to begin.</p>;
+  };
+
   return (
-    <div className="flex flex-col items-center gap-4 p-8">
-      <g className="text-2xl text-black font-bold">Mint Your TGS Pack</g>
-      <p className="text-black">Mint a pack of 10 stickers for 0.1 TON (Testnet).</p>
+    <div className="flex flex-col items-center gap-6 p-8 bg-gray-900 rounded-lg shadow-xl">
+      <h1 className="text-3xl font-bold text-white">Mingles Tequila Stickers</h1>
       
-      {/* 1. The Connect Button */}
       <TonConnectButton />
 
-      {/* 2. The Mint Button */}
-      {wallet && (
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={handleMint}
-        >
-          Mint 10-Pack
-        </button>
-      )}
+      <div className="mt-4">
+        {renderContent()}
+      </div>
     </div>
   );
 }
