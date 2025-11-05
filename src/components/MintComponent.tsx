@@ -12,7 +12,7 @@ import { Address, toNano, beginCell } from "@ton/core";
 
 // 2. 🚀 UPDATE THESE VALUES 🚀
 const collectionAddress = Address.parse(
-  'EQCovn_ej_iywA64Lzlvkr4Ur3RaZNfx3RdqWzcBN5yTsggM' // 👈 Your latest contract address
+  'EQD5ohgJipfMZvGTauDP3vj_roVjaR-dTd6-nDsNKqb566Lb' // 👈 Your latest contract address
 );
 const STICKER_PACK_URL = 'https://t.me/addstickers/MinglesTequila'; // 👈 Your sticker pack link
 
