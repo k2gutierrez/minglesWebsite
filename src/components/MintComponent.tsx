@@ -115,7 +115,7 @@ export function MintComponent() {
     if (isHolder) {
       return (
         <div className="flex flex-col items-center gap-4 text-center">
-          <h2 className="text-2xl font-bold text-green-400">✅ Welcome, Holder!</h2>
+          <p className="text-2xl font-bold text-green-400">✅ Welcome, Holder!</p>
           <p className="text-gray-300">Here is your exclusive access to the TGS sticker pack.</p>
           <a
             href={STICKER_PACK_URL}
@@ -148,7 +148,7 @@ export function MintComponent() {
 
   return (
     <div className="flex flex-col items-center gap-6 p-8 bg-gray-900 rounded-lg shadow-xl">
-      <h1 className="text-3xl font-bold text-white">Mingles Tequila Stickers</h1>
+      <p className="text-3xl font-bold text-white">Mingles Tequila Stickers</p>
       
       <TonConnectButton />
 
