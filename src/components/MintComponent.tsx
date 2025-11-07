@@ -234,11 +234,11 @@ export function MintComponent() {
 
         <Swiper
           modules={[Navigation, Pagination]}
-          spaceBetween={1}
-          slidesPerView={3}
+          spaceBetween={3}
+          slidesPerView={4}
           breakpoints={{
             640: {
-              slidesPerView: 3,
+              slidesPerView: 4,
             },
             1024: {
               slidesPerView: 4,
@@ -252,7 +252,7 @@ export function MintComponent() {
           {
             stickerData.map((data, index) => (
 
-              <SwiperSlide className="cursor-pointer" key={index} onClick={() => setSelectedSticker(data)}>
+              <SwiperSlide className="cursor-pointer " key={index} onClick={() => setSelectedSticker(data)}>
 
                 <div
                   key={data.id}
@@ -261,14 +261,15 @@ export function MintComponent() {
                   <Image
                     src={formatIpfsUrl(data.staticUrl)}
                     alt={data.name}
-                    width={100}
-                    height={100}
+                    width={200}
+                    height={200}
                     className={`
+                      bg-gray-100
                 w-16 h-16 sm:w-20 sm:h-20
-                object-cover rounded-md border-2 
+                object-cover rounded-lg border-2 
                 ${selectedSticker.id === data.id
                         ? 'border-blue-500'
-                        : 'border-gray-300'
+                        : 'border-gray-100'
                       }
                 hover:border-blue-300 transition-all`}
                   />
