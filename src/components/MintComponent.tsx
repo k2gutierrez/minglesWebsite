@@ -329,8 +329,8 @@ export function MintComponent() {
         <p className='md:text-lg text-base mt-5 font-[family-name:var(--font-vietnamItalic)]'>
           "Welcome to the 900+ holders Tequila Club - and thanks for minting."
         </p>
-        <p className="mt-4 md:text-lg text-base modal-margin font-[family-name:var(--font-vietnamItalic)]">
-          -<span className='text-blue-400 font-[family-name:var(--font-vietnamMedium)]'>MBAMemo</span>
+        <p className="mt-4 md:text-lg text-base modal-margin font-[family-name:var(--font-vietnamMedium)]">
+          -<span className='text-blue-400 font-[family-name:var(--font-vietnamItalic)]'>MBAMemo</span>
         </p>
 
         <a
@@ -358,9 +358,9 @@ export function MintComponent() {
       </p>
 
       {/* Align to left */}
-      <div id='divToAlignToLeft' className='w-full flex justify-normal space-x-2 mb-1 font-[family-name:var(--font-vietnamLight)]'>
-        <div className="text-xs md:text-sm font-bold bg-indigo-100 text-indigo-500 bg-gray-100 rounded-full px-1">NFT</div>
-        <div className="text-xs md:text-sm font-bold text-gray-500 bg-gray-100 rounded-full px-1">1,111 SUPPLY</div>
+      <div id='divToAlignToLeft' className='w-full flex justify-normal space-x-2 mb-2 font-[family-name:var(--font-vietnamLight)]'>
+        <div className="w-full text-xs md:text-sm font-bold bg-indigo-100 text-indigo-500 bg-gray-100 rounded-full px-1">NFT</div>
+        <div className="text-xs md:text-sm font-bold text-gray-500 bg-gray-100 rounded-full px-1 mr-32 sm:mr-65">SUPPLY<span className='ms-1 text-black'>1,111</span></div>
       </div>
 
 
