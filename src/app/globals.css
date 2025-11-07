@@ -74,6 +74,10 @@ body {
   margin: 0;
 }
 
+.swiper-pagination-bullets {
+  display: none;
+}
+
 .w-layout-grid {
   grid-row-gap: 16px;
   grid-column-gap: 16px;
