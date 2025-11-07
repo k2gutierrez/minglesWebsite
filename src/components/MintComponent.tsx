@@ -206,18 +206,22 @@ export function MintComponent() {
   // ===================================================================
   return (
     // We keep this container. It's a great mobile-first frame.
-    <div className="w-full max-w-md mx-auto h-screen sm:h-auto flex flex-col p-6 text-black">
-
-
+    <div className="w-full max-w-md mx-auto h-screen sm:h-auto flex-start p-6 text-black">
       {/* --- Title --- */}
       <div className='flex flex-col items-center'>
         <p className="flex items-center text-lg md:text-2xl font-bold text-black text-center">
-        Mingles Tequila
-        <Image src={"/Verified.png"} alt='Mingles Verified' className='ps-1' width={20} height={20} />
-      </p>
-      <p className="text-xm md:text-sm font-bold text-gray-300 mb-2 text-center text-pad">By <span className='text-xm font-bold text-blue-400'>Mingles NFT DAO LLC</span></p>
+          Mingles Tequila
+          <Image src={"/Verified.png"} alt='Mingles Verified' className='ps-1' width={20} height={20} />
+        </p>
+        <p className="text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad">By <span className='text-xs font-bold text-blue-400'>Mingles NFT DAO LLC</span></p>
       </div>
-      
+
+      {/* Align to left */}
+      <div id='divToAlignToLeft' className='w-full flex justify-normal space-x-2 mb-1'>
+        <div className="text-xs md:text-sm font-bold text-indigo-400 bg-gray-100 rounded-full px-1">NFT</div>
+        <div className="text-xs md:text-sm font-bold text-gray-400 bg-gray-100 rounded-full px-1">LIMITED SUPPLY</div>
+      </div>
+
 
       {/* --- Big Image Display (FIXED) --- */}
       <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-3xl  border-transparent mb-4">
@@ -236,60 +240,60 @@ export function MintComponent() {
         />
       </div>
 
-      
-        {/* The spacer divs are now gone */}
 
-        <Swiper
-          modules={[Navigation, Pagination]}
-          spaceBetween={3}
-          slidesPerView={4}
-          breakpoints={{
-            640: {
-              slidesPerView: 4,
-            },
-            1024: {
-              slidesPerView: 4,
-            },
-          }}
-          navigation={false}
-          pagination={true}
+      {/* The spacer divs are now gone */}
 
-          className="mySwiper w-full mb-10"
-        >
-          {
-            stickerData.map((data, index) => (
+      <Swiper
+        modules={[Navigation, Pagination]}
+        spaceBetween={3}
+        slidesPerView={4}
+        breakpoints={{
+          640: {
+            slidesPerView: 4,
+          },
+          1024: {
+            slidesPerView: 4,
+          },
+        }}
+        navigation={false}
+        pagination={true}
 
-              <SwiperSlide className="cursor-pointer " key={index} onClick={() => setSelectedSticker(data)}>
+        className="mySwiper w-full mb-10"
+      >
+        {
+          stickerData.map((data, index) => (
 
-                <div
-                  key={data.id}
-                  className="flex-shrink-0 cursor-pointer snap-start"
-                >
-                  <Image
-                    src={formatIpfsUrl(data.staticUrl)}
-                    alt={data.name}
-                    width={200}
-                    height={200}
-                    className={`
+            <SwiperSlide className="cursor-pointer " key={index} onClick={() => setSelectedSticker(data)}>
+
+              <div
+                key={data.id}
+                className="flex-shrink-0 cursor-pointer snap-start"
+              >
+                <Image
+                  src={formatIpfsUrl(data.staticUrl)}
+                  alt={data.name}
+                  width={200}
+                  height={200}
+                  className={`
                       bg-gray-100
                 w-16 h-16 sm:w-20 sm:h-20
                 object-cover rounded-lg border-2 
                 ${selectedSticker.id === data.id
-                        ? 'border-blue-500'
-                        : 'border-gray-100'
-                      }
+                      ? 'border-blue-500'
+                      : 'border-gray-100'
+                    }
                 hover:border-blue-300 transition-all`}
-                  />
-                </div>
+                />
+              </div>
 
 
-              </SwiperSlide>
-            ))}
-        </Swiper>
+            </SwiperSlide>
+          ))}
+      </Swiper>
 
 
-        {/* The spacer divs are now gone */}
-      
+      {/* The spacer divs are now gone */}
+
 
       {/* --- Connect Button --- */}
       <div className="w-full flex justify-end mb-6">
