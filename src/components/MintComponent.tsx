@@ -1,5 +1,5 @@
 'use client';
-
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Image from 'next/image'; // 1. We will keep using the Next.js Image component
 import {
@@ -206,20 +206,20 @@ export function MintComponent() {
   // ===================================================================
   return (
     // We keep this container. It's a great mobile-first frame.
-    <div className="w-full max-w-md mx-auto h-screen sm:h-auto flex-start p-6 text-black">
+    <div className="w-full max-w-md mx-auto h-screen sm:h-auto flex-col justify-start p-6 text-black">
       {/* --- Title --- */}
       <div className='flex flex-col items-center'>
         <p className="flex items-center text-lg md:text-2xl font-bold text-black text-center">
           Mingles Tequila
           <Image src={"/Verified.png"} alt='Mingles Verified' className='ps-1' width={20} height={20} />
         </p>
-        <p className="text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad">By <span className='text-xs font-bold text-blue-400'>Mingles NFT DAO LLC</span></p>
+        <p className="text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad">By <Link href={"https://www.mingles.wtf"}><span className='text-xs font-bold text-blue-400'>Mingles</span></Link></p>
       </div>
 
       {/* Align to left */}
       <div id='divToAlignToLeft' className='w-full flex justify-normal space-x-2 mb-1'>
         <div className="text-xs md:text-sm font-bold text-indigo-400 bg-gray-100 rounded-full px-1">NFT</div>
-        <div className="text-xs md:text-sm font-bold text-gray-400 bg-gray-100 rounded-full px-1">LIMITED SUPPLY</div>
+        <div className="text-xs md:text-sm font-bold text-gray-400 bg-gray-100 rounded-full px-1">1,111 SUPPLY</div>
       </div>
 
 
@@ -258,7 +258,7 @@ export function MintComponent() {
         navigation={false}
         pagination={true}
 
-        className="mySwiper w-full mb-10"
+        className="mySwiper w-full mb-8"
       >
         {
           stickerData.map((data, index) => (
@@ -290,6 +290,10 @@ export function MintComponent() {
             </SwiperSlide>
           ))}
       </Swiper>
+
+      <p className="flex items-center text-base md:text-xl text-black text-center">
+        The 1st tequila-inspired collectible stickers on TON
+      </p>
 
 
       {/* The spacer divs are now gone */}
