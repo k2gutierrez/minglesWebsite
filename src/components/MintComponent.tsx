@@ -215,8 +215,9 @@ export function MintComponent() {
         Mingles Tequila
         <Image src={"/Verified.png"} alt='Mingles Verified' className='ps-1' width={20} height={20} />
       </p>
+      <p className="text-xm md:text-sm font-bold text-gray-300 mb-2 text-center text-pad">By <span className='text-xm font-bold text-blue-400'>Mingles NFT DAO LLC</span></p>
       </div>
-      <p className="text-xm md:text-sm font-bold text-gray-300 mb-2 text-center">By <span className='text-xm font-bold text-blue-400'>Mingles NFT DAO LLC</span></p>
+      
 
       {/* --- Big Image Display (FIXED) --- */}
       <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-3xl  border-transparent mb-4">

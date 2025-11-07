@@ -74,6 +74,10 @@ body {
   margin: 0;
 }
 
+.text-pad {
+  margin-top: -15px;
+}
+
 .swiper-pagination-bullets {
   display: none;
 }
