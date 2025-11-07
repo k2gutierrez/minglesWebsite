@@ -112,7 +112,7 @@ const MAINNET_MINT_PRICE = toNano('6.1');
 export function MintComponent() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
-  const [selectedSticker, setSelectedSticker] = useState(stickerData[0]);
+  const [selectedSticker, setSelectedSticker] = useState(stickerData[7]);
   const [isLoading, setIsLoading] = useState(false);
   const [isHolder, setIsHolder] = useState(false);
 
@@ -210,7 +210,13 @@ export function MintComponent() {
 
 
       {/* --- Title --- */}
-      <p className="text-3xl font-bold text-black mb-2 text-center">Mingles Tequila</p>
+      <div className='flex flex-col items-center'>
+        <p className="flex items-center text-lg md:text-2xl font-bold text-black text-center">
+        Mingles Tequila
+        <Image src={"/Verified.png"} alt='Mingles Verified' className='ps-1' width={20} height={20} />
+      </p>
+      </div>
+      <p className="text-xm md:text-sm font-bold text-gray-300 mb-2 text-center">By <span className='text-xm font-bold text-blue-400'>Mingles NFT DAO LLC</span></p>
 
       {/* --- Big Image Display (FIXED) --- */}
       <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-3xl  border-transparent mb-4">
