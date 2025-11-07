@@ -216,7 +216,7 @@ export function MintComponent() {
       </p>
 
       {/* --- Big Image Display (FIXED) --- */}
-      <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-lg shadow-inner mb-4">
+      <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-2xl shadow-inner mb-4">
         {/* 🚀 FIX 2: Use `fill` and `object-fit` to make the Image
             responsive. This ignores `height` and `width` and
             makes the image fill its parent container.
@@ -232,11 +232,7 @@ export function MintComponent() {
         />
       </div>
 
-      {/* --- Small Carousel (FIXED) --- */}
-      <div
-        className="w-full overflow-x-auto snap-x snap-mandatory flex space-x-3 no-scrollbar mb-6
-                   px-6 scroll-px-6" // 🚀 FIX 3: Use padding on the container
-      >
+      
         {/* The spacer divs are now gone */}
 
         <Swiper
@@ -254,7 +250,7 @@ export function MintComponent() {
           navigation={true}
           pagination={true}
 
-          className="mySwiper border border-solid"
+          className="mySwiper w-full mb-10"
         >
           {
             stickerData.map((data, index) => (
@@ -275,7 +271,7 @@ export function MintComponent() {
                 object-cover rounded-md border-2 
                 ${selectedSticker.id === data.id
                         ? 'border-blue-500'
-                        : 'border-gray-200'
+                        : 'border-gray-300'
                       }
                 hover:border-blue-300 transition-all`}
                   />
@@ -286,9 +282,9 @@ export function MintComponent() {
             ))}
         </Swiper>
 
-        
+
         {/* The spacer divs are now gone */}
-      </div>
+      
 
       {/* --- Connect Button --- */}
       <div className="w-full flex justify-end mb-6">
