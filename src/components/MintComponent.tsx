@@ -211,9 +211,6 @@ export function MintComponent() {
 
       {/* --- Title --- */}
       <p className="text-3xl font-bold text-black mb-2 text-center">Mingles Tequila</p>
-      <p className="text-gray-600 text-center mb-6">
-        Select a sticker to preview the animation.
-      </p>
 
       {/* --- Big Image Display (FIXED) --- */}
       <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-2xl shadow-inner mb-4">
@@ -247,7 +244,7 @@ export function MintComponent() {
               slidesPerView: 4,
             },
           }}
-          navigation={true}
+          navigation={false}
           pagination={true}
 
           className="mySwiper w-full mb-10"
