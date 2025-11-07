@@ -78,6 +78,10 @@ body {
   margin-top: -15px;
 }
 
+.modal-margin {
+  margin-top: -15px;
+}
+
 .swiper-pagination-bullets {
   display: none;
 }

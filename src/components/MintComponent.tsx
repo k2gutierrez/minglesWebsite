@@ -17,6 +17,111 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/swiper-bundle.css'
 
+/////////// Modal
+// --- Types (for TypeScript) ---
+// We define the props for our Modal component
+type ModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  children: React.ReactNode;
+};
+
+// --- Modal Component ---
+// This is the reusable modal component
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+  // If the modal is not open, return null to render nothing
+  if (!isOpen) {
+    return null;
+  }
+
+  // This function handles the backdrop click
+  // It calls onClose, but stops the event from bubbling
+  // up to the modal content's wrapper.
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // We check if the click is on the backdrop itself, not on the modal content
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    // Main modal overlay
+    // 'fixed': Positions relative to the viewport
+    // 'inset-0': Covers the entire screen (top/right/bottom/left = 0)
+    // 'z-50': Sits on top of other content
+    // 'flex items-center justify-center': Centers the modal content
+    // 'bg-black/60': Semi-transparent black background
+    // 'backdrop-blur-sm': Adds a blur effect to the content behind
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+    >
+      {/* Modal Content Container */}
+      {/* 'relative': For positioning the close button
+        'bg-white': White background
+        'rounded-lg': Rounded corners
+        'shadow-2xl': Strong drop shadow
+        'p-6': Padding inside the modal
+        
+        Responsiveness:
+        'w-11/12': Mobile-first (91% width)
+        'md:w-3/4': Medium screens (75% width)
+        'lg:w-1/2': Large screens (50% width)
+        'max-w-2xl': Sets a maximum width for very large screens
+      */}
+      <div
+        className="relative w-11/12 max-w-2xl rounded-lg bg-white p-6 shadow-2xl md:w-3/4 lg:w-1/2"
+        // This stops a click inside the modal from bubbling up
+        // to the backdrop and closing the modal.
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 transition-colors hover:text-gray-800"
+          aria-label="Close modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-6 w-6"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Modal Title (optional) */}
+        {title && (
+          <h2 className="mb-4 text-2xl font-semibold text-gray-900">{title}</h2>
+        )}
+
+        {/* Modal Body (children) */}
+        <div className="text-gray-700">{children}</div>
+
+        {/* Modal Footer (example) */}
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-300"
+          >
+            Close
+          </button>
+          {/* <button
+            onClick={onClose} // You would likely have a different action here
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Confirm
+          </button> */}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ===================================================================
 // 🚀 YOUR STICKER DATA (This is great)
 // ===================================================================
@@ -115,6 +220,7 @@ export function MintComponent() {
   const [selectedSticker, setSelectedSticker] = useState(stickerData[7]);
   const [isLoading, setIsLoading] = useState(false);
   const [isHolder, setIsHolder] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // --- Holder Checking Logic (Unchanged) ---
   useEffect(() => {
@@ -146,6 +252,7 @@ export function MintComponent() {
       }
     }
     checkHolderStatus();
+    setIsModalOpen(true)                 /////////////////////////////////////
   }, [wallet]);
 
   // --- Mint Logic (Unchanged) ---
@@ -165,7 +272,9 @@ export function MintComponent() {
     };
     try {
       await tonConnectUI.sendTransaction(transaction);
-      alert("Mint transaction sent! Check your wallet.");
+      setTimeout(() => {
+        setIsModalOpen(true);
+      }, 1500);
     } catch (error) {
       console.error("Mint failed:", error);
       alert("Mint failed. See console for details.");
@@ -201,25 +310,57 @@ export function MintComponent() {
     return <p className="text-gray-500 text-center">Connect your wallet to mint.</p>;
   };
 
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   // ===================================================================
   // 🚀 4. THE RESPONSIVE JSX (FIXED)
   // ===================================================================
   return (
     // We keep this container. It's a great mobile-first frame.
     <div className="w-full max-w-md mx-auto h-screen sm:h-auto flex-col justify-start p-6 text-black">
+
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        title="Welcome!"
+      > 
+        <Image src={"/Mingles267.png"} alt='Ape 267' className='' width={120} height={120} />
+        <p className='md:text-lg text-base mt-5 font-[family-name:var(--font-vietnamItalic)]'>
+          "Welcome to the 900+ holders Tequila Club - and thanks for minting."
+        </p>
+        <p className="mt-4 md:text-lg text-base modal-margin font-[family-name:var(--font-vietnamItalic)]">
+          -<span className='text-blue-400 font-[family-name:var(--font-vietnamMedium)]'>MBAMemo</span>
+        </p>
+
+        <a
+          href={STICKER_PACK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-5 rounded-lg text-base md:text-lg text-center font-[family-name:var(--font-vietnamMedium)]"
+        >
+          Add Sticker Pack
+        </a>
+      </Modal>
+
       {/* --- Title --- */}
-      <div className='flex flex-col items-center'>
-        <p className="flex items-center text-lg md:text-2xl font-bold text-black text-center">
+      <div className='flex items-center'>
+        <p className="flex items-center text-lg md:text-2xl font-bold text-black text-center font-[family-name:var(--font-vietnamMedium)]">
           Mingles Tequila
           <Image src={"/Verified.png"} alt='Mingles Verified' className='ps-1' width={20} height={20} />
         </p>
-        <p className="text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad">By <Link href={"https://www.mingles.wtf"}><span className='text-xs font-bold text-blue-400'>Mingles</span></Link></p>
+        
       </div>
+      <p className="text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad font-[family-name:var(--font-vietnamItalic)]">By <Link href={"https://www.mingles.wtf"}><span className='text-xs font-bold text-blue-400 font-[family-name:var(--font-vietnamItalic)]'>Mingles</span></Link></p>
+
+      <p className="flex items-center text-base md:text-xl text-black text-center font-[family-name:var(--font-vietnamLight)]">
+        The 1st tequila-inspired collectible stickers on TON
+      </p>
 
       {/* Align to left */}
-      <div id='divToAlignToLeft' className='w-full flex justify-normal space-x-2 mb-1'>
-        <div className="text-xs md:text-sm font-bold text-indigo-400 bg-gray-100 rounded-full px-1">NFT</div>
-        <div className="text-xs md:text-sm font-bold text-gray-400 bg-gray-100 rounded-full px-1">1,111 SUPPLY</div>
+      <div id='divToAlignToLeft' className='w-full flex justify-normal space-x-2 mb-1 font-[family-name:var(--font-vietnamLight)]'>
+        <div className="text-xs md:text-sm font-bold bg-indigo-100 text-indigo-500 bg-gray-100 rounded-full px-1">NFT</div>
+        <div className="text-xs md:text-sm font-bold text-gray-500 bg-gray-100 rounded-full px-1">1,111 SUPPLY</div>
       </div>
 
 
@@ -290,11 +431,6 @@ export function MintComponent() {
             </SwiperSlide>
           ))}
       </Swiper>
-
-      <p className="flex items-center text-base md:text-xl text-black text-center">
-        The 1st tequila-inspired collectible stickers on TON
-      </p>
-
 
       {/* The spacer divs are now gone */}
 
