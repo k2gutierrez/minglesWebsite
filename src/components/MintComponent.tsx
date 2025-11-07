@@ -213,7 +213,7 @@ export function MintComponent() {
       <p className="text-3xl font-bold text-black mb-2 text-center">Mingles Tequila</p>
 
       {/* --- Big Image Display (FIXED) --- */}
-      <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-2xl shadow-inner mb-4">
+      <div className="relative w-full aspect-square border border-solid bg-gray-100 rounded-3xl  border-transparent mb-4">
         {/* 🚀 FIX 2: Use `fill` and `object-fit` to make the Image
             responsive. This ignores `height` and `width` and
             makes the image fill its parent container.
