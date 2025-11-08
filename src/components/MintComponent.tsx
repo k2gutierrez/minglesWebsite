@@ -105,13 +105,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
         {/* Modal Footer (example) */}
         <div className="mt-6 flex justify-end space-x-3">
-          <button
+          {/* <button
             onClick={onClose}
             className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-300"
           >
             Close
           </button>
-          {/* <button
+          <button
             onClick={onClose} // You would likely have a different action here
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
