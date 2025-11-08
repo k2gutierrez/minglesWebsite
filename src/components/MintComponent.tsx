@@ -288,14 +288,22 @@ export function MintComponent() {
     if (isLoading) return <div className="text-gray-500">Checking wallet...</div>;
     if (isHolder) {
       return (
-        <a
-          href={STICKER_PACK_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg w-full text-center"
-        >
-          Add Sticker Pack
-        </a>
+        <>
+          <a
+            href={STICKER_PACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg w-full text-center mb-2"
+          >
+            Add Sticker Pack
+          </a>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg w-full"
+            onClick={handleMint}
+          >
+            Mint 10-Pack
+          </button>
+        </>
       );
     }
     if (wallet) {
@@ -321,11 +329,11 @@ export function MintComponent() {
     // We keep this container. It's a great mobile-first frame.
     <div className="w-full max-w-md mx-auto h-screen sm:h-auto flex-col justify-start p-6 text-black">
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
         title="Welcome!"
-      > 
+      >
         <Image src={"/Mingles267.png"} alt='Ape 267' className='' width={120} height={120} />
         <p className={`md:text-lg text-base mt-5 ${vietnamItalic.className}`}>
           "Welcome to the 900+ holders Tequila Club - and thanks for minting."
@@ -350,7 +358,7 @@ export function MintComponent() {
           Mingles Tequila
           <Image src={"/Verified.png"} alt='Mingles Verified' className='' width={18} height={18} />
         </p>
-        
+
       </div>
       <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <Link href={"https://www.mingles.wtf"}><span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles</span></Link></p>
 
