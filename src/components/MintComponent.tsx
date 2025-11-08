@@ -360,7 +360,7 @@ export function MintComponent() {
         </p>
 
       </div>
-      <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <Link href={"https://www.mingles.wtf"}><span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles</span></Link></p>
+      <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles NFT</span></p>
 
       <p className={`flex items-center text-base md:text-xl text-black text-center ${vietnamLight.className}`}>
         The 1st tequila-inspired collectible stickers on TON

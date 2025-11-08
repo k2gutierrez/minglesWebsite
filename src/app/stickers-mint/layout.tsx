@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className="bg-white"> {/* 3. Set your white background here */}
         <div className="relative">
           <Image
-            src={"/MinglesJugando.png"}
+            src={"/MinglesJugandoBanner.png"}
             alt="Mingles Stickers"
             width={500}
             height={200}
