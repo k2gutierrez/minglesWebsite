@@ -1,5 +1,7 @@
 //import type { NextConfig } from "next";
 
+import { THEME } from "@tonconnect/ui-react";
+
 const nextConfig = {
   images: {
         remotePatterns: [

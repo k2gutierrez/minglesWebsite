@@ -52,6 +52,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-vietnam-light: var(--font-vietnamLight)
 }
 
 @media (prefers-color-scheme: dark) {

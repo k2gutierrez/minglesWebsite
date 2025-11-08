@@ -16,6 +16,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/swiper-bundle.css'
+import { vietnamItalic, vietnamLight, vietnamMedium } from '@/app/fonts';
 
 /////////// Modal
 // --- Types (for TypeScript) ---
@@ -326,18 +327,18 @@ export function MintComponent() {
         title="Welcome!"
       > 
         <Image src={"/Mingles267.png"} alt='Ape 267' className='' width={120} height={120} />
-        <p className='md:text-lg text-base mt-5 font-[family-name:var(--font-vietnamItalic)]'>
+        <p className={`md:text-lg text-base mt-5 ${vietnamItalic.className}`}>
           "Welcome to the 900+ holders Tequila Club - and thanks for minting."
         </p>
-        <p className="mt-4 md:text-lg text-base modal-margin font-[family-name:var(--font-vietnamMedium)]">
-          -<span className='text-blue-400 font-[family-name:var(--font-vietnamItalic)]'>MBAMemo</span>
+        <p className={`mt-4 md:text-lg text-base modal-margin ${vietnamMedium.className}`}>
+          -<span className={`text-blue-400 ${vietnamMedium.className}`}>MBAMemo</span>
         </p>
 
         <a
           href={STICKER_PACK_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-5 rounded-lg text-base md:text-lg text-center font-[family-name:var(--font-vietnamMedium)]"
+          className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-5 rounded-lg text-base md:text-lg text-center ${vietnamMedium.className}`}
         >
           Add Sticker Pack
         </a>
@@ -345,22 +346,22 @@ export function MintComponent() {
 
       {/* --- Title --- */}
       <div className='flex items-center'>
-        <p className="flex items-center text-lg md:text-2xl font-bold text-black text-center font-[family-name:var(--font-vietnamMedium)]">
+        <p className={`flex items-center text-base md:text-lg font-bold text-black text-center ${vietnamMedium.className}`}>
           Mingles Tequila
-          <Image src={"/Verified.png"} alt='Mingles Verified' className='ps-1' width={20} height={20} />
+          <Image src={"/Verified.png"} alt='Mingles Verified' className='' width={18} height={18} />
         </p>
         
       </div>
-      <p className="text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad font-[family-name:var(--font-vietnamItalic)]">By <Link href={"https://www.mingles.wtf"}><span className='text-xs font-bold text-blue-400 font-[family-name:var(--font-vietnamItalic)]'>Mingles</span></Link></p>
+      <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <Link href={"https://www.mingles.wtf"}><span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles</span></Link></p>
 
-      <p className="flex items-center text-base md:text-xl text-black text-center font-[family-name:var(--font-vietnamLight)]">
+      <p className={`flex items-center text-base md:text-xl text-black text-center ${vietnamLight.className}`}>
         The 1st tequila-inspired collectible stickers on TON
       </p>
 
       {/* Align to left */}
-      <div id='divToAlignToLeft' className='w-full flex justify-normal space-x-2 mb-2 font-[family-name:var(--font-vietnamLight)]'>
+      <div id='divToAlignToLeft' className={`w-full flex justify-normal space-x-2 mb-2 ${vietnamLight.className}`}>
         <div className="w-full text-xs md:text-sm font-bold bg-indigo-100 text-indigo-500 bg-gray-100 rounded-full px-1">NFT</div>
-        <div className="text-xs md:text-sm font-bold text-gray-500 bg-gray-100 rounded-full px-1 mr-32 sm:mr-65">SUPPLY<span className='ms-1 text-black'>1,111</span></div>
+        <div className="text-xs md:text-sm font-bold text-gray-500 bg-gray-100 rounded-full px-1 mr-30 sm:mr-65">SUPPLY<span className='ms-1 text-black'>1,111</span></div>
       </div>
 
 
