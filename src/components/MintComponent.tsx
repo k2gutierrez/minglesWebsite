@@ -359,7 +359,7 @@ export function MintComponent() {
       }
     }
     checkHolderStatus();
-    setIsModalOpen(true)                 /////////////////////////////////////
+    // setIsModalOpen(true)
   }, [wallet]);
 
   // --- Mint Logic (Unchanged) ---
