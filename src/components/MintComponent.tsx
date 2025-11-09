@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image'; // 1. We will keep using the Next.js Image component
 import {
   TonConnectButton,
@@ -15,8 +15,11 @@ import { Navigation, Pagination } from "swiper/modules";
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import 'swiper/swiper-bundle.css'
+import 'swiper/swiper-bundle.css';
 import { vietnamItalic, vietnamLight, vietnamMedium } from '@/app/fonts';
+import telegramLogo from "../../public/telegramLogoBlack.png";
+import twitterLogo from "../../public/TwitterXLogoNegro.png";
+import discordLogo from "../../public/DiscordLogoBlack.png";
 
 /////////// Modal
 // --- Types (for TypeScript) ---
@@ -26,6 +29,109 @@ type ModalProps = {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+};
+
+const socialLinks = [
+  {
+    name: 'Telegram',
+    // Your original code for this was perfect
+    icon: telegramLogo,
+    href: 'https://t.me/+ZCSrd9qblhc1OTc0',
+    color: 'bg-blue-400 hover:bg-blue-500', // Telegram's blue
+    alt: 'Mingles Telegram'
+  },
+  {
+    name: 'Twitter',
+    // Replace the <Twitter /> component with the Image component
+    icon: twitterLogo,
+    href: 'https://x.com/MinglesNFT',
+    color: 'bg-white hover:bg-gray-700', // X/Twitter's color is black
+    alt: 'Mingles Twitter'
+  },
+  {
+    name: 'Discord',
+    // Fix the icon here (was Twitter) and use the Image component
+    icon: discordLogo,
+    href: 'https://discord.gg/kqYpVhsxhD',
+    color: 'bg-indigo-600 hover:bg-indigo-500', // Discord's "blurple"
+    alt: 'Mingles Discord'
+  },
+];
+
+const SocialLinksTrigger = ({ triggerText = "Follow Us" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Effect to handle clicks outside the component to close the menu
+  useEffect(() => {
+    /**
+     * @param {MouseEvent} event
+     */
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    // Bind the event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [wrapperRef]);
+
+  return (
+    <div ref={wrapperRef} className="relative inline-block text-left">
+      
+      {/* The text trigger */}
+      {/* <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles NFT</span></p> */}
+      <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <span
+        onClick={() => setIsOpen(!isOpen)}
+        className={`text-xs font-bold text-blue-400 ${vietnamItalic.className} cursor-pointer hover:underline`}
+        role="button"
+        tabIndex={0}
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+        // Accessibility for keyboard users
+        onKeyPress={(e) => e.key === 'Enter' && setIsOpen(!isOpen)}
+      >
+        {triggerText}
+      </span></p>
+
+      {/* The floating action buttons container */}
+      <div
+        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-3 flex flex-col items-center gap-3 transition-all duration-300 ease-in-out z-10 ${
+          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+        role="menu"
+        aria-orientation="vertical"
+        aria-labelledby="social-menu-button"
+      >
+        {socialLinks.map((social, index) => (
+          
+          <a
+            key={social.name}
+            href={social.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            role="menuitem"
+            className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 transform hover:scale-110 ${social.color}`}
+            // Stagger the animation for a nice effect
+            style={{ transitionDelay: isOpen ? `${index * 50}ms` : '0ms' }}
+            aria-label={`Visit our ${social.name}`}
+            // Close menu on click
+            onClick={() => setIsOpen(false)}
+            // Hide from keyboard navigation when closed
+            tabIndex={isOpen ? 0 : -1}
+          >
+            <Image src={social.icon} className={`absolute z-40`} width={50} height={50} alt={social.alt} />
+          </a>
+          
+          
+        ))}
+      </div>
+    </div>
+  );
 };
 
 // --- Modal Component ---
@@ -360,7 +466,11 @@ export function MintComponent() {
         </p>
 
       </div>
-      <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles NFT</span></p>
+      {/*<p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles NFT</span></p>*/}
+      <SocialLinksTrigger 
+        triggerText={"Mingles NFT"}
+      />
+      
 
       <p className={`flex items-center text-base md:text-xl text-black text-center ${vietnamLight.className}`}>
         The 1st tequila-inspired collectible stickers on TON

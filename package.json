@@ -12,6 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@lottiefiles/lottie-player": "^2.0.12",
     "@orbs-network/ton-access": "^2.3.3",
     "@privy-io/react-auth": "^2.13.2",
@@ -32,6 +33,7 @@
     "ethers": "^5.8.0",
     "file-saver": "^2.0.5",
     "jotai": "^2.12.4",
+    "lucide-react": "^0.553.0",
     "next": "14.2.13",
     "next-scratchcard": "^0.0.4",
     "react": "18.3.0",
