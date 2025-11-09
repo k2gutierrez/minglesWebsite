@@ -37,7 +37,7 @@ const socialLinks = [
     // Your original code for this was perfect
     icon: telegramLogo,
     href: 'https://t.me/+ZCSrd9qblhc1OTc0',
-    color: 'bg-blue-400 hover:bg-blue-500', // Telegram's blue
+    color: 'bg-gray-100 hover:bg-blue-500', // Telegram's blue
     alt: 'Mingles Telegram'
   },
   {
@@ -45,7 +45,7 @@ const socialLinks = [
     // Replace the <Twitter /> component with the Image component
     icon: twitterLogo,
     href: 'https://x.com/MinglesNFT',
-    color: 'bg-white hover:bg-gray-700', // X/Twitter's color is black
+    color: 'bg-gray-100 hover:bg-gray-700', // X/Twitter's color is black
     alt: 'Mingles Twitter'
   },
   {
@@ -53,7 +53,7 @@ const socialLinks = [
     // Fix the icon here (was Twitter) and use the Image component
     icon: discordLogo,
     href: 'https://discord.gg/kqYpVhsxhD',
-    color: 'bg-indigo-600 hover:bg-indigo-500', // Discord's "blurple"
+    color: 'bg-gray-100 hover:bg-indigo-500', // Discord's "blurple"
     alt: 'Mingles Discord'
   },
 ];
