@@ -26,7 +26,7 @@ export default function RootLayout({
             alt="Mingles Stickers"
             width={500}
             height={200}
-            className="w-full h-48 object-cover object-left"
+            className="w-full  object-cover object-center"
           />
           <div className="absolute left-1/2 -translate-x-1/2 -bottom-9">
             <Image
