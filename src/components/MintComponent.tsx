@@ -399,12 +399,12 @@ export function MintComponent() {
             href={STICKER_PACK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg w-full text-center mb-2"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg w-full text-center mb-5 w-full"
           >
             Add Sticker Pack
           </a>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg w-full"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 mt-5 rounded-lg text-lg w-full"
             onClick={handleMint}
           >
             Mint 10-Pack
