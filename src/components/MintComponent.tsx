@@ -85,7 +85,7 @@ const SocialLinksTrigger = ({ triggerText = "Follow Us" }) => {
       
       {/* The text trigger */}
       {/* <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <span className={`text-xs font-bold text-blue-400 ${vietnamItalic.className}`}>Mingles NFT</span></p> */}
-      <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center text-pad ${vietnamItalic.className}`}>By <span
+      <p className={`text-xs md:text-sm font-bold text-gray-300 mb-2 text-center ${vietnamItalic.className}`}>By <span
         onClick={() => setIsOpen(!isOpen)}
         className={`text-xs font-bold text-blue-400 ${vietnamItalic.className} cursor-pointer hover:underline`}
         role="button"
@@ -460,7 +460,7 @@ export function MintComponent() {
 
       {/* --- Title --- */}
       <div className='flex items-center'>
-        <p className={`flex items-center text-base md:text-lg font-bold text-black text-center ${vietnamMedium.className}`}>
+        <p className={`flex items-center text-base md:text-lg text-pad font-bold text-black text-center ${vietnamMedium.className}`}>
           Mingles Tequila
           <Image src={"/Verified.png"} alt='Mingles Verified' className='' width={18} height={18} />
         </p>
