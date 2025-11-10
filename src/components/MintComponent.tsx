@@ -311,14 +311,14 @@ function formatIpfsUrl(ipfsUrl: string): string {
 // 🚀 YOUR CONTRACT INFO (This is great)
 // ===================================================================
 const collectionAddress = Address.parse(
-  'EQAhy3S7xqXnAFrltuCoe1hHuCACcwMyDyeTVTOeKlJDdpyk' // 👈 Your contract address
+  'EQDFbxzt6crA6OLhNthxbwEHJiqdiETPuXPbzUXntAjYmtMm' // 👈 Your contract address
 );
 const STICKER_PACK_URL = 'https://t.me/addstickers/MinglesTequila'; // 👈 Your sticker pack link
 
 // --- Contract Constants ---
 const MINT_PACK_OP_CODE = 0x1;
 const TESTNET_MINT_PRICE = toNano('1.4');
-const MAINNET_MINT_PRICE = toNano('6.1');
+const MAINNET_MINT_PRICE = toNano('11.1');
 
 
 export function MintComponent() {
