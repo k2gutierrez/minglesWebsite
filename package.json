@@ -12,6 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@0xsequence/indexer": "^2.3.35",
     "@heroicons/react": "^2.2.0",
     "@lottiefiles/lottie-player": "^2.0.12",
     "@orbs-network/ton-access": "^2.3.3",

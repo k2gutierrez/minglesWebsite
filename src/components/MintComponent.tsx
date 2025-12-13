@@ -311,7 +311,7 @@ function formatIpfsUrl(ipfsUrl: string): string {
 // 🚀 YOUR CONTRACT INFO (This is great)
 // ===================================================================
 const collectionAddress = Address.parse(
-  'EQDRGoitnw1Nd5XKSf3hcRYDX1OUjBlS6F-wq8-sGzKJMWsX' // 👈 Your contract address
+  'EQBinPbB5AMM94HGYBxweaeJ2Rv0TGICml5MPD7GVzgr5od1' // 👈 Your contract address
 );
 const STICKER_PACK_URL = 'https://t.me/addstickers/MinglesTequila'; // 👈 Your sticker pack link
 

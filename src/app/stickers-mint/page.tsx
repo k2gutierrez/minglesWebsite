@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { MintComponent } from "@/components/MintComponent";
 
-export default function Home() {
+export default function StickersMint() {
   return (
     <>
       <div className="relative">
