@@ -1,17 +1,11 @@
 export const ton_address = "";
 
-export const ton_curtis_address = "0x2E4A6a5ffEeb7604d6C7697284eEbb86CC22c02d";
+export const ton_curtis_address = "0xF14a2E69424D5f1faB5FA94129B259539997dF62"; //"0xa47323f19c296D3CA8525f2E941451e2B86DDa0a";
 
-export const TON = [
+export const TON_ABI = [
         {
             "type": "constructor",
-            "inputs": [
-                {
-                    "name": "_nftAddress",
-                    "type": "address",
-                    "internalType": "address"
-                }
-            ],
+            "inputs": [],
             "stateMutability": "nonpayable"
         },
         {
@@ -52,19 +46,6 @@ export const TON = [
                 }
             ],
             "stateMutability": "view"
-        },
-        {
-            "type": "function",
-            "name": "getMinglesPrice",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256",
-                    "internalType": "uint256"
-                }
-            ],
-            "stateMutability": "pure"
         },
         {
             "type": "function",
@@ -318,6 +299,11 @@ export const TON = [
         {
             "type": "error",
             "name": "TonPurchaseOnApechainRaffle__NotEnoughApeToPurchase",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "TonPurchaseOnApechainRaffle__TransferOfEthToOwnerAccountFailed",
             "inputs": []
         }
     ]
