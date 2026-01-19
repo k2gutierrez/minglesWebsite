@@ -9,6 +9,7 @@ import { useAccount, useChainId, useConfig, useReadContract, useWatchContractEve
 import { readContract } from "@wagmi/core";
 import { useAtom } from "jotai";
 import { GameAddressAccordingToChain } from "../engine/engine";
+import { SecondCollectionUrl, SecondCollectionImageFormat } from "@/components/engine/CONSTANTS";
 import { GameLocation, GameTokenId, Address1, Address2, PlayingAddress, Tokens1, Tokens2 } from "@/components/engine/atoms";
 
 export default function Board() {
@@ -43,7 +44,7 @@ export default function Board() {
         abi: gameABI,
         eventName: 'WinnerSelected',
         onLogs(logs) {
-            console.log('New logs!', logs)
+            
             setWinner(Number(logs[0]))
             setWinnerCollection(logs[1].toString())
         },
@@ -135,7 +136,7 @@ export default function Board() {
                             <Image className="mt-3 rounded-2xl" src={"https://d9emswcmuvawb.cloudfront.net/PFP" + winner + ".png"} alt="Mingle" width={150} height={150} />
                         )}
                         {winnerCollection.toLowerCase() == address2.toLowerCase() && (
-                            <Image className="mt-3 rounded-2xl" src={"https://bafybeifrjmhpuf34cv6sy4lqhs5gmmusznpunyfik3rqoqfi73abpcpnbi.ipfs.w3s.link/" + winner + ".jpg"} alt="Mingle" width={150} height={150} />
+                            <Image className="mt-3 rounded-2xl" src={SecondCollectionUrl + winner + SecondCollectionImageFormat} alt="Mingle" width={150} height={150} />
                         )}
 
                         <p className="mt-1 mx-10 text-black text-sm font-[family-name:var(--font-PRESSURA)]">ID # {Number(winner)}</p>
@@ -153,7 +154,7 @@ export default function Board() {
                                     <Image className="mt-3 rounded-2xl" src={"https://d9emswcmuvawb.cloudfront.net/PFP" + v.nftId + ".png"} alt="Mingle" width={150} height={150} />
                                 )}
                                 {v.collection == address2 && (
-                                    <Image className="mt-3 rounded-2xl" src={"https://bafybeifrjmhpuf34cv6sy4lqhs5gmmusznpunyfik3rqoqfi73abpcpnbi.ipfs.w3s.link/" + v.nftId + ".jpg"} alt="Mingle" width={150} height={150} />
+                                    <Image className="mt-3 rounded-2xl" src={SecondCollectionUrl + v.nftId + SecondCollectionImageFormat} alt="Mingle" width={150} height={150} />
                                 )}
                                 <p className="mt-3">ID {v.nftId}</p>
                                 <p className="mt-1">{<span className='text-blue-600 font-[family-name:var(--font-hogfish)]'>Alive at {v.location}</span>}</p>

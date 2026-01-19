@@ -46,25 +46,41 @@ export default function Die() {
   }
 
   async function GetMingleMetadata(id: number) {
-  
-      if (id == null) return
 
-      try {
-          const metadata = await readContract(config, {
-              abi: MinglesABI,
-              address: playingAddress as `0x${string}`,
-              functionName: 'tokenURI',
-              args: [id]
-          })
-  
-          let url = 'https://ipfs.io/ipfs/' + metadata?.toString().split("/")[2] + "/" + id
-          let meta = await fetch(url)
-          let dataJson = await meta.json()
-          let imageURL = 'https://ipfs.io/ipfs/' + dataJson.image.split("/")[2] + "/" + dataJson.image.split("/")[3]
-          setImageURL(imageURL)
-      } catch (e) {
-          console.error(e)
+    if (id == null) return
+    
+    try {
+      let url = "";
+      let isIPFS = true;
+      let imageURL = "";
+      const metadata = await readContract(config, {
+        abi: MinglesABI,
+        address: playingAddress as `0x${string}`,
+        functionName: 'tokenURI',
+        args: [id]
+      })
+
+      if (String(metadata).startsWith("ipfs://")) {
+        url = 'https://ipfs.io/ipfs/' + metadata?.toString().split("/")[2] + "/" + id 
+      } else if (String(metadata).startsWith("https://")) {
+        url = metadata?.toString() + ".json"
+        isIPFS = false;
       }
+
+      
+      let meta = await fetch(url)
+      let dataJson = await meta.json()
+      if (isIPFS == true){
+        imageURL = 'https://ipfs.io/ipfs/' + dataJson.image.split("/")[2] + "/" + dataJson.image.split("/")[3]
+      } else {
+        imageURL = dataJson.image
+      }
+      
+      setImageURL(imageURL)
+
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   return (

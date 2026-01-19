@@ -21,4 +21,5 @@ export const MinglesGameCurtis = "0xE62430A51A1700042D523c7d6B3Ed9d5dc1bEdA4"
 // old staking contract address = 0x6F52CfBc3596BEA53111017A6F1F1C5604CB7A12
 
 export const PrizeImageUrl = ""
-export const SecondCollectionUrl = ""
+export const SecondCollectionUrl = "https://bafybeifrjmhpuf34cv6sy4lqhs5gmmusznpunyfik3rqoqfi73abpcpnbi.ipfs.w3s.link/"
+export const SecondCollectionImageFormat = ".jpg"

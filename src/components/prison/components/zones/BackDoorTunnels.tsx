@@ -127,8 +127,11 @@ export default function BackDoorTunnels() {
   async function GetMingleMetadata(id: number) {
 
     if (id == null) return
-
+    
     try {
+      let url = "";
+      let isIPFS = true;
+      let imageURL = "";
       const metadata = await readContract(config, {
         abi: MinglesABI,
         address: playingAddress as `0x${string}`,
@@ -136,10 +139,22 @@ export default function BackDoorTunnels() {
         args: [id]
       })
 
-      let url = 'https://ipfs.io/ipfs/' + metadata?.toString().split("/")[2] + "/" + id
+      if (String(metadata).startsWith("ipfs://")) {
+        url = 'https://ipfs.io/ipfs/' + metadata?.toString().split("/")[2] + "/" + id 
+      } else if (String(metadata).startsWith("https://")) {
+        url = metadata?.toString() + ".json"
+        isIPFS = false;
+      }
+
+      
       let meta = await fetch(url)
       let dataJson = await meta.json()
-      let imageURL = 'https://ipfs.io/ipfs/' + dataJson.image.split("/")[2] + "/" + dataJson.image.split("/")[3]
+      if (isIPFS == true){
+        imageURL = 'https://ipfs.io/ipfs/' + dataJson.image.split("/")[2] + "/" + dataJson.image.split("/")[3]
+      } else {
+        imageURL = dataJson.image
+      }
+      
       setTokenImage(imageURL)
 
     } catch (e) {

@@ -8,6 +8,14 @@ interface Token {
     collection: string;
   }
 
+export interface NFT {
+  id: string;
+  //amount: string;
+  //name: string;
+  //image: string;
+  //attributes: any[];
+}
+
 // Simple atom example - Cava
 export let Tokens = atom<string[]>([])
 export let CavaTokens = atom<string[]>([])
@@ -22,8 +30,8 @@ export let TokenStatus = atom<number>(0);
 
 export let Address1 = atom<string>("");
 export let Address2 = atom<string>("");
-export let Tokens1 = atom<Token[]>([]);
-export let Tokens2 = atom<Token[]>([])
+export let Tokens1 = atom<NFT[]>([]);
+export let Tokens2 = atom<NFT[]>([]);
 
 // Derived atom example
 //export const doubledCountAtom = atom((get) => get(countAtom)[randomColor(countAtom)])

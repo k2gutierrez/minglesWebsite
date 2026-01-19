@@ -5,7 +5,6 @@ import cls from "classnames";
 import { useState, useEffect } from 'react';
 import prize from "/public/assets/prize.jpg";
 import { gameABI } from "../abis/gameABI";
-import axios from "axios";
 import { useAccount, useReadContract, useChainId, useConfig } from "wagmi";
 import { useAtom } from "jotai";
 import { GameLocation, Address1, Address2, Tokens1, Tokens2 } from "@/components/engine/atoms";
@@ -13,14 +12,9 @@ import { readContract } from "@wagmi/core";
 import { MinglesGame, MinglesGameCurtis } from "@/components/engine/CONSTANTS";
 import { GameAddressAccordingToChain } from "../engine/engine";
 import { mingleABI } from "../abis/mingleABI";
+import { getWalletNFTs } from "@/actions/getNFTs";
 
 export default function GameLogin() {
-
-  interface Token {
-    id: string;
-    name: string;
-    collection: string;
-  }
 
   interface Prize {
     PrizeContract: string;
@@ -50,70 +44,33 @@ export default function GameLogin() {
   })
 
   async function getMingles() {
-    let gameAddressURL;
-    if (chainId == 33111) {
-      gameAddressURL = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${address1}&sortDirection=asc&limit=200`
+
+    const result = await getWalletNFTs(address as `0x${string}`, address1, chainId)
+    // 2. Validación estricta antes de setear
+    // TypeScript ahora sabe que dentro de este if, result.nfts existe y es de tipo NFT[]
+    if (result.success && result.nfts) {
+
+      setTokens1(result.nfts);
     } else {
-      gameAddressURL = `https://api-apechain.reservoir.tools/users/${address}/tokens/v10?contract=${address1}&sortDirection=asc&limit=200`
+      console.error(result.error);
+      setTokens1([]); // Opcional: limpiar estado si falla
     }
 
-    const options = {
-      method: 'GET',
-      url: gameAddressURL,
-      headers: { accept: '*/*', 'x-api-key': process.env.NEXT_PUBLIC_RESERVOIR }
-    };
-
-    axios
-      .request(options)
-      .then(res => {
-        let array1: Token[] = [];
-        let data1 = res.data.tokens
-        for (let i = 0; i < data1.length; i++) {
-          let data: Token = {
-            id: data1[i].token.tokenId,
-            name: data1[i].token.collection.name,
-            collection: data1[i].token.contract
-          }
-          array1.push(data)
-        }
-        setTokens1(array1)
-
-      })
-      .catch(err => console.error(err));
   }
 
   async function getSecondAddressTokens() {
 
-    let gameAddressURL;
-    if (chainId == 33111) {
-      gameAddressURL = `https://api-curtis.reservoir.tools/users/${address}/tokens/v10?contract=${address2}&sortDirection=asc&limit=200`
+    const result = await getWalletNFTs(address as `0x${string}`, address2, chainId)
+    // 2. Validación estricta antes de setear
+    // TypeScript ahora sabe que dentro de este if, result.nfts existe y es de tipo NFT[]
+    if (result.success && result.nfts) {
+
+      setTokens2(result.nfts);
     } else {
-      gameAddressURL = `https://api-apechain.reservoir.tools/users/${address}/tokens/v10?contract=${address2}&sortDirection=asc&limit=200`
+      console.error(result.error);
+      setTokens2([]); // Opcional: limpiar estado si falla
     }
 
-    const options = {
-      method: 'GET',
-      url: gameAddressURL,
-      headers: { accept: '*/*', 'x-api-key': process.env.NEXT_PUBLIC_RESERVOIR }
-    };
-
-    axios
-      .request(options)
-      .then(res => {
-        let array2: Token[] = [];
-        let data1 = res.data.tokens
-        for (let i = 0; i < data1.length; i++) {
-          let data: Token = {
-            id: data1[i].token.tokenId,
-            name: data1[i].token.collection.name,
-            collection: data1[i].token.contract
-          }
-          array2.push(data)
-        }
-        setTokens2(array2)
-
-      })
-      .catch(err => console.error(err));
   }
 
   async function getCollections() {

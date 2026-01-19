@@ -47,20 +47,24 @@ export default function Prison() {
   const [tokens1, setTokens1] = useAtom(Tokens1)
   const [tokens2, setTokens2] = useAtom(Tokens2)
 
-  const { data: getAddress1, isSuccess: playingAddr1 } = useReadContract({
+  const { data: getAddress1, isSuccess: playingAddr1, refetch: getAddr1 } = useReadContract({
     abi: gameABI,
     address: GameAddressAccordingToChain(chainId),
     functionName: "getPlayingNFTsAddress1",
 
   })
 
-  const { data: getAddress2, isSuccess: playingAddr2 } = useReadContract({
+  const { data: getAddress2, isSuccess: playingAddr2, refetch: getAddr2 } = useReadContract({
     abi: gameABI,
     address: GameAddressAccordingToChain(chainId),
     functionName: "getPlayingNFTsAddress2"
   })
 
   useEffect(() => {
+
+    getAddr1();
+    getAddr2();
+
     if (playingAddr1) {
       setAddress1(getAddress1 as string)
 
@@ -71,7 +75,7 @@ export default function Prison() {
 
     }
 
-  }, [playingAddr1, playingAddr2])
+  }, [playingAddr1, playingAddr2, chainId])
 
   return (
     
@@ -178,25 +182,3 @@ export default function Prison() {
     
   );
 }
-
-/*
-        s_mainHall = s_pathways[0];
-        s_backkdoorTunnels = s_pathways[1];
-        s_ovenRoom = s_pathways[2];
-        s_distilleryRoom = s_pathways[3];
-        s_barrelRoom = s_pathways[4];
-        s_hall1 = s_pathways[5];
-        s_hall2 = s_pathways[6];
-        s_hall3 = s_pathways[7];
-        s_fermentationRoom1 = s_pathways[8];
-        s_fermentationRoom2 = s_pathways[9];
-        s_privateCava1 = s_pathways[10];
-        s_privateCava2 = s_pathways[11];
-        s_ravenNest1 = s_pathways[12];
-        s_ravenNest2 = s_pathways[13];
-        s_basementPrison1 = s_pathways[14];
-        s_basementPrison2 = s_pathways[15];
-        s_basementPrison3 = s_pathways[16];
-       
-        bool[17] memory path = [0true, 1true, 2true, 3false, 
-        4true, 5false, 6true, 7false, 8false, 9true, 10true, 11false, 12false, 13true, 14false, 15false, 16true]; */

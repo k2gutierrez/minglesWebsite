@@ -10,6 +10,7 @@ import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import { useAtom } from 'jotai';
 import { parseEther } from 'viem';
 import { GameLocation, GameTokenId, PlayingAddress, TokenStatus, Address1, Address2 } from '@/components/engine/atoms';
+import { SecondCollectionUrl, SecondCollectionImageFormat } from '@/components/engine/CONSTANTS';
 
 type Props = React.PropsWithChildren<{ Nft: string, Nftcollection: string }>;
 export default function Card({ Nft, Nftcollection }: Props) {
@@ -124,7 +125,7 @@ export default function Card({ Nft, Nftcollection }: Props) {
                 hash: approvalHash,
             })
 
-            if (approvalReceipt) {
+            if (approvalReceipt.status == "success") {
                 setGameToken(Number(Nft))
                 setPlayingAddress(Nftcollection)
                 setGameLocation(startingLocation)
@@ -171,7 +172,7 @@ export default function Card({ Nft, Nftcollection }: Props) {
             {Nftcollection == address2 &&
                 (
                     <>
-                        <Image className='rounded-lg' src={"https://bafybeifrjmhpuf34cv6sy4lqhs5gmmusznpunyfik3rqoqfi73abpcpnbi.ipfs.w3s.link/" + Nft + ".jpg"} alt={Nft} width={200} height={200} />
+                        <Image className='rounded-lg' src={SecondCollectionUrl + Nft + SecondCollectionImageFormat} alt={Nft} width={200} height={200} />
                     </>
                 )
             }
