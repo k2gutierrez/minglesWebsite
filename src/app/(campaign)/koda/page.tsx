@@ -25,10 +25,10 @@ type ModalType = 'stickers' | 'feels' | 'koda' | 'incentives' | null;
 
 const ASSETS = {
   logo: "/images/MLogo.png", 
-  stickerCover: "/mingle-gifs/1.gif", 
+  stickerCover: "/mingle-gifs/8.gif", 
   feelsPackPreview: "/images/FeelsPack.png", 
   feelsModalCircle: "/images/FeelShowcase.png", 
-  kodaCardImage: "/images/koda.png", 
+  kodaCardImage: "/images/Koda.png", 
   kodaVideo: "/KodaShowcase.mov",
   openSeaLogo: "/images/OpenSeaLogo.png", 
   gifArray: Array.from({ length: 10 }, (_, i) => `/mingle-gifs/${i + 1}.gif`),
@@ -282,7 +282,7 @@ export default function MinglesRaffle() {
                 )}
                 {activeModal === 'incentives' && (
                     <div className="space-y-4">
-                         <div className={`p-4 rounded-xl border-2 ${currentPhase === 1 ? 'border-yellow-400 bg-yellow-50' : 'border-slate-100 opacity-50'}`}><div className="flex justify-between mb-2"><h4 className="font-bold text-slate-900">Phase 1: Holder Match</h4><span className="text-xs font-bold bg-slate-200 px-2 py-0.5 rounded">0-100 Bonuses Sold</span></div><p className="text-xs text-slate-600">If you hold a Mingle NFT, buying 1 ticket gives you 1 extra free entry. (1:1 Ratio).</p></div>
+                         <div className={`p-4 rounded-xl border-2 ${currentPhase === 1 ? 'border-yellow-400 bg-yellow-50' : 'border-slate-100 opacity-50'}`}><div className="flex justify-between mb-2"><h4 className="font-bold text-slate-900">Phase 1: Holder Match</h4><span className="text-xs font-bold bg-slate-200 px-2 py-0.5 rounded">0-100 Bonuses Sold</span></div><p className="text-xs text-slate-600">If you hold a Mingle NFT, buying 1 ticket gives you 1 extra free entry. (1:1 Ratio) FCFS.</p></div>
                          <div className={`p-4 rounded-xl border-2 ${currentPhase === 2 ? 'border-blue-400 bg-blue-50' : 'border-slate-100 opacity-50'}`}><div className="flex justify-between mb-2"><h4 className="font-bold text-slate-900">Phase 2: 3-for-2</h4><span className="text-xs font-bold bg-slate-200 px-2 py-0.5 rounded">100-200 Bonuses Sold</span></div><p className="text-xs text-slate-600">Open to Mingles Holders. Buy 2 tickets Get 1 Free FCFS, receive 3 entries total.</p></div>
                     </div>
                 )}
