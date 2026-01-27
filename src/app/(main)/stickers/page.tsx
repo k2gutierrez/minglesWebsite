@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 //import worm from "../../../public/images/White_Hearts_Right-p-500.png";
 import { useRouter } from "next/navigation";
-import vom from "../../../public/images/vomit.gif";
+import vom from "../../../../public/images/vomit.gif";
 
 export default function MintBrowserPage() {
 

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import { TonConnectUIProvider, TonConnectButton, useTonConnectUI } from "@tonconnect/ui-react";
-import worm from "../../../public/images/White_Hearts_Right-p-500.png";
+import worm from "../../../../public/images/White_Hearts_Right-p-500.png";
 
 const MANIFEST_URL = "https://www.mingles.wtf/tonconnect-manifest.json";
 const COLLECTION_ADDRESS = "EQB7jLrx5Klof8EIOzcGawzxgdZiOeXEScs3zQLcVX5ntIhH";
