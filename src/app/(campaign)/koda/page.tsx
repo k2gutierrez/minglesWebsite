@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Info, X, ShieldCheck, Zap, Flame, Wallet, ChevronRight, ChevronLeft, Clock, RefreshCw
 } from 'lucide-react';
@@ -18,6 +18,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { formatEther } from 'viem'; // Usamos formatEther para mostrar, no parseEther fijo
 import { RAFFLE_ABI } from '@/components/engine/NFTSoulbound';
 import { RAFFLE_ADDRESS, RAFFLE_ADDRESS_CURTIS } from '@/components/engine/CONSTANTS';
+import { setTimeout } from 'timers';
 
 // --- TYPES & ASSETS ---
 type ModalType = 'stickers' | 'feels' | 'koda' | 'incentives' | null;
@@ -282,7 +283,7 @@ export default function MinglesRaffle() {
                 {activeModal === 'incentives' && (
                     <div className="space-y-4">
                          <div className={`p-4 rounded-xl border-2 ${currentPhase === 1 ? 'border-yellow-400 bg-yellow-50' : 'border-slate-100 opacity-50'}`}><div className="flex justify-between mb-2"><h4 className="font-bold text-slate-900">Phase 1: Holder Match</h4><span className="text-xs font-bold bg-slate-200 px-2 py-0.5 rounded">0-100 Bonuses Sold</span></div><p className="text-xs text-slate-600">If you hold a Mingle NFT, buying 1 ticket gives you 1 extra free entry. (1:1 Ratio).</p></div>
-                         <div className={`p-4 rounded-xl border-2 ${currentPhase === 2 ? 'border-blue-400 bg-blue-50' : 'border-slate-100 opacity-50'}`}><div className="flex justify-between mb-2"><h4 className="font-bold text-slate-900">Phase 2: 3-for-2</h4><span className="text-xs font-bold bg-slate-200 px-2 py-0.5 rounded">100-200 Bonuses Sold</span></div><p className="text-xs text-slate-600">Open to public. Buy a bundle of 2 tickets, receive 3 entries total.</p></div>
+                         <div className={`p-4 rounded-xl border-2 ${currentPhase === 2 ? 'border-blue-400 bg-blue-50' : 'border-slate-100 opacity-50'}`}><div className="flex justify-between mb-2"><h4 className="font-bold text-slate-900">Phase 2: 3-for-2</h4><span className="text-xs font-bold bg-slate-200 px-2 py-0.5 rounded">100-200 Bonuses Sold</span></div><p className="text-xs text-slate-600">Open to Mingles Holders. Buy 2 tickets Get 1 Free FCFS, receive 3 entries total.</p></div>
                     </div>
                 )}
             </ModalWrapper>
@@ -306,6 +307,7 @@ function MintMachineUI({ ticketPriceBigInt, displayPrice, currentPhase }: MintMa
     const chainId = useChainId();
     const [quantity, setQuantity] = useState<number>(1);
     const [tonWallet, setTonWallet] = useState<string>('');
+    const [casinoStatus, setCasinoStatus] = useState<boolean>(false);
     const { address, isConnected } = useAccount();
 
     // 1. LEER CALCULO DE ENTRADAS
@@ -347,9 +349,20 @@ function MintMachineUI({ ticketPriceBigInt, displayPrice, currentPhase }: MintMa
             args: [BigInt(quantity), tonWallet],
             value: valueToSend, // Enviamos el valor correcto calculado con el precio del contrato
         });
+        
     };
 
     const machineStatus = isSigning || isConfirming ? 'processing' : isConfirmed ? 'success' : 'idle';
+
+    useEffect(() => {
+        if (machineStatus === 'success'){
+            setCasinoStatus(true);
+            setTimeout(() => {
+                setQuantity(1);
+                setCasinoStatus(false);
+            }, 5000);
+        }
+    }, [machineStatus])
 
     return (
         <div className="mt-4 relative z-10">
@@ -377,13 +390,13 @@ function MintMachineUI({ ticketPriceBigInt, displayPrice, currentPhase }: MintMa
                 
                 <div className="bg-slate-900 rounded-xl h-24 mb-5 border-b-4 border-black/30 relative flex items-end justify-center overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
                     <AnimatePresence>
-                        {machineStatus === 'success' && (
+                        {casinoStatus && (
                             <motion.div initial={{ y: 100, rotate: -5 }} animate={{ y: -10, rotate: 0 }} exit={{ y: -150, opacity: 0 }} transition={{ type: "spring", bounce: 0.5 }} className="w-3/4 h-5/6 bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-600 rounded-lg p-2 flex flex-col items-center justify-center border-2 border-yellow-200 shadow-2xl relative bottom-2">
                                 <span className="text-[8px] font-bold uppercase text-yellow-900/60 mb-1">YOU RECEIVED</span><span className="text-4xl font-black text-yellow-900 tracking-tighter leading-none">{entries}</span><span className="text-[10px] font-bold text-yellow-900 uppercase">ENTRIES</span>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                    {machineStatus !== 'success' && (
+                    {!casinoStatus && (
                         <div className="text-center pb-2 w-full px-2">
                             <div className="text-[10px] text-blue-200 font-mono uppercase mb-1 tracking-widest opacity-70">Potential Win</div>
                             <div className="text-white font-black text-2xl drop-shadow-md">{entries} ENTRIES</div>
