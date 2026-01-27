@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* 2. Cargamos RainbowKit explícitamente */
+@import '@rainbow-me/rainbowkit/styles.css';
+
 :root {
   /*--mainwebsite2: #456479;*/
   --mainwebsite2: #ededd9;
@@ -45,6 +48,12 @@
   --system--orange-400: #d5691b;
   --system--orange-300: #e4b36d;
   --system--orange-200: #e4b36d;
+  --rk-colors-modalBackground: #ffffff;
+  --rk-colors-modalText: #1a202c;
+}
+
+[data-rk] .ju367v0 { /* Clase interna genérica del modal wrapper */
+  background-color: white !important;
 }
 
 @theme inline {

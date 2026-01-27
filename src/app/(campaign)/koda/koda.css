@@ -1,0 +1,21 @@
+/* app/(campaign)/raffle/raffle.css */
+
+/* 1. Cargamos Tailwind Base para limpiar estilos del navegador */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. Cargamos RainbowKit explícitamente */
+@import '@rainbow-me/rainbowkit/styles.css';
+
+/* 3. PARCHE DE EMERGENCIA: Forzar fondo blanco en el modal */
+/* Esto arregla la transparencia si el tema falla */
+[data-rk] .ju367v0 { /* Clase interna genérica del modal wrapper */
+  background-color: white !important;
+}
+
+/* O usando variables de RainbowKit si están definidas */
+:root {
+  --rk-colors-modalBackground: #ffffff;
+  --rk-colors-modalText: #1a202c;
+}

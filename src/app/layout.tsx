@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 import localFont from 'next/font/local';
-import "./globals.css";
+// import "./globals.css";
 import { Providers } from "./providers";
-
-
 
 const pressura = localFont({ 
   src: '../../public/fonts/GT-Pressura-Mono.otf',

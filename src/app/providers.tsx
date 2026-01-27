@@ -1,7 +1,7 @@
 "use client"
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider, connectorsForWallets, darkTheme } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, connectorsForWallets, darkTheme, lightTheme, Theme } from "@rainbow-me/rainbowkit";
 import { glyphConnectorDetails, GlyphProvider, glyphWalletRK, StrategyType, WalletClientType } from "@use-glyph/sdk-react";
 import JotaiProviders from "@/components/engine/JotaiProviders";
 //import config from "@/rainbowKitConfig";
@@ -10,7 +10,7 @@ import { Transport, Chain, http } from "viem";
 import { apeChain, curtis, anvil } from "wagmi/chains";
 import { useState, type ReactNode } from "react";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
-import "@rainbow-me/rainbowkit/styles.css"
+import "@rainbow-me/rainbowkit/styles.css";
 
 export function Providers(props: { children: ReactNode }) {
     const [queryClient] = useState(() => new QueryClient())
@@ -44,7 +44,9 @@ export function Providers(props: { children: ReactNode }) {
     return (
         <WagmiProvider config={wagmiConfig}>
             <QueryClientProvider client={queryClient}>
-                <RainbowKitProvider theme={darkTheme({ accentColor: '#e15162' })}>
+                <RainbowKitProvider theme={
+                    darkTheme({ accentColor: '#e15162',
+                    })}>
                     <GlyphProvider
                         strategy={StrategyType.EIP1193}
                         walletClientType={WalletClientType.RAINBOWKIT}
