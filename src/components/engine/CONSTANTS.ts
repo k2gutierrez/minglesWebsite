@@ -8,7 +8,7 @@ export const CavaStakeAddress = "0x8FD1942b961ed13aC50a5873bA06fABE37168f6D"
 
 export const MinglesGame = "0x8"
 
-export const RAFFLE_ADDRESS = "0x01";
+export const RAFFLE_ADDRESS = "0xFD6F02F977a2eAf2fba3A15DF2bAB93437250B23";
 
 
 //Curtis
