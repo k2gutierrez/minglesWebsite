@@ -17,6 +17,24 @@ export const RAFFLE_ABI = [
         },
         {
             "type": "function",
+            "name": "addOrRemoveAllowanceBurnerAddress",
+            "inputs": [
+                {
+                    "name": "allowedAddress",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "choice",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
             "name": "airDrop",
             "inputs": [
                 {
@@ -72,15 +90,26 @@ export const RAFFLE_ABI = [
         },
         {
             "type": "function",
-            "name": "burn",
+            "name": "burnInOtherContract",
             "inputs": [
+                {
+                    "name": "owner",
+                    "type": "address",
+                    "internalType": "address"
+                },
                 {
                     "name": "tokenId",
                     "type": "uint256",
                     "internalType": "uint256"
                 }
             ],
-            "outputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool",
+                    "internalType": "bool"
+                }
+            ],
             "stateMutability": "nonpayable"
         },
         {
@@ -114,6 +143,13 @@ export const RAFFLE_ABI = [
         },
         {
             "type": "function",
+            "name": "changePausedStatus",
+            "inputs": [],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
             "name": "claimedFreeTicketsP1",
             "inputs": [
                 {
@@ -130,6 +166,19 @@ export const RAFFLE_ABI = [
                 }
             ],
             "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "getApeBackAndBurnToken",
+            "inputs": [
+                {
+                    "name": "tokenId",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
         },
         {
             "type": "function",
@@ -191,6 +240,19 @@ export const RAFFLE_ABI = [
         },
         {
             "type": "function",
+            "name": "getSoldTickets",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
             "name": "getTotalSold",
             "inputs": [],
             "outputs": [
@@ -225,6 +287,11 @@ export const RAFFLE_ABI = [
                         },
                         {
                             "name": "ticketsOwned",
+                            "type": "uint256",
+                            "internalType": "uint256"
+                        },
+                        {
+                            "name": "airdropOrPhase2TicketBonus",
                             "type": "uint256",
                             "internalType": "uint256"
                         }
@@ -356,6 +423,19 @@ export const RAFFLE_ABI = [
         {
             "type": "function",
             "name": "s_bonusMintedPhase2",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "s_totalAirdropped",
             "inputs": [],
             "outputs": [
                 {
@@ -694,6 +774,31 @@ export const RAFFLE_ABI = [
         },
         {
             "type": "event",
+            "name": "TokenBurnedAndApeCashback",
+            "inputs": [
+                {
+                    "name": "user",
+                    "type": "address",
+                    "indexed": true,
+                    "internalType": "address"
+                },
+                {
+                    "name": "tokenId",
+                    "type": "uint256",
+                    "indexed": true,
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "amountRefunded",
+                    "type": "uint256",
+                    "indexed": false,
+                    "internalType": "uint256"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
             "name": "Transfer",
             "inputs": [
                 {
@@ -749,6 +854,21 @@ export const RAFFLE_ABI = [
         },
         {
             "type": "error",
+            "name": "NftSoulBound__AddressNotAllowedToBurnTokens",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "NftSoulBound__ContractMustBePaused",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "NftSoulBound__IncorrectNumber",
+            "inputs": []
+        },
+        {
+            "type": "error",
             "name": "NftSoulBound__MaxSupplyReached",
             "inputs": []
         },
@@ -765,6 +885,16 @@ export const RAFFLE_ABI = [
         {
             "type": "error",
             "name": "NftSoulBound__NoExternalContractInteractionAllowed",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "NftSoulBound__NoMoreTicketsToCashBack",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "NftSoulBound__NoTicketsPurchased",
             "inputs": []
         },
         {

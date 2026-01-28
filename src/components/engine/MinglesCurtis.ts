@@ -652,4 +652,4 @@ export const CURTISNFT = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-]
+] as const

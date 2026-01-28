@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* 2. Cargamos RainbowKit explícitamente */
-@import '@rainbow-me/rainbowkit/styles.css';
+/*@import '@rainbow-me/rainbowkit/styles.css';*/
 
 :root {
   --background: #ffffff;

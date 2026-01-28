@@ -116,7 +116,7 @@ export default function MinglesRaffle() {
                 Mingles Koda Raffle
              </div>
           </div>
-          <ConnectButton showBalance={false} chainStatus="icon" /> 
+          <ConnectButton showBalance={false} chainStatus="none" accountStatus="avatar" /> 
         </div>
       </nav>
 

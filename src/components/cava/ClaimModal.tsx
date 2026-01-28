@@ -86,14 +86,14 @@ export default function ClaimModal() {
             abi: CavaStakeABI,
             address: CavaStakeAddrr as `0x${string}`,
             functionName: 'getUserTotalStaked',
-            args: [address],
+            args: [address as `0x${string}`],
         })
 
         const result2 = await readContract(config, {
             abi: CavaStakeABI,
             address: CavaStakeAddrr as `0x${string}`,
             functionName: 'getUserAlreadyStaked',
-            args: [address],
+            args: [address as `0x${string}`],
         })
 
         let num = Number(result) - Number(result2)

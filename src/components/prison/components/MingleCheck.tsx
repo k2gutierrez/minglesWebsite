@@ -43,23 +43,23 @@ export default function MingleCheck() {
       gameAddress = MinglesGame
     }
     try {
-      const result = await useReadContract({
-        abi: MinglesABI,
-        address: gameAddress as `0x${string}`,
-        functionName: 'getUser',
-        args: [
-          token,
-          Address1.toString() as `0x${string}`,
-        ]
-      })
+      // const result = await useReadContract({
+      //   abi: MinglesABI,
+      //   address: gameAddress as `0x${string}`,
+      //   functionName: 'getUser',
+      //   args: [
+      //     token as `0x${string}`,
+      //     Address1.toString() as `0x${string}`,
+      //   ]
+      // })
       //const gameContract = new ethers.Contract(process.env.NEXT_PUBLIC_GAME_CONTRACT, gameABI, provider)
       //const getUser = await gameContract.getUser(token, toBytes("collection1", { size: 32 }))
   
-      //let id = ethers.toNumber(getUser[0])
-      setId(Number(result.data?.toString()[0]))
-      //let mStatus = result?[1];
-      setMstatus(Number(result.data?.toString()[1]));
-      setCheck(true);
+      // //let id = ethers.toNumber(getUser[0])
+      // setId(Number(result.data?.toString()[0]))
+      // //let mStatus = result?[1];
+      // setMstatus(Number(result.data?.toString()[1]));
+      // setCheck(true);
 
     } catch (e) {
       console.error(e)
@@ -75,22 +75,22 @@ export default function MingleCheck() {
       gameAddress = MinglesGame
     }
     try {
-      const result = await useReadContract({
-        abi: MinglesABI,
-        address: gameAddress as `0x${string}`,
-        functionName: 'getUser',
-        args: [
-          token,
-          Address2.toString() as `0x${string}`,
-        ]
-      })
+      // const result = await useReadContract({
+      //   abi: MinglesABI,
+      //   address: gameAddress as `0x${string}`,
+      //   functionName: 'getUser',
+      //   args: [
+      //     token,
+      //     Address2.toString() as `0x${string}`,
+      //   ]
+      // })
       //const gameContract = new ethers.Contract(process.env.NEXT_PUBLIC_GAME_CONTRACT, gameABI, provider)
       //const getUser = await gameContract.getUser(token, toBytes("collection1", { size: 32 }))
 
       //let id = result?[0].toString()
-      setId(Number(result.data?.toString()[0]))
-      //let mStatus = result?[1].toString()
-      setMstatus(Number(result.data?.toString()[1]))
+      // setId(Number(result.data?.toString()[0]))
+      // //let mStatus = result?[1].toString()
+      // setMstatus(Number(result.data?.toString()[1]))
       setCheck(true)
 
     } catch (e) {

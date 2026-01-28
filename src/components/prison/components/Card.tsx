@@ -145,7 +145,7 @@ export default function Card({ Nft, Nftcollection }: Props) {
                 abi: SecondToken,
                 address: Nftcollection as `0x${string}`,
                 functionName: 'tokenURI',
-                args: [id]
+                args: [BigInt(id)]
             })
 
             let url = 'https://ipfs.io/ipfs/' + metadata?.toString().split("/")[2] + "/" + id.toString()

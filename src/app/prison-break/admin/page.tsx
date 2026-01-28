@@ -17,7 +17,7 @@ export default function PrisonAdmin() {
   const [gameCost, setGameCost] = useState(0);
   const [wormLevel, setWormLevel] = useState(0);
   const [diePercentage, setDiePercentage] = useState(0);
-  const [route, setRoute] = useState<boolean[]>([
+  const [route, setRoute] = useState([
     false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false
   ]);
 
@@ -65,26 +65,26 @@ export default function PrisonAdmin() {
         abi: mingleABI,
         address: prizeNftAddress as `0x${string}`,
         functionName: "approve",
-        args: [GameAddressAccordingToChain(chainId), prizeNftId],
+        args: [GameAddressAccordingToChain(chainId), BigInt(prizeNftId)],
       })
     } catch (e) {
       console.error(e)
     }
   }
 
-  const StartGame = async () => {
+  // const StartGame = async () => {
 
-    try {
-      const approvalHash = await writeContractAsync({
-        abi: gameABI,
-        address: GameAddressAccordingToChain(chainId) as `0x${string}`,
-        functionName: "StartGame",
-        args: [address2, prizeNftAddress, prizeNftId, gameCost, wormLevel, route, diePercentage],
-      })
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  //   try {
+  //     const approvalHash = await writeContractAsync({
+  //       abi: gameABI,
+  //       address: GameAddressAccordingToChain(chainId) as `0x${string}`,
+  //       functionName: "StartGame",
+  //       args: [address2 as `0x${string}`, prizeNftAddress as `0x${string}`, BigInt(prizeNftId), BigInt(gameCost), BigInt(wormLevel), (route), BigInt(diePercentage)],
+  //     })
+  //   } catch (e) {
+  //     console.error(e)
+  //   }
+  // }
 
   return (
     
@@ -239,7 +239,7 @@ export default function PrisonAdmin() {
 
               <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2' onClick={aproveNft} >Approve NFT for prize collection</button>
 
-              <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={StartGame} >Set Game</button>
+              <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={undefined} >Set Game</button>
 
             </div>
 

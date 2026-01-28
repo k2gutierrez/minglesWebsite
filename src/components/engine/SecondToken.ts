@@ -656,4 +656,4 @@ export const SecondToken = [
             "name": "WithdrawTransfer",
             "inputs": []
         }
-    ]
+    ] as const

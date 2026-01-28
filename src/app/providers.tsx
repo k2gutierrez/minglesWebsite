@@ -1,6 +1,7 @@
 "use client"
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { rainbowWallet, walletConnectWallet, injectedWallet, metaMaskWallet } from '@rainbow-me/rainbowkit/wallets';
 import { RainbowKitProvider, connectorsForWallets, darkTheme, lightTheme, Theme } from "@rainbow-me/rainbowkit";
 import { glyphConnectorDetails, GlyphProvider, glyphWalletRK, StrategyType, WalletClientType } from "@use-glyph/sdk-react";
 import JotaiProviders from "@/components/engine/JotaiProviders";
@@ -19,6 +20,10 @@ export function Providers(props: { children: ReactNode }) {
 
     const connectors = connectorsForWallets(
         [
+            {
+                        groupName: 'Recommended',
+                        wallets: [metaMaskWallet, rainbowWallet, walletConnectWallet, injectedWallet],
+                    },
             {
                 groupName: glyphConnectorDetails.name,
                 wallets: [glyphWalletRK],

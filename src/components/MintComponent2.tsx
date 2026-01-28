@@ -15,7 +15,7 @@ import discordLogo from "../../public/DiscordLogoBlack.png";
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useChainId, useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt, useBlockNumber } from 'wagmi';
-import { ton_curtis_address, ton_address, TON_ABI } from '@/app/(main)/ton-stickers-ape/TON';
+import { ton_curtis_address, ton_address, TON_ABI } from '../../old/(main)/ton-stickers-ape/TON';
 import { parseEther } from 'viem';
 
 /////////// Modal

@@ -104,21 +104,21 @@ export default function StakeModal() {
             abi: MinglesABI,
             address: MingleAddrr as `0x${string}`,
             functionName: 'isApprovedForAll',
-            args: [address, CavaStakeAddrr]
+            args: [address as `0x${string}`, CavaStakeAddrr as `0x${string}`]
         })
 
         if (check) {
-            const staking = await writeContractAsync({
-                abi: CavaStakeABI,
-                address: CavaStakeAddrr as `0x${string}`,
-                functionName: "stakeNfts",
-                args: [
-                    tokens
-                ],
-            })
-            setMessage(true)
-            await getMingles()
-            setLoading(false)
+            // const staking = await writeContractAsync({
+            //     abi: CavaStakeABI,
+            //     address: CavaStakeAddrr as `0x${string}`,
+            //     functionName: "stakeNfts",
+            //     args: [
+            //         (tokens as readonly bigint[])
+            //     ],
+            // })
+            // setMessage(true)
+            // await getMingles()
+            // setLoading(false)
 
         } else {
             const approvalHash = await writeContractAsync({
@@ -126,7 +126,7 @@ export default function StakeModal() {
                 address: MingleAddrr as `0x${string}`,
                 functionName: "setApprovalForAll",
                 args: [
-                    CavaStakeAddrr,
+                    CavaStakeAddrr as `0x${string}`,
                     true
                 ],
             })
@@ -136,21 +136,21 @@ export default function StakeModal() {
 
             //console.log("Approval confirmed", approvalReceipt)
 
-            if (approvalReceipt) {
-                const staking = await writeContractAsync({
-                    abi: CavaStakeABI,
-                    address: CavaStakeAddrr as `0x${string}`,
-                    functionName: "stakeNfts",
-                    args: [
-                        tokens
-                    ],
-                })
+            // if (approvalReceipt) {
+            //     const staking = await writeContractAsync({
+            //         abi: CavaStakeABI,
+            //         address: CavaStakeAddrr as `0x${string}`,
+            //         functionName: "stakeNfts",
+            //         args: [
+            //             tokens
+            //         ],
+            //     })
                 
-                setMessage(true)
-                await getMingles()
-                setLoading(false)
+            //     setMessage(true)
+            //     await getMingles()
+            //     setLoading(false)
 
-            }
+            // }
 
         }
 

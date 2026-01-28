@@ -121,7 +121,7 @@ export default function Cava() {
       abi: CavaNFTABI,
       address: CavaNFTAddress as `0x${string}`,
       functionName: "purchaseExtraTequilaBottle",
-      args: [amount],
+      args: [BigInt(amount)],
       value: parseEther("0")
     })
 

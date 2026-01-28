@@ -158,7 +158,7 @@ export async function GetMingleMetadata(id: number) {
             abi: MinglesABI,
             address: MinglesAddress as `0x${string}`,
             functionName: 'tokenURI',
-            args: [id]
+            args: [BigInt(id)]
         })
 
         let url = 'https://ipfs.io/ipfs/' + metadata?.toString().split("/")[2] + "/" + id

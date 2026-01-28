@@ -134,7 +134,7 @@ export default function PrivateCava() {
         abi: MinglesABI,
         address: playingAddress as `0x${string}`,
         functionName: 'tokenURI',
-        args: [id]
+        args: [BigInt(id)]
       })
 
       if (String(metadata).startsWith("ipfs://")) {
