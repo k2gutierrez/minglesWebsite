@@ -188,7 +188,7 @@ export default function MinglesRaffle() {
                     <ShieldCheck className="w-5 h-5 text-green-500 shrink-0" />
                     <p className="text-[10px] text-slate-500 leading-relaxed">
                         <strong>Treasury Protection:</strong> If an unsold ticket wins, the raffle repeats after 5 days until a real participant wins. <br/>
-                        Min. Sale: {ACTIVATION_THRESHOLD} tickets.
+                        Min. Sale: {ACTIVATION_THRESHOLD} tickets SOLD.
                     </p>
                 </div>
             </div>
@@ -245,7 +245,7 @@ export default function MinglesRaffle() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
                     <div className="hidden md:block absolute top-4 left-10 right-10 h-0.5 bg-slate-100 -z-10"></div>
-                    <div className="relative z-10 flex flex-col items-center text-center"><div className="w-8 h-8 bg-white border-2 border-slate-300 text-slate-600 rounded-full flex items-center justify-center font-bold text-sm mb-3 shadow-sm">1</div><h4 className="font-bold text-slate-900 text-sm mb-1">Activation</h4><p className="text-xs text-slate-500 leading-snug max-w-[180px]">Raffle triggers at {ACTIVATION_THRESHOLD} tickets. Mingles Treasury owns all unsold tickets.</p></div>
+                    <div className="relative z-10 flex flex-col items-center text-center"><div className="w-8 h-8 bg-white border-2 border-slate-300 text-slate-600 rounded-full flex items-center justify-center font-bold text-sm mb-3 shadow-sm">1</div><h4 className="font-bold text-slate-900 text-sm mb-1">Activation</h4><p className="text-xs text-slate-500 leading-snug max-w-[180px]">Raffle triggers at {ACTIVATION_THRESHOLD} tickets SOLD. Mingles Treasury owns all unsold tickets.</p></div>
                     <div className="relative z-10 flex flex-col items-center text-center"><div className="w-8 h-8 bg-white border-2 border-slate-300 text-slate-600 rounded-full flex items-center justify-center font-bold text-sm mb-3 shadow-sm">2</div><h4 className="font-bold text-slate-900 text-sm mb-1">Treasury Wins?</h4><p className="text-xs text-slate-500 leading-snug max-w-[180px]">If the winning number is unsold, the prize <span className="font-bold text-blue-600">ROLLS OVER</span>. A 5-day timer starts.</p></div>
                     <div className="relative z-10 flex flex-col items-center text-center"><div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm mb-3 shadow-lg">3</div><h4 className="font-bold text-slate-900 text-sm mb-1">Infinite Value</h4><p className="text-xs text-slate-500 leading-snug max-w-[180px]">The raffle repeats. Your early ticket <span className="font-bold text-blue-600">STAYS VALID</span> for all subsequent draws.</p></div>
                 </div>
@@ -381,7 +381,7 @@ function MintMachineUI({ ticketPriceBigInt, displayPrice, currentPhase }: MintMa
                 
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center">
                     <div><span className="block text-xs font-bold text-slate-500 uppercase">Quantity</span><div className="flex items-center gap-2 mt-1"><button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-6 h-6 bg-white border rounded flex items-center justify-center font-bold hover:border-blue-500">-</button><span className="font-bold w-4 text-center">{quantity}</span><button onClick={() => setQuantity(quantity + 1)} className="w-6 h-6 bg-white border rounded flex items-center justify-center font-bold hover:border-blue-500">+</button></div></div>
-                    <div className="text-right"><span className="block text-sm font-bold text-slate-900">{displayTotalCost} $APE</span><span className="text-[10px] text-slate-400">Total Cost</span></div>
+                    <div className="text-right"><span className="block text-sm font-bold text-slate-900">{displayTotalCost} APE</span><span className="text-[10px] text-slate-400">Total Cost</span></div>
                 </div>
             </div>
 
