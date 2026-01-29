@@ -14,8 +14,8 @@ const hogfish = localFont({
 })
 
 export const metadata: Metadata = {
-  title: "Mingles",
-  description: "Come mingle to the firs cripto tequila community!",
+  title: "Mingles | Make new friends. Keep life fun.",
+  description: "A social club built around tequila culture, games, and shared experiences.",
 };
 
 export default function RootLayout(props: { children: ReactNode }) {
