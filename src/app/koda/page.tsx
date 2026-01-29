@@ -37,7 +37,7 @@ const ASSETS = {
 // Configuración de Caps (Deben coincidir con el contrato para la UI)
 const BONUS_CAP_1 = 100;
 const BONUS_CAP_2 = 100;
-const ACTIVATION_THRESHOLD = 270; // Important to get the minimum to start the raffle
+const ACTIVATION_THRESHOLD = 400; // Important to get the minimum to start the raffle
 const TOTAL_TICKETS = 1000;
 
 export default function MinglesRaffle() {

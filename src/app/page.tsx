@@ -22,7 +22,6 @@ const Navbar = () => {
             <div className="w-10 h-10 bg-mingles-red rounded-full border-2 border-mingles-dark flex items-center justify-center text-white font-bold">
                 <Image src={"/images/Mingles_Logo_Blanco.png"} alt='Mingles' width={120} height={120} />
             </div>
-            <span className="text-2xl font-black font-display tracking-tight">Mingles</span>
         </div>
 
         {/* Center: Desktop Menu */}
@@ -100,7 +99,7 @@ const Hero = () => (
 
 // Section 2: Problem
 const Problem = () => (
-  <section className="py-20 bg-white border-y-2 border-mingles-dark">
+  <section className="py-20 bg-mingles-beige border-y-2 border-mingles-dark">
     <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-16">
         <div className="md:w-1/2 order-2 md:order-1">
              {/* Visual: Outside looking in */}
@@ -131,7 +130,7 @@ const Problem = () => (
 
 // Section 3: Guide
 const Guide = () => (
-  <section className="py-20 bg-mingles-beige">
+  <section className="py-20">
     <div className="container mx-auto px-4 text-center max-w-3xl">
         <p className="text-2xl md:text-3xl font-black mb-6">
             We know how hard it is to make new friends and keep life fun.
@@ -318,7 +317,6 @@ const Footer = () => (
                     <div className="w-8 h-8 bg-mingles-red rounded-full flex items-center justify-center font-bold">
                         <Image src={"/images/Mingles_Logo_Blanco.png"} alt='Mingles' width={120} height={120} />
                     </div>
-                    <span className="text-2xl font-black">Mingles</span>
                 </div>
                 <h3 className="text-3xl font-bold mb-6 max-w-sm">Make new friends. Keep life fun.</h3>
                 <button className="bg-mingles-red text-white px-6 py-2 rounded-lg font-bold border border-white/20 hover:bg-mingles-red-hover transition-colors">

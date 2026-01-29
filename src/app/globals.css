@@ -24,7 +24,7 @@
 
 /* Estilos Globales */
 body {
-  background-color: var(--color-mingles-beige);
+  background-color: white;/*var(--color-mingles-beige);*/
   color: var(--color-mingles-dark);
   font-family: var(--font-body);
 }
