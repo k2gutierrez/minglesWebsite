@@ -37,7 +37,7 @@ const ASSETS = {
 // Configuración de Caps (Deben coincidir con el contrato para la UI)
 const BONUS_CAP_1 = 100;
 const BONUS_CAP_2 = 100;
-const ACTIVATION_THRESHOLD = 340;
+const ACTIVATION_THRESHOLD = 270;
 const TOTAL_TICKETS = 1000;
 
 export default function MinglesRaffle() {
@@ -172,7 +172,7 @@ export default function MinglesRaffle() {
                     <div className="mt-3 inline-flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
                          <Clock className="w-4 h-4 text-slate-500" />
                          <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                             Next Draw: <span className="text-blue-600">Feb 3, 2026 @ 8PM EST</span>
+                             Next Draw: <span className="text-blue-600">Raffle triggers @ {ACTIVATION_THRESHOLD} tickets SOLD</span>
                          </span>
                     </div>
                 </div>
