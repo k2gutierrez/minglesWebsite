@@ -5,6 +5,7 @@ import {
   Info, X, ShieldCheck, Zap, Flame, Wallet, ChevronRight, ChevronLeft, Clock, RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 // --- WAGMI & WEB3 IMPORTS ---
 import { 
@@ -111,7 +112,7 @@ export default function MinglesRaffle() {
       <nav className="sticky top-0 z-40 bg-[#F8FAFC]/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-             <img src={ASSETS.logo} alt="Mingles Logo" className="w-10 h-10 rounded-xl shadow-sm" />
+            <Link href={"/"}><img src={ASSETS.logo} alt="Mingles Logo" className="w-10 h-10 rounded-xl shadow-sm" /></Link>
              <div className="font-extrabold text-xl tracking-tight">
                 Mingles Koda Raffle
              </div>

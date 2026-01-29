@@ -19,9 +19,9 @@ const Navbar = () => {
         {/* Left: Logo */}
         <div className="flex items-center gap-2">
             {/* Placeholder logo shape */}
-            <div className="w-10 h-10 bg-mingles-red rounded-full border-2 border-mingles-dark flex items-center justify-center text-white font-bold">
+            <Link href={"/"} className="w-10 h-10 bg-mingles-red rounded-full border-2 border-mingles-dark flex items-center justify-center text-white font-bold">
                 <Image src={"/images/Mingles_Logo_Blanco.png"} alt='Mingles' width={120} height={120} />
-            </div>
+            </Link>
         </div>
 
         {/* Center: Desktop Menu */}
