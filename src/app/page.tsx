@@ -19,7 +19,9 @@ const Navbar = () => {
         {/* Left: Logo */}
         <div className="flex items-center gap-2">
             {/* Placeholder logo shape */}
-            <div className="w-10 h-10 bg-mingles-red rounded-full border-2 border-mingles-dark flex items-center justify-center text-white font-bold">M</div>
+            <div className="w-10 h-10 bg-mingles-red rounded-full border-2 border-mingles-dark flex items-center justify-center text-white font-bold">
+                <Image src={"/images/Mingles_Logo_Blanco.png"} alt='Mingles' width={120} height={120} />
+            </div>
             <span className="text-2xl font-black font-display tracking-tight">Mingles</span>
         </div>
 
@@ -312,7 +314,10 @@ const Footer = () => (
         <div className="container mx-auto px-4 grid md:grid-cols-4 gap-12 mb-16 border-b border-gray-800 pb-12">
             <div className="md:col-span-2">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-mingles-red rounded-full flex items-center justify-center font-bold">M</div>
+                    
+                    <div className="w-8 h-8 bg-mingles-red rounded-full flex items-center justify-center font-bold">
+                        <Image src={"/images/Mingles_Logo_Blanco.png"} alt='Mingles' width={120} height={120} />
+                    </div>
                     <span className="text-2xl font-black">Mingles</span>
                 </div>
                 <h3 className="text-3xl font-bold mb-6 max-w-sm">Make new friends. Keep life fun.</h3>
@@ -331,10 +336,10 @@ const Footer = () => (
             <div>
                  <h4 className="font-bold text-gray-400 uppercase tracking-wider mb-4 text-sm">Connect</h4>
                 <ul className="space-y-2">
-                    <li><Link href="#" className="hover:text-mingles-red">Twitter / X</Link></li>
-                    <li><Link href="#" className="hover:text-mingles-red">Instagram</Link></li>
-                    <li><Link href="#" className="hover:text-mingles-red">Discord</Link></li>
-                    <li><a href="mailto:hola@mingles.com" className="hover:text-mingles-red">Contact Us</a></li>
+                    <li><Link href="https://x.com/MinglesNFT" className="hover:text-mingles-red">Twitter / X</Link></li>
+                    <li><Link href="⁠https://giphy.com/minglestequila" className="hover:text-mingles-red">Giphy</Link></li>
+                    <li><Link href="⁠https://discord.gg/5ubwCpDZFa" className="hover:text-mingles-red">Discord</Link></li>
+                    <li><a href="mailto:mingles@mingles.com" className="hover:text-mingles-red">Contact Us</a></li>
                 </ul>
             </div>
         </div>
