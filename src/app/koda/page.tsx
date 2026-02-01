@@ -335,10 +335,10 @@ function MintMachineUI({ ticketPriceBigInt, displayPrice, currentPhase }: MintMa
 
     const handleInteract = () => {
         if (!quantity || quantity < 1) return;
-        if (!tonWallet.trim()) {
-            alert("Please enter your TON Wallet address.");
-            return;
-        }
+        // if (!tonWallet.trim()) {
+        //     alert("Please enter your TON Wallet address.");
+        //     return;
+        // }
         
         // Costo REAL para la transacción (BigInt)
         const valueToSend = ticketPriceBigInt * BigInt(quantity);
