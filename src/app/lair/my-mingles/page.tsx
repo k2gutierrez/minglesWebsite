@@ -11,6 +11,7 @@ import {
   Share2, Loader2, Zap, X, Download, 
   Maximize2, Plus, Twitter
 } from 'lucide-react';
+import { ConnectWalletView } from '@/components/ConnectWalletView';
 
 // --- TIPOS ---
 const TEQUILA_OPTIONS = ["Blanco", "Reposado", "Añejo", "Cristalino"];
@@ -202,7 +203,7 @@ export default function MyMinglesPage() {
   const socialMult = getSocialMultiplier(friends.length);
   const totalMult = (holdMult * socialMult).toFixed(2);
 
-  if (!isConnected) return null;
+  if (!isConnected) return <ConnectWalletView />;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20 relative px-4 md:px-0">

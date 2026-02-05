@@ -9,6 +9,7 @@ import {
   RefreshCcw, ShoppingBag, Trophy, Info, 
   TrendingUp, DollarSign, Wine
 } from 'lucide-react';
+import { ConnectWalletView } from '@/components/ConnectWalletView';
 
 export default function ClaimTequilaPage() {
   const { address, isConnected } = useAccount();
@@ -52,15 +53,7 @@ export default function ClaimTequilaPage() {
 
   if (!isConnected) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-        <div className="bg-[#EDEDD9] p-8 rounded-full border-4 border-[#1D1D1D] opacity-50">
-           <Ticket size={64} className="text-[#1D1D1D]" />
-        </div>
-        <div>
-          <h2 className="text-3xl font-black uppercase text-[#1D1D1D]">Wallet Locked</h2>
-          <p className="font-bold text-[#1D1D1D]/50 mt-2">Connect your wallet to redeem Bottle Codes & Membership Rewards.</p>
-        </div>
-      </div>
+      <ConnectWalletView />
     );
   }
 
@@ -189,10 +182,10 @@ export default function ClaimTequilaPage() {
          </div>
 
          {/* ARROW CONNECTORS (Mobile hidden, Desktop visible) */}
-         <div className="hidden md:flex justify-between px-20 -mt-4 mb-4 text-[#1D1D1D]/20">
+         {/* <div className="hidden md:flex justify-between px-20 -mt-4 mb-4 text-[#1D1D1D]/20">
              <ArrowRight size={48} />
              <ArrowRight size={48} />
-         </div>
+         </div> */}
 
          {/* SUMMARY BANNER */}
          <div className="mt-8 bg-[#1D1D1D] text-[#EDEDD9] p-6 rounded-2xl text-center border-4 border-[#E15162] shadow-lg">
