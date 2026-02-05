@@ -32,7 +32,7 @@ const Navbar = () => {
 
         {/* Right: CTA & Web3 */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" className="font-bold hover:underline">Member Login</Link>
+          <Link href="/lair" className="font-bold hover:underline">Member Login</Link>
           {/* Usamos un wrapper custom para el botón de RainbowKit si quieres, o el default */}
           <div className="scale-90 origin-right">
              <ConnectButton label="Join Mingles" showBalance={false} accountStatus="avatar" />

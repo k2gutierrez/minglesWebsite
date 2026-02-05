@@ -16,6 +16,19 @@ export interface NFT {
   //attributes: any[];
 }
 
+// Tipo de dato para un Mingle (adaptado a tu diseño)
+export interface MingleNFT {
+  id?: string; // Token ID
+  name: string;
+  image: string; // URL de la imagen
+  type?: string; // Metadata extra si la hay
+}
+
+// Átomos
+export const minglesAtom = atom<MingleNFT[]>([]); // Lista de NFTs del usuario
+export const isLoadingMinglesAtom = atom<boolean>(false); // Estado de carga
+export const userPointsAtom = atom<number>(0); // $Tequila Points (Mock por ahora o fetch real)
+
 // Simple atom example - Cava
 export let Tokens = atom<string[]>([])
 export let CavaTokens = atom<string[]>([])
