@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Copy, Wine, Users, Edit3, Save, 
   Share2, Loader2, Zap, X, Download, 
-  Maximize2, Plus, Twitter
+  Maximize2, Plus, Twitter, CheckCircle2
 } from 'lucide-react';
 
 // --- TIPOS ---
@@ -18,7 +18,7 @@ const TEQUILA_OPTIONS = ["Blanco", "Reposado", "Añejo", "Cristalino"];
 interface SelectedMingle {
   id?: string;
   name: string;
-  image: string;
+  image: string; // Imagen base (Bottled)
   type?: string;
 }
 
@@ -56,7 +56,7 @@ export default function MyMinglesPage() {
     username: "Mingle Member", 
     bio: "Just a worm in the bottle.", 
     twitter: "",
-    favTequila: "Blanco", // Default
+    favTequila: "Blanco",
     code: "...", 
     points: 0,
   });
@@ -84,6 +84,7 @@ export default function MyMinglesPage() {
         .single();
 
       if (!userData) {
+        // Crear si no existe
         const newCode = `MNGL-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         const { data: newUser } = await supabase
           .from('users')
@@ -102,13 +103,13 @@ export default function MyMinglesPage() {
         const userProfile = {
           username: userData.username,
           bio: userData.bio || "",
-          twitter: userData.twitter || "",
-          favTequila: userData.fav_tequila || "Blanco",
+          twitter: userData.twitter || "", // Nuevo campo
+          favTequila: userData.fav_tequila || "Blanco", // Nuevo campo
           code: userData.referral_code,
           points: userData.points
         };
         setProfile(userProfile);
-        setTempData(userProfile);
+        setTempData(userProfile); // Sincronizar temp
       }
 
       // B. Cargar Amigos
@@ -137,6 +138,7 @@ export default function MyMinglesPage() {
   const handleSave = async () => {
     if (!address) return;
     
+    // Aseguramos que la tabla tenga las columnas 'twitter' y 'fav_tequila'
     const { error } = await supabase
       .from('users')
       .update({ 
@@ -151,7 +153,7 @@ export default function MyMinglesPage() {
       setProfile(tempData);
       setIsEditing(false);
     } else {
-      alert("Error saving profile.");
+      alert("Error saving profile. Check database columns.");
     }
   };
 
@@ -184,17 +186,21 @@ export default function MyMinglesPage() {
     }
   };
 
-  // --- LOGICA IMÁGENES MODAL ---
+  // --- LOGICA DE IMÁGENES (MODAL) ---
   const getModalImage = () => {
     if (!selectedMingle) return "";
-    if (viewMode == 'bottled') {
-      return selectedMingle.image; 
-    } else if (viewMode == 'unbottled') {
-      return `https://d9emswcmuvawb.cloudfront.net/${selectedMingle.id}.png`;
-    } else if (viewMode == 'zoom') {
-      return `https://d9emswcmuvawb.cloudfront.net/PFP${selectedMingle.id}.png`;
-    }
     
+    // AQUI CONECTARÍAS LAS URLS REALES
+    // Por ahora uso la imagen base para bottled y placeholders visuales para el resto
+    // Idealmente: `https://my-api.com/images/${viewMode}/${selectedMingle.id}.png`
+    
+    if (viewMode === 'bottled') return selectedMingle.image;
+    
+    // Fallback logic para demo (Tu hermano debe cambiar esto por las URLs reales)
+    if (viewMode === 'unbottled') return `https://d9emswcmuvawb.cloudfront.net/${selectedMingle.id}.png`; // Debería ser imagen full body
+    if (viewMode === 'zoom') return `https://d9emswcmuvawb.cloudfront.net/PFP${selectedMingle.id}.png`; // Debería ser face crop
+    
+    return selectedMingle.image;
   };
 
   // --- MULTIPLIERS ---
@@ -202,6 +208,7 @@ export default function MyMinglesPage() {
   const socialMult = getSocialMultiplier(friends.length);
   const totalMult = (holdMult * socialMult).toFixed(2);
 
+  // --- RENDER ---
   if (!isConnected) return null;
 
   return (
@@ -220,12 +227,13 @@ export default function MyMinglesPage() {
               className="bg-white w-full max-w-sm md:max-w-4xl h-[85vh] md:h-auto rounded-[2rem] overflow-hidden flex flex-col md:flex-row relative"
               onClick={(e) => e.stopPropagation()}
             >
-               {/* 1. VISOR DE IMAGEN (Source Swap) */}
+               {/* 1. VISOR DE IMAGEN (Sin Zoom CSS, cambio de Source) */}
                <div className="flex-1 bg-[#EDEDD9] relative overflow-hidden flex items-center justify-center h-3/5 md:h-auto border-b-4 md:border-r-4 border-[#1D1D1D]">
+                  
                   <img 
-                    key={viewMode} 
+                    key={viewMode} // Key fuerza re-render al cambiar modo
                     src={getModalImage()} 
-                    className="w-full h-full object-contain p-4 transition-opacity duration-300" 
+                    className="w-full h-full object-contain p-4" 
                     alt={`${selectedMingle.name} - ${viewMode}`}
                   />
 
@@ -273,104 +281,73 @@ export default function MyMinglesPage() {
         )}
       </AnimatePresence>
 
-      {/* === 1. PROFILE SECTION (REDISEÑADA) === */}
+
+      {/* === 1. PROFILE SECTION (Con Twitter & Tequila) === */}
       <section className="bg-[#1D1D1D] text-[#EDEDD9] rounded-[2.5rem] p-6 md:p-8 border-4 border-[#1D1D1D] shadow-[8px_8px_0_0_#E15162] relative overflow-hidden">
          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><Wine size={140} /></div>
          
-         <div className="flex flex-col md:flex-row gap-8 relative z-10">
+         <div className="flex flex-col md:flex-row gap-6 relative z-10">
             {/* Avatar */}
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl border-4 border-[#EDEDD9] overflow-hidden bg-white shrink-0">
+            <div className="w-24 h-24 rounded-2xl border-4 border-[#EDEDD9] overflow-hidden bg-white shrink-0">
                <img src={mingles.length > 0 ? mingles[0].image : "/images/placeholder_bottle.png"} className="w-full h-full object-cover"/>
             </div>
 
-            {/* Info Principal */}
-            <div className="flex-1 flex flex-col justify-between space-y-4">
-               
-               {/* Header Info */}
-               <div>
-                   <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                          {isEditing ? (
-                             <input 
-                               value={tempData.username} 
-                               onChange={e => setTempData({...tempData, username: e.target.value})} 
-                               className="bg-white/10 text-2xl md:text-3xl font-black rounded px-2 py-1 w-full max-w-xs text-white"
-                               placeholder="Username"
-                             />
-                          ) : (
-                             <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight">{profile.username}</h1>
-                          )}
-                          
-                          <button onClick={() => isEditing ? handleSave() : setIsEditing(true)} className="opacity-50 hover:opacity-100 hover:text-[#E15162] transition-colors">
-                             {isEditing ? <Save size={24} className="text-[#E15162]"/> : <Edit3 size={24}/>}
-                          </button>
-                      </div>
-                   </div>
-
-                   {/* Bio & Twitter */}
-                   <div className="space-y-3">
-                      {isEditing ? (
-                         <>
-                           <textarea 
-                              value={tempData.bio} 
-                              onChange={e => setTempData({...tempData, bio: e.target.value})} 
-                              className="bg-white/10 text-sm font-bold w-full rounded p-3 h-20 resize-none text-[#EDEDD9]"
-                              placeholder="Write a short bio..."
+            {/* Info Editable */}
+            <div className="flex-1 space-y-4">
+               {isEditing ? (
+                  <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10">
+                     <input 
+                        value={tempData.username} 
+                        onChange={e => setTempData({...tempData, username: e.target.value})} 
+                        className="bg-white/10 text-xl font-black rounded px-2 py-1 w-full"
+                        placeholder="Username"
+                     />
+                     <textarea 
+                        value={tempData.bio} 
+                        onChange={e => setTempData({...tempData, bio: e.target.value})} 
+                        className="bg-white/10 text-sm font-bold w-full rounded p-2 h-16 resize-none"
+                        placeholder="Bio"
+                     />
+                     <div className="flex gap-2">
+                        <div className="flex items-center gap-2 bg-white/10 rounded px-2 py-1 flex-1">
+                           <Twitter size={14} className="opacity-50"/>
+                           <input 
+                              value={tempData.twitter} 
+                              onChange={e => setTempData({...tempData, twitter: e.target.value})} 
+                              className="bg-transparent text-sm font-bold w-full outline-none"
+                              placeholder="@twitter_handle"
                            />
-                           <div className="flex items-center gap-2 bg-white/10 rounded px-3 py-2 w-full max-w-xs">
-                              <Twitter size={16} className="text-[#E15162]"/>
-                              <input 
-                                 value={tempData.twitter} 
-                                 onChange={e => setTempData({...tempData, twitter: e.target.value})} 
-                                 className="bg-transparent text-sm font-bold w-full outline-none text-white placeholder-white/30"
-                                 placeholder="@twitter_handle"
-                              />
-                           </div>
-                         </>
-                      ) : (
-                         <>
-                           <p className="text-sm font-bold opacity-70 max-w-lg leading-relaxed">{profile.bio}</p>
-                           {profile.twitter && (
-                              <a href={`https://twitter.com/${profile.twitter.replace('@','')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black bg-black/30 hover:bg-[#E15162] transition-colors px-3 py-1.5 rounded-lg border border-white/10">
-                                 <Twitter size={12}/> {profile.twitter}
-                              </a>
-                           )}
-                         </>
-                      )}
-                   </div>
-               </div>
-
-               {/* TEQUILA PREFERENCE (UI UX MEJORADO) */}
-               <div className="bg-black/20 p-4 rounded-2xl border border-white/5 mt-2">
-                  <p className="text-[10px] font-black uppercase text-[#EDEDD9]/50 mb-3 flex items-center gap-1">
-                     <Wine size={12}/> My Favorite Tequila
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2">
-                     {TEQUILA_OPTIONS.map((opt) => {
-                        // Determinamos cuál está seleccionado (Temporal o Guardado)
-                        const isSelected = (isEditing ? tempData.favTequila : profile.favTequila) === opt;
-                        
-                        return (
-                           <button
-                              key={opt}
-                              onClick={() => isEditing && setTempData({...tempData, favTequila: opt})}
-                              disabled={!isEditing} // Solo clickeable en modo edición
-                              className={`
-                                 px-3 py-1.5 rounded-lg text-xs font-black uppercase border-2 transition-all
-                                 ${isSelected 
-                                    ? 'bg-[#E15162] border-[#E15162] text-white shadow-[0_0_10px_rgba(225,81,98,0.5)] scale-105 z-10' 
-                                    : 'bg-transparent border-white/10 text-white/30 hover:border-white/30'
-                                 }
-                                 ${isEditing ? 'cursor-pointer hover:scale-105' : 'cursor-default'}
-                              `}
-                           >
-                              {opt}
-                           </button>
-                        )
-                     })}
+                        </div>
+                        <select 
+                           value={tempData.favTequila}
+                           onChange={e => setTempData({...tempData, favTequila: e.target.value})}
+                           className="bg-white/10 text-sm font-bold rounded px-2 py-1 outline-none text-white"
+                        >
+                           {TEQUILA_OPTIONS.map(opt => <option key={opt} value={opt} className="text-black">{opt}</option>)}
+                        </select>
+                     </div>
+                     <button onClick={handleSave} className="bg-[#E15162] text-white w-full py-2 rounded-lg font-black text-xs uppercase hover:bg-white hover:text-black transition-colors">Save Changes</button>
                   </div>
-               </div>
+               ) : (
+                  <div className="space-y-2">
+                     <div className="flex items-center gap-3">
+                        <h1 className="text-3xl md:text-4xl font-black uppercase">{profile.username}</h1>
+                        <button onClick={() => setIsEditing(true)} className="opacity-50 hover:opacity-100 hover:text-[#E15162]"><Edit3 size={20}/></button>
+                     </div>
+                     <p className="text-sm font-bold opacity-60 max-w-md leading-tight">{profile.bio}</p>
+                     
+                     <div className="flex gap-4 pt-2">
+                        {profile.twitter && (
+                           <div className="flex items-center gap-1 text-xs font-bold bg-[#1D1D1D] border border-[#EDEDD9]/20 px-2 py-1 rounded">
+                              <Twitter size={12} className="text-[#E15162]"/> {profile.twitter}
+                           </div>
+                        )}
+                        <div className="flex items-center gap-1 text-xs font-bold bg-[#1D1D1D] border border-[#EDEDD9]/20 px-2 py-1 rounded">
+                           <Wine size={12} className="text-[#E15162]"/> {profile.favTequila}
+                        </div>
+                     </div>
+                  </div>
+               )}
             </div>
          </div>
       </section>
@@ -384,7 +361,7 @@ export default function MyMinglesPage() {
 
          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Hold Bonus */}
-            <div className="bg-[#EDEDD9] p-4 rounded-2xl border-2 border-[#1D1D1D] flex flex-col justify-between hover:scale-[1.02] transition-transform">
+            <div className="bg-[#EDEDD9] p-4 rounded-2xl border-2 border-[#1D1D1D] flex flex-col justify-between">
                <div>
                   <p className="text-xs font-black uppercase opacity-50 mb-1">Hold Bonus</p>
                   <div className="flex items-center gap-2">
@@ -396,7 +373,7 @@ export default function MyMinglesPage() {
             </div>
 
             {/* Social Bonus */}
-            <div className="bg-[#EDEDD9] p-4 rounded-2xl border-2 border-[#1D1D1D] flex flex-col justify-between hover:scale-[1.02] transition-transform">
+            <div className="bg-[#EDEDD9] p-4 rounded-2xl border-2 border-[#1D1D1D] flex flex-col justify-between">
                <div>
                   <p className="text-xs font-black uppercase opacity-50 mb-1">Social Bonus</p>
                   <div className="flex items-center gap-2">
@@ -424,7 +401,7 @@ export default function MyMinglesPage() {
                <div>
                   <label className="text-[10px] font-black uppercase opacity-70 mb-1 block">Your Code</label>
                   <div className="flex gap-2">
-                     <div className="bg-black/20 border-2 border-white/20 rounded-xl px-4 py-3 font-mono text-sm font-bold flex-1 truncate text-center select-all">
+                     <div className="bg-black/20 border-2 border-white/20 rounded-xl px-4 py-3 font-mono text-sm font-bold flex-1 truncate text-center">
                         {profile.code || "GENERATING..."}
                      </div>
                      <button onClick={() => navigator.clipboard.writeText(profile.code)} className="bg-white text-[#E15162] p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"><Copy size={20} /></button>
