@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAtomValue } from 'jotai'; 
 import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms'; 
 import { useAccount } from 'wagmi';
@@ -9,16 +9,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Copy, Wine, Users, Edit3, Save, 
   Share2, Loader2, Zap, X, Download, 
-  Maximize2, Plus, Twitter
+  Maximize2, Plus, Twitter, CheckCircle2
 } from 'lucide-react';
 
 // --- TIPOS ---
-const TEQUILA_TYPES = ["Blanco", "Reposado", "Añejo", "Cristalino"];
+const TEQUILA_OPTIONS = ["Blanco", "Reposado", "Añejo", "Cristalino"];
 
 interface SelectedMingle {
   id?: string;
   name: string;
-  image: string;
+  image: string; // Imagen base (Bottled)
   type?: string;
 }
 
@@ -27,7 +27,7 @@ interface Friend {
   mingleCount: number;
 }
 
-// Multipliers
+// Multipliers Logic
 const getHoldMultiplier = (count: number) => {
   if (count >= 100) return 2.0;
   if (count >= 21) return 1.6;
@@ -53,8 +53,10 @@ export default function MyMinglesPage() {
 
   // --- ESTADO PERFIL ---
   const [profile, setProfile] = useState({
-    username: "Mingle Member", // Default inmediato
-    bio: "Just a worm in the bottle.", // Default inmediato
+    username: "Mingle Member", 
+    bio: "Just a worm in the bottle.", 
+    twitter: "",
+    favTequila: "Blanco",
     code: "...", 
     points: 0,
   });
@@ -62,16 +64,14 @@ export default function MyMinglesPage() {
   
   // Edición
   const [isEditing, setIsEditing] = useState(false);
-  const [tempName, setTempName] = useState("");
-  const [tempBio, setTempBio] = useState("");
+  const [tempData, setTempData] = useState({ ...profile });
   const [friendCodeInput, setFriendCodeInput] = useState("");
 
   // --- ESTADO MODAL ---
   const [selectedMingle, setSelectedMingle] = useState<SelectedMingle | null>(null);
-  // Estados: 'bottled' (Normal), 'unbottled' (Zoom cuerpo), 'zoom' (Cara)
   const [viewMode, setViewMode] = useState<'bottled' | 'unbottled' | 'zoom'>('bottled');
 
-  // --- 1. CARGAR DATOS DE SUPABASE ---
+  // --- 1. CARGAR DATOS ---
   useEffect(() => {
     const loadData = async () => {
       if (!address) return;
@@ -100,25 +100,25 @@ export default function MyMinglesPage() {
       }
 
       if (userData) {
-        setProfile({
+        const userProfile = {
           username: userData.username,
           bio: userData.bio || "",
+          twitter: userData.twitter || "", // Nuevo campo
+          favTequila: userData.fav_tequila || "Blanco", // Nuevo campo
           code: userData.referral_code,
           points: userData.points
-        });
-        setTempName(userData.username);
-        setTempBio(userData.bio || "");
+        };
+        setProfile(userProfile);
+        setTempData(userProfile); // Sincronizar temp
       }
 
       // B. Cargar Amigos
-      // (Esta query asume que guardaste wallet_address en friends, buscamos sus usernames)
       const { data: friendsData } = await supabase
         .from('friends')
         .select('friend_wallet')
         .eq('user_wallet', address);
 
       if (friendsData && friendsData.length > 0) {
-         // Buscar info de los amigos
          const friendWallets = friendsData.map(f => f.friend_wallet);
          const { data: friendsProfiles } = await supabase
             .from('users')
@@ -126,7 +126,6 @@ export default function MyMinglesPage() {
             .in('wallet_address', friendWallets);
          
          if (friendsProfiles) {
-            // Mockeamos conteo de mingles por ahora o hacemos fetch si es critico
             setFriends(friendsProfiles.map(f => ({ username: f.username, mingleCount: 0 })));
          }
       }
@@ -138,14 +137,23 @@ export default function MyMinglesPage() {
   // --- 2. GUARDAR PERFIL ---
   const handleSave = async () => {
     if (!address) return;
+    
+    // Aseguramos que la tabla tenga las columnas 'twitter' y 'fav_tequila'
     const { error } = await supabase
       .from('users')
-      .update({ username: tempName, bio: tempBio })
+      .update({ 
+        username: tempData.username, 
+        bio: tempData.bio,
+        twitter: tempData.twitter,
+        fav_tequila: tempData.favTequila
+      })
       .eq('wallet_address', address);
 
     if (!error) {
-      setProfile(prev => ({ ...prev, username: tempName, bio: tempBio }));
+      setProfile(tempData);
       setIsEditing(false);
+    } else {
+      alert("Error saving profile. Check database columns.");
     }
   };
 
@@ -153,7 +161,6 @@ export default function MyMinglesPage() {
   const handleAddFriend = async () => {
     if (!friendCodeInput || !address) return;
     
-    // Buscar dueño del código
     const { data: friendUser } = await supabase
        .from('users')
        .select('wallet_address, username')
@@ -163,7 +170,6 @@ export default function MyMinglesPage() {
     if (friendUser) {
        if (friendUser.wallet_address === address) return alert("Can't add yourself!");
        
-       // Insertar relación
        const { error } = await supabase
           .from('friends')
           .insert([{ user_wallet: address, friend_wallet: friendUser.wallet_address }]);
@@ -171,24 +177,42 @@ export default function MyMinglesPage() {
        if (!error) {
           setFriends(prev => [...prev, { username: friendUser.username, mingleCount: 0 }]);
           setFriendCodeInput("");
-          alert("Friend added to Circle!");
+          alert("Friend added!");
        } else {
-          alert("Friend already in circle.");
+          alert("Friend already added.");
        }
     } else {
        alert("Invalid Code");
     }
   };
 
+  // --- LOGICA DE IMÁGENES (MODAL) ---
+  const getModalImage = () => {
+    if (!selectedMingle) return "";
+    
+    // AQUI CONECTARÍAS LAS URLS REALES
+    // Por ahora uso la imagen base para bottled y placeholders visuales para el resto
+    // Idealmente: `https://my-api.com/images/${viewMode}/${selectedMingle.id}.png`
+    
+    if (viewMode === 'bottled') return selectedMingle.image;
+    
+    // Fallback logic para demo (Tu hermano debe cambiar esto por las URLs reales)
+    if (viewMode === 'unbottled') return `https://d9emswcmuvawb.cloudfront.net/${selectedMingle.id}.png`; // Debería ser imagen full body
+    if (viewMode === 'zoom') return `https://d9emswcmuvawb.cloudfront.net/PFP${selectedMingle.id}.png`; // Debería ser face crop
+    
+    return selectedMingle.image;
+  };
+
   // --- MULTIPLIERS ---
   const holdMult = getHoldMultiplier(mingles.length);
   const socialMult = getSocialMultiplier(friends.length);
+  const totalMult = (holdMult * socialMult).toFixed(2);
 
   // --- RENDER ---
   if (!isConnected) return null;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-20 relative px-4 md:px-0">
+    <div className="max-w-5xl mx-auto space-y-8 pb-20 relative px-4 md:px-0">
       
       {/* === MODAL === */}
       <AnimatePresence>
@@ -203,20 +227,17 @@ export default function MyMinglesPage() {
               className="bg-white w-full max-w-sm md:max-w-4xl h-[85vh] md:h-auto rounded-[2rem] overflow-hidden flex flex-col md:flex-row relative"
               onClick={(e) => e.stopPropagation()}
             >
-               {/* 1. VISOR DE IMAGEN (Sin scroll, ajustado) */}
-               <div className="flex-1 bg-[#EDEDD9] relative overflow-hidden flex items-center justify-center group h-3/5 md:h-auto border-b-4 md:border-r-4 border-[#1D1D1D]">
+               {/* 1. VISOR DE IMAGEN (Sin Zoom CSS, cambio de Source) */}
+               <div className="flex-1 bg-[#EDEDD9] relative overflow-hidden flex items-center justify-center h-3/5 md:h-auto border-b-4 md:border-r-4 border-[#1D1D1D]">
                   
-                  {/* Imagen con Transformaciones CSS según estado */}
-                  <div className={`
-                     w-full h-full transition-transform duration-700 ease-in-out relative
-                     ${viewMode === 'bottled' ? 'scale-90' : ''}
-                     ${viewMode === 'unbottled' ? 'scale-[2.5] translate-y-[20%]' : ''} 
-                     ${viewMode === 'zoom' ? 'scale-[4.5] translate-y-[-10%]' : ''}
-                  `}>
-                     <img src={selectedMingle.image} className="w-full h-full object-contain" />
-                  </div>
+                  <img 
+                    key={viewMode} // Key fuerza re-render al cambiar modo
+                    src={getModalImage()} 
+                    className="w-full h-full object-contain p-4" 
+                    alt={`${selectedMingle.name} - ${viewMode}`}
+                  />
 
-                  {/* Botones de Estado (Flotantes) */}
+                  {/* Botones de Estado */}
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex bg-[#1D1D1D] p-1 rounded-full shadow-xl gap-1 z-20">
                      {['bottled', 'unbottled', 'zoom'].map((mode) => (
                         <button 
@@ -229,13 +250,12 @@ export default function MyMinglesPage() {
                      ))}
                   </div>
 
-                  {/* Close Btn */}
                   <button onClick={() => setSelectedMingle(null)} className="absolute top-4 right-4 bg-black/20 text-[#1D1D1D] p-2 rounded-full z-20 hover:bg-[#E15162] hover:text-white">
                      <X size={20} />
                   </button>
                </div>
 
-               {/* 2. INFO PANEL (Simple) */}
+               {/* 2. INFO PANEL */}
                <div className="bg-white p-6 flex flex-col justify-between h-2/5 md:h-auto md:w-[350px]">
                   <div>
                      <h2 className="text-3xl font-black uppercase text-[#1D1D1D] leading-none mb-1">{selectedMingle.name}</h2>
@@ -262,7 +282,7 @@ export default function MyMinglesPage() {
       </AnimatePresence>
 
 
-      {/* === TOP SECTION: PROFILE === */}
+      {/* === 1. PROFILE SECTION (Con Twitter & Tequila) === */}
       <section className="bg-[#1D1D1D] text-[#EDEDD9] rounded-[2.5rem] p-6 md:p-8 border-4 border-[#1D1D1D] shadow-[8px_8px_0_0_#E15162] relative overflow-hidden">
          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><Wine size={140} /></div>
          
@@ -272,99 +292,135 @@ export default function MyMinglesPage() {
                <img src={mingles.length > 0 ? mingles[0].image : "/images/placeholder_bottle.png"} className="w-full h-full object-cover"/>
             </div>
 
-            {/* Info */}
-            <div className="flex-1 space-y-2">
-               <div className="flex items-center gap-3">
-                  {isEditing ? (
-                     <input value={tempName} onChange={e => setTempName(e.target.value)} className="bg-white/10 text-xl font-black rounded px-2 py-1 w-full max-w-xs"/>
-                  ) : (
-                     <h1 className="text-3xl md:text-4xl font-black uppercase">{profile.username}</h1>
-                  )}
-                  
-                  <button onClick={() => isEditing ? handleSave() : setIsEditing(true)} className="opacity-50 hover:opacity-100">
-                     {isEditing ? <Save size={20} className="text-[#E15162]"/> : <Edit3 size={20}/>}
-                  </button>
-               </div>
-
-               {/* Bio */}
+            {/* Info Editable */}
+            <div className="flex-1 space-y-4">
                {isEditing ? (
-                  <textarea value={tempBio} onChange={e => setTempBio(e.target.value)} className="bg-white/10 text-sm font-bold w-full max-w-md rounded p-2 h-16 resize-none"/>
+                  <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10">
+                     <input 
+                        value={tempData.username} 
+                        onChange={e => setTempData({...tempData, username: e.target.value})} 
+                        className="bg-white/10 text-xl font-black rounded px-2 py-1 w-full"
+                        placeholder="Username"
+                     />
+                     <textarea 
+                        value={tempData.bio} 
+                        onChange={e => setTempData({...tempData, bio: e.target.value})} 
+                        className="bg-white/10 text-sm font-bold w-full rounded p-2 h-16 resize-none"
+                        placeholder="Bio"
+                     />
+                     <div className="flex gap-2">
+                        <div className="flex items-center gap-2 bg-white/10 rounded px-2 py-1 flex-1">
+                           <Twitter size={14} className="opacity-50"/>
+                           <input 
+                              value={tempData.twitter} 
+                              onChange={e => setTempData({...tempData, twitter: e.target.value})} 
+                              className="bg-transparent text-sm font-bold w-full outline-none"
+                              placeholder="@twitter_handle"
+                           />
+                        </div>
+                        <select 
+                           value={tempData.favTequila}
+                           onChange={e => setTempData({...tempData, favTequila: e.target.value})}
+                           className="bg-white/10 text-sm font-bold rounded px-2 py-1 outline-none text-white"
+                        >
+                           {TEQUILA_OPTIONS.map(opt => <option key={opt} value={opt} className="text-black">{opt}</option>)}
+                        </select>
+                     </div>
+                     <button onClick={handleSave} className="bg-[#E15162] text-white w-full py-2 rounded-lg font-black text-xs uppercase hover:bg-white hover:text-black transition-colors">Save Changes</button>
+                  </div>
                ) : (
-                  <p className="text-sm font-bold opacity-60 max-w-md leading-tight">{profile.bio}</p>
+                  <div className="space-y-2">
+                     <div className="flex items-center gap-3">
+                        <h1 className="text-3xl md:text-4xl font-black uppercase">{profile.username}</h1>
+                        <button onClick={() => setIsEditing(true)} className="opacity-50 hover:opacity-100 hover:text-[#E15162]"><Edit3 size={20}/></button>
+                     </div>
+                     <p className="text-sm font-bold opacity-60 max-w-md leading-tight">{profile.bio}</p>
+                     
+                     <div className="flex gap-4 pt-2">
+                        {profile.twitter && (
+                           <div className="flex items-center gap-1 text-xs font-bold bg-[#1D1D1D] border border-[#EDEDD9]/20 px-2 py-1 rounded">
+                              <Twitter size={12} className="text-[#E15162]"/> {profile.twitter}
+                           </div>
+                        )}
+                        <div className="flex items-center gap-1 text-xs font-bold bg-[#1D1D1D] border border-[#EDEDD9]/20 px-2 py-1 rounded">
+                           <Wine size={12} className="text-[#E15162]"/> {profile.favTequila}
+                        </div>
+                     </div>
+                  </div>
                )}
-            </div>
-
-            {/* Stats (Discretos) */}
-            <div className="flex flex-row md:flex-col gap-3 justify-start md:justify-center">
-               <div className="bg-[#EDEDD9] text-[#1D1D1D] px-3 py-1.5 rounded-lg border border-[#1D1D1D] flex items-center gap-2">
-                  <Wine size={14} className="text-[#E15162]"/>
-                  <span className="text-xs font-black uppercase">{mingles.length} Mingles</span>
-               </div>
-               <div className="bg-[#EDEDD9] text-[#1D1D1D] px-3 py-1.5 rounded-lg border border-[#1D1D1D] flex items-center gap-2">
-                  <Users size={14} className="text-[#E15162]"/>
-                  <span className="text-xs font-black uppercase">x{socialMult} Social Bonus</span>
-               </div>
             </div>
          </div>
       </section>
 
-      {/* === MIDDLE SECTION: SOCIAL === */}
+      {/* === 2. MULTIPLIER STATS (SEPARADO) === */}
+      <section className="bg-white p-6 rounded-[2.5rem] border-4 border-[#1D1D1D] shadow-sm">
+         <div className="flex items-center gap-3 mb-6">
+            <div className="bg-[#E15162] text-white p-2 rounded-lg"><Zap size={24}/></div>
+            <h2 className="text-2xl font-black uppercase text-[#1D1D1D]">Multiplier Breakdown</h2>
+         </div>
+
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Hold Bonus */}
+            <div className="bg-[#EDEDD9] p-4 rounded-2xl border-2 border-[#1D1D1D] flex flex-col justify-between">
+               <div>
+                  <p className="text-xs font-black uppercase opacity-50 mb-1">Hold Bonus</p>
+                  <div className="flex items-center gap-2">
+                     <Wine className="text-[#1D1D1D]" size={20}/>
+                     <span className="text-2xl font-black">x{holdMult}</span>
+                  </div>
+               </div>
+               <p className="text-[10px] font-bold mt-2 opacity-60">Based on {mingles.length} Mingles owned.</p>
+            </div>
+
+            {/* Social Bonus */}
+            <div className="bg-[#EDEDD9] p-4 rounded-2xl border-2 border-[#1D1D1D] flex flex-col justify-between">
+               <div>
+                  <p className="text-xs font-black uppercase opacity-50 mb-1">Social Bonus</p>
+                  <div className="flex items-center gap-2">
+                     <Users className="text-[#1D1D1D]" size={20}/>
+                     <span className="text-2xl font-black">x{socialMult}</span>
+                  </div>
+               </div>
+               <p className="text-[10px] font-bold mt-2 opacity-60">Based on {friends.length} Circle members.</p>
+            </div>
+
+            {/* Total */}
+            <div className="bg-[#1D1D1D] text-white p-4 rounded-2xl border-2 border-[#1D1D1D] flex flex-col justify-center text-center shadow-[4px_4px_0_0_#E15162]">
+               <p className="text-xs font-black uppercase opacity-50 mb-1">Total Multiplier</p>
+               <span className="text-4xl font-black text-[#E15162]">x{totalMult}</span>
+            </div>
+         </div>
+      </section>
+
+      {/* === 3. SOCIAL === */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-         
-         {/* GROW YOUR CIRCLE */}
+         {/* Code & Add */}
          <div className="bg-[#E15162] p-6 rounded-3xl border-4 border-[#1D1D1D] text-white">
             <h3 className="text-xl font-black uppercase mb-4 flex items-center gap-2"><Users/> Grow Circle</h3>
-            
             <div className="space-y-4">
-               {/* My Code */}
                <div>
                   <label className="text-[10px] font-black uppercase opacity-70 mb-1 block">Your Code</label>
                   <div className="flex gap-2">
                      <div className="bg-black/20 border-2 border-white/20 rounded-xl px-4 py-3 font-mono text-sm font-bold flex-1 truncate text-center">
                         {profile.code || "GENERATING..."}
                      </div>
-                     <button 
-                        onClick={() => navigator.clipboard.writeText(profile.code)}
-                        className="bg-white text-[#E15162] p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"
-                     >
-                        <Copy size={20} />
-                     </button>
-                     <a 
-                        href={`https://twitter.com/intent/tweet?text=Join my Lair using code: ${profile.code}`}
-                        target="_blank" rel="noreferrer"
-                        className="bg-[#1D1D1D] text-white p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"
-                     >
-                        <Twitter size={20} />
-                     </a>
+                     <button onClick={() => navigator.clipboard.writeText(profile.code)} className="bg-white text-[#E15162] p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"><Copy size={20} /></button>
+                     <a href={`https://twitter.com/intent/tweet?text=Join my Lair using code: ${profile.code}`} target="_blank" rel="noreferrer" className="bg-[#1D1D1D] text-white p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"><Twitter size={20} /></a>
                   </div>
                </div>
-
-               {/* Add Friend */}
                <div>
                   <label className="text-[10px] font-black uppercase opacity-70 mb-1 block">Add Friend's Code</label>
                   <div className="flex gap-2">
-                     <input 
-                        value={friendCodeInput}
-                        onChange={(e) => setFriendCodeInput(e.target.value.toUpperCase())}
-                        placeholder="MNGL-XXXX"
-                        className="bg-white/90 text-[#1D1D1D] placeholder-[#1D1D1D]/30 border-2 border-[#1D1D1D] rounded-xl px-4 py-3 font-black text-sm flex-1 outline-none uppercase"
-                     />
-                     <button 
-                        onClick={handleAddFriend}
-                        disabled={!friendCodeInput}
-                        className="bg-[#1D1D1D] text-white px-4 rounded-xl border-2 border-[#1D1D1D] font-black hover:bg-white hover:text-[#1D1D1D] disabled:opacity-50"
-                     >
-                        <Plus size={20} />
-                     </button>
+                     <input value={friendCodeInput} onChange={(e) => setFriendCodeInput(e.target.value.toUpperCase())} placeholder="MNGL-XXXX" className="bg-white/90 text-[#1D1D1D] placeholder-[#1D1D1D]/30 border-2 border-[#1D1D1D] rounded-xl px-4 py-3 font-black text-sm flex-1 outline-none uppercase"/>
+                     <button onClick={handleAddFriend} disabled={!friendCodeInput} className="bg-[#1D1D1D] text-white px-4 rounded-xl border-2 border-[#1D1D1D] font-black hover:bg-white hover:text-[#1D1D1D] disabled:opacity-50"><Plus size={20} /></button>
                   </div>
                </div>
             </div>
          </div>
 
-         {/* FRIEND LIST */}
+         {/* Friend List */}
          <div className="bg-white p-6 rounded-3xl border-4 border-[#1D1D1D] flex flex-col">
             <h3 className="text-xl font-black uppercase mb-4 text-[#1D1D1D]">My Friends</h3>
-            
             {friends.length === 0 ? (
                <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 border-2 border-dashed border-[#1D1D1D]/20 rounded-xl p-4">
                   <Users size={32} className="mb-2"/>
@@ -376,10 +432,7 @@ export default function MyMinglesPage() {
                   {friends.map((friend, i) => (
                      <div key={i} className="flex items-center justify-between bg-[#EDEDD9] p-3 rounded-xl border border-[#1D1D1D]/10">
                         <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 bg-[#1D1D1D] rounded-full overflow-hidden border border-[#1D1D1D]">
-                              {/* Placeholder avatar */}
-                              <div className="w-full h-full bg-[#E15162]"/> 
-                           </div>
+                           <div className="w-8 h-8 bg-[#1D1D1D] rounded-full overflow-hidden border border-[#1D1D1D]"><div className="w-full h-full bg-[#E15162]"/></div>
                            <span className="font-black text-xs text-[#1D1D1D] uppercase">{friend.username}</span>
                         </div>
                         <span className="text-[10px] font-bold opacity-50">Member</span>
@@ -390,16 +443,10 @@ export default function MyMinglesPage() {
          </div>
       </div>
 
-      {/* === GALLERY === */}
+      {/* === 4. GALLERY === */}
       <section>
           <div className="flex items-center justify-between mb-6">
               <h2 className="text-3xl font-black uppercase text-[#1D1D1D]">My Collection</h2>
-              {/* Filtros decorativos */}
-              <div className="hidden md:flex gap-2">
-                  {TEQUILA_TYPES.map(type => (
-                      <span key={type} className="px-3 py-1 rounded-lg border-2 border-[#1D1D1D] text-xs font-black uppercase opacity-50 hover:opacity-100 cursor-pointer">{type}</span>
-                  ))}
-              </div>
           </div>
 
           {isLoadingMingles ? (
