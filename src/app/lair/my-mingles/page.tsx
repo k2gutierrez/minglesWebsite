@@ -1,357 +1,375 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAtomValue } from 'jotai'; 
+import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms'; 
+import { useAccount } from 'wagmi';
+import { supabase } from '@/components/engine/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAtomValue } from 'jotai'; // Importar Jotai hook
-import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms';
 import { 
-  User, Copy, Twitter, Download, Search, 
-  Wine, Users, Sword, Trophy, ExternalLink, 
-  Edit3, Save, Share2, AlertCircle, Loader2 
+  User, Copy, Wine, Users, ExternalLink, 
+  Edit3, Save, Share2, Loader2, Zap, 
+  X, Download, Maximize2, ScanEye
 } from 'lucide-react';
 
-const ASSETS = {
-  pfpWorm: "/images/MinglesMiniaturaLogoRojo-03.png", 
-  pfpHeart: "/images/Screenshot 2025-08-15 at 12.32.48 p.m..png",
-  // Estos se usan como fallback o decoración si no hay imagen del indexer
-  bottleSolo: "/images/Screenshot 2026-01-08 at 9.57.29 p.m..jpg", 
-};
-
+// --- UTILIDADES Y TIPOS ---
 const TEQUILA_TYPES = ["Blanco", "Reposado", "Añejo", "Cristalino"];
 
-// Datos de usuario simulados (esto luego vendría de tu backend/DB)
-const USER_DATA = {
-    username: "MingleMember",
-    twitterHandle: "@mingles_dao",
-    uniqueCode: "MINGLE-8X92",
-    tequilaPoints: 0,
-    friendsCount: 0,
-    minglesInRaids: 0
+// Interface para el Mingle seleccionado (extiende lo que viene del atom)
+interface SelectedMingle {
+  id: string;
+  name: string;
+  image: string;
+  type?: string;
+  attributes?: any[]; // Para mostrar los traits
+}
+
+const getHoldMultiplier = (count: number) => {
+  if (count >= 100) return 2.0;
+  if (count >= 21) return 1.6;
+  if (count >= 11) return 1.4;
+  if (count >= 6) return 1.25;
+  if (count >= 2) return 1.1;
+  return 1.0; 
+};
+
+const getSocialMultiplier = (friendsCount: number) => {
+  if (friendsCount >= 51) return 1.8;
+  if (friendsCount >= 26) return 1.5;
+  if (friendsCount >= 11) return 1.3;
+  if (friendsCount >= 4) return 1.15;
+  if (friendsCount >= 1) return 1.05;
+  return 1.0;
 };
 
 export default function MyMinglesPage() {
-  // --- ESTADO GLOBAL (WEB3) ---
-  const myMingles = useAtomValue(minglesAtom); 
-  const isLoading = useAtomValue(isLoadingMinglesAtom); 
-
-  // --- ESTADO LOCAL (UI) ---
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [bio, setBio] = useState("Agitation meets distillation.");
-  const [favTequila, setFavTequila] = useState("Reposado");
+  // 1. Estado Global
+  const { address, isConnected } = useAccount();
+  const mingles = useAtomValue(minglesAtom);
+  const isLoadingMingles = useAtomValue(isLoadingMinglesAtom);
   
-  // Lógica de Selección / Unbottle
-  const [selectedMingleId, setSelectedMingleId] = useState<string | null>(null);
-  const [isUnbottled, setIsUnbottled] = useState(false);
+  // 2. Estado Local (Perfil)
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profile, setProfile] = useState({
+    username: "New_Mingle",
+    code: "LOADING...",
+    points: 0,
+    friendsCount: 0
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
 
-  // --- 👇 AQUÍ ESTÁ LA LÍNEA QUE FALTABA ---
-  const [friendCodeInput, setFriendCodeInput] = useState(""); 
+  // 3. Estado Local (Visualización Mingle)
+  const [selectedMingle, setSelectedMingle] = useState<SelectedMingle | null>(null);
+  const [viewMode, setViewMode] = useState<'bottled' | 'unbottled'>('bottled');
 
-  // Derived Data
-  const hasMingles = myMingles.length > 0;
-  // Si no hay seleccionado, usa el primero de la lista (si existe)
-  const activeMingle = myMingles.find(m => m.id === selectedMingleId) || myMingles[0];
+  // --- EFECTO: SUPABASE ---
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!address) return;
+      setLoadingProfile(true);
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('wallet_address', address)
+        .single();
 
-  // Actions
-  const copyCode = () => {
-    navigator.clipboard.writeText(USER_DATA.uniqueCode);
-    alert("Code copied!");
-  };
+      if (data) {
+        setProfile({
+          username: data.username || "Mingle_Member",
+          code: data.referral_code || "NO-CODE",
+          points: data.points || 0,
+          friendsCount: 0 
+        });
+        setNewUsername(data.username);
+      }
+      setLoadingProfile(false);
+    };
 
-  const shareTwitter = () => {
-    const text = `Let's Mingle! Join my squad. My code: ${USER_DATA.uniqueCode}`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-  };
+    if (isConnected) fetchProfile();
+  }, [address, isConnected]);
 
-  const handleManualSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const id = e.target.value; 
-    // Verificar si el usuario realmente tiene ese ID
-    if (myMingles.find(m => m.id === id)) {
-        setSelectedMingleId(id);
-        setIsUnbottled(false);
+  // --- HANDLERS ---
+  const handleSaveProfile = async () => {
+    if (!address || !newUsername) return;
+    const { error } = await supabase
+      .from('users')
+      .update({ username: newUsername })
+      .eq('wallet_address', address);
+
+    if (!error) {
+      setProfile(prev => ({ ...prev, username: newUsername }));
+      setIsEditing(false);
+    } else {
+      alert("Error updating profile");
     }
   };
 
+  const holdMult = getHoldMultiplier(mingles.length);
+  const socialMult = getSocialMultiplier(profile.friendsCount);
+  const totalMult = (holdMult * socialMult).toFixed(2);
+
+  if (!isConnected) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
+        <div className="bg-[#EDEDD9] p-8 rounded-full border-4 border-[#1D1D1D]">
+           <User size={64} className="text-[#1D1D1D] opacity-20" />
+        </div>
+        <h2 className="text-2xl font-black uppercase text-[#1D1D1D]">Wallet Not Connected</h2>
+        <p className="font-bold text-[#1D1D1D]/50">Please connect your wallet in the sidebar to view your Lair.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-6xl mx-auto space-y-12 pb-20">
+    <div className="max-w-6xl mx-auto space-y-8 pb-20 relative">
       
-      {/* --- 1. HEADER & PROFILE --- */}
-      <section className="bg-white rounded-3xl border-4 border-[#1D1D1D] shadow-[4px_4px_0_0_#1D1D1D] p-6 md:p-8 relative overflow-hidden">
-         <div className="absolute top-0 right-0 bg-[#E15162] text-white text-xs font-black px-4 py-1 rounded-bl-xl border-l-2 border-b-2 border-[#1D1D1D]">
-            MEMBER PROFILE
-         </div>
+      {/* --- MODAL: MINGLE INSPECTOR (Overlay) --- */}
+      <AnimatePresence>
+        {selectedMingle && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setSelectedMingle(null)} // Click outside to close
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-4xl rounded-[2.5rem] border-4 border-[#1D1D1D] overflow-hidden shadow-[0_0_50px_rgba(225,81,98,0.3)] flex flex-col md:flex-row max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()} // Prevent close on modal click
+            >
+              {/* LEFT: IMAGE AREA */}
+              <div className="w-full md:w-1/2 bg-[#EDEDD9] relative flex items-center justify-center border-b-4 md:border-b-0 md:border-r-4 border-[#1D1D1D] overflow-hidden group">
+                 {/* El Toggle Bottled/Unbottled altera la visualización */}
+                 <div className={`relative w-full h-full transition-all duration-700 ease-in-out ${viewMode === 'unbottled' ? 'scale-100' : 'scale-100'}`}>
+                    <img 
+                      src={viewMode === 'unbottled' ? `https://d9emswcmuvawb.cloudfront.net/${selectedMingle.id}.png` : selectedMingle.image} 
+                      className="w-full h-full object-cover" 
+                      alt={selectedMingle.name}
+                    />
+                 </div>
 
-         <div className="flex flex-col md:flex-row gap-8">
-            {/* Avatar Section */}
-            <div className="flex-shrink-0 flex flex-col items-center">
-                <div className="w-32 h-32 rounded-2xl border-4 border-[#1D1D1D] overflow-hidden bg-[#EDEDD9] relative mb-4">
-                    <img src={ASSETS.pfpWorm} className="w-full h-full object-cover" alt="Profile" />
-                </div>
-                <button className="flex items-center gap-2 text-xs font-bold bg-[#1D1D1D] text-white px-3 py-1 rounded-full hover:bg-[#E15162] transition-colors">
-                    <Twitter size={12} /> {USER_DATA.twitterHandle}
-                </button>
-            </div>
-
-            {/* Info Section */}
-            <div className="flex-grow space-y-4">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1 className="text-3xl font-black uppercase leading-none">{USER_DATA.username}</h1>
-                        <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs font-bold opacity-50 uppercase">My Code:</span>
-                            <code className="bg-[#EDEDD9] px-2 py-1 rounded border border-[#1D1D1D] font-mono font-bold text-[#E15162]">{USER_DATA.uniqueCode}</code>
-                            <button onClick={copyCode} className="p-1 hover:bg-[#EDEDD9] rounded"><Copy size={14}/></button>
-                            <button onClick={shareTwitter} className="p-1 hover:bg-[#EDEDD9] rounded"><Share2 size={14}/></button>
-                        </div>
+                 {/* Overlay UI on Image */}
+                 <div className="absolute top-4 left-4 right-4 flex justify-between z-10">
+                    <div className="bg-[#1D1D1D]/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black uppercase text-[#1D1D1D] border border-[#1D1D1D]/10">
+                       ID: {selectedMingle.id}
                     </div>
-                    <button 
-                        onClick={() => setIsEditingProfile(!isEditingProfile)}
-                        className="text-[#1D1D1D] hover:text-[#E15162]"
-                    >
-                        {isEditingProfile ? <Save size={20} /> : <Edit3 size={20} />}
+                    <button onClick={() => setSelectedMingle(null)} className="bg-[#1D1D1D] text-white p-2 rounded-full hover:bg-[#E15162] transition-colors">
+                       <X size={20} />
                     </button>
-                </div>
+                 </div>
 
-                {/* Bio Field */}
-                <div>
-                    <label className="text-[10px] font-black uppercase opacity-50 block mb-1">Bio</label>
-                    {isEditingProfile ? (
-                        <textarea 
-                            value={bio} 
-                            onChange={(e) => setBio(e.target.value)}
-                            className="w-full bg-[#EDEDD9] border-2 border-[#1D1D1D] rounded-xl p-2 font-bold text-sm resize-none focus:outline-none"
-                            rows={2}
-                        />
-                    ) : (
-                        <p className="font-bold text-sm italic opacity-80">"{bio}"</p>
-                    )}
-                </div>
-
-                {/* Tequila Preference Selector */}
-                <div>
-                    <label className="text-[10px] font-black uppercase opacity-50 block mb-2">Favorite Poison</label>
-                    <div className="flex flex-wrap gap-2">
-                        {TEQUILA_TYPES.map((type) => (
-                            <button
-                                key={type}
-                                disabled={!isEditingProfile}
-                                onClick={() => setFavTequila(type)}
-                                className={`px-3 py-1 rounded-lg border-2 border-[#1D1D1D] text-xs font-bold transition-all ${
-                                    favTequila === type 
-                                    ? 'bg-[#E15162] text-white shadow-[2px_2px_0_0_#1D1D1D]' 
-                                    : 'bg-white text-[#1D1D1D] opacity-50'
-                                } ${isEditingProfile ? 'hover:opacity-100 cursor-pointer' : 'cursor-default'}`}
-                            >
-                                {type}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-         </div>
-      </section>
-
-      {/* --- 2. STATS BAR --- */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-         {[
-            { label: "My Mingles", val: isLoading ? "..." : myMingles.length, icon: <User/>, color: "bg-blue-200" },
-            { label: "In Raids", val: USER_DATA.minglesInRaids, icon: <Sword/>, color: "bg-red-200" },
-            { label: "$TEQUILA Pts", val: USER_DATA.tequilaPoints, icon: <Wine/>, color: "bg-yellow-200" },
-            { label: "Friends", val: USER_DATA.friendsCount, icon: <Users/>, color: "bg-green-200" },
-         ].map((stat, i) => (
-            <div key={i} className={`p-4 rounded-2xl border-2 border-[#1D1D1D] shadow-[2px_2px_0_0_#1D1D1D] flex flex-col items-center justify-center text-center ${stat.color}`}>
-                <div className="mb-1 opacity-50 scale-75">{stat.icon}</div>
-                <span className="text-3xl font-black">{stat.val}</span>
-                <span className="text-[10px] font-bold uppercase tracking-wide">{stat.label}</span>
-            </div>
-         ))}
-      </section>
-
-      {/* --- 3. MY COLLECTION (Grid) --- */}
-      <section>
-         <div className="flex items-end justify-between mb-6 border-b-4 border-[#1D1D1D] pb-4">
-            <h2 className="text-4xl font-black uppercase text-[#1D1D1D]">The Cellar</h2>
-            <span className="text-sm font-bold bg-[#1D1D1D] text-white px-3 py-1 rounded-full">
-                {isLoading ? "Loading..." : `${myMingles.length} / 1000`}
-            </span>
-         </div>
-
-         {isLoading ? (
-             <div className="flex justify-center py-20">
-                 <Loader2 className="w-10 h-10 animate-spin text-[#1D1D1D]" />
-             </div>
-         ) : !hasMingles ? (
-            // EMPTY STATE
-            <div className="bg-[#EDEDD9] border-4 border-dashed border-[#1D1D1D]/30 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
-                <AlertCircle className="w-16 h-16 text-[#1D1D1D]/30 mb-4" />
-                <h3 className="text-2xl font-black uppercase mb-2 text-[#1D1D1D]">No Mingles Found</h3>
-                <p className="max-w-md font-bold opacity-60 mb-8 text-[#1D1D1D]">
-                    Your cellar is empty. Visit the secondary markets to start your collection and unlock the lair.
-                </p>
-                <div className="flex gap-4">
-                    <a href="#" className="bg-[#E15162] text-white px-6 py-3 rounded-xl border-2 border-[#1D1D1D] font-bold shadow-pop hover:shadow-none hover:translate-y-[2px] transition-all">
-                        Buy on Magic Eden
-                    </a>
-                    <a href="#" className="bg-white text-[#1D1D1D] px-6 py-3 rounded-xl border-2 border-[#1D1D1D] font-bold shadow-pop hover:shadow-none hover:translate-y-[2px] transition-all">
-                        Buy on OpenSea
-                    </a>
-                </div>
-            </div>
-         ) : (
-            // GRID STATE
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {myMingles.map((mingle) => (
-                    <motion.div 
-                        key={mingle.id}
-                        whileHover={{ y: -5 }}
-                        onClick={() => setSelectedMingleId(mingle.id ? mingle.id : "")}
-                        className={`cursor-pointer rounded-2xl border-4 overflow-hidden relative group transition-all ${selectedMingleId === mingle.id ? 'border-[#E15162] ring-4 ring-[#E15162]/20' : 'border-[#1D1D1D]'}`}
+                 {/* TOGGLE SWITCH */}
+                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex bg-[#1D1D1D] p-1 rounded-full border-2 border-white/20 shadow-xl z-10">
+                    <button 
+                       onClick={() => setViewMode('bottled')}
+                       className={`px-4 py-2 rounded-full text-xs font-black uppercase transition-all ${viewMode === 'bottled' ? 'bg-[#EDEDD9] text-[#1D1D1D]' : 'text-white hover:text-[#EDEDD9]'}`}
                     >
-                        {/* Imagen del indexer */}
-                        <img src={mingle.image} alt={mingle.name} className="w-full aspect-[4/5] object-cover bg-white" />
-                        
-                        <div className="absolute bottom-0 w-full bg-[#1D1D1D] text-white p-2 text-center">
-                            <span className="font-bold text-sm">#{mingle.id}</span>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
-         )}
-      </section>
-
-      {/* --- 4. UNBOTTLE TOOL (Interactive Section) --- */}
-      {hasMingles && activeMingle && (
-          <section className="bg-[#1D1D1D] text-[#EDEDD9] rounded-3xl p-6 md:p-10 shadow-[8px_8px_0_0_#E15162] relative overflow-hidden">
-             {/* Background Decoration */}
-             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -z-0"></div>
-
-             <div className="relative z-10 flex flex-col md:flex-row gap-12 items-center">
-                
-                {/* Controls Left */}
-                <div className="w-full md:w-1/3 space-y-6">
-                    <div>
-                        <h2 className="text-3xl md:text-4xl font-black uppercase leading-none mb-2">Unbottle <br/> Your Mingle</h2>
-                        <p className="opacity-60 text-sm font-bold">Select from grid or type ID to inspect.</p>
-                    </div>
-
-                    <div className="bg-white/10 p-4 rounded-2xl border-2 border-white/20">
-                        <label className="text-[10px] font-black uppercase opacity-60 block mb-2">Manual Input</label>
-                        <div className="flex items-center bg-[#EDEDD9] rounded-xl overflow-hidden border-2 border-transparent focus-within:border-[#E15162]">
-                            <span className="pl-4 text-[#1D1D1D] font-bold">#</span>
-                            <input 
-                                type="number" 
-                                placeholder={activeMingle.id}
-                                onChange={handleManualSelect}
-                                className="w-full bg-transparent p-3 font-black text-xl text-[#1D1D1D] outline-none placeholder-[#1D1D1D]/30"
-                            />
-                            <button className="p-3 text-[#1D1D1D] hover:bg-black/10"><Search size={20}/></button>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button 
-                            onClick={() => setIsUnbottled(false)}
-                            className={`flex-1 py-3 rounded-xl font-black border-2 transition-all ${!isUnbottled ? 'bg-[#E15162] border-[#E15162] text-white' : 'bg-transparent border-white/20 text-white/50 hover:border-white'}`}
-                        >
-                            BOTTLED
-                        </button>
-                        <button 
-                            onClick={() => setIsUnbottled(true)}
-                            className={`flex-1 py-3 rounded-xl font-black border-2 transition-all ${isUnbottled ? 'bg-[#E15162] border-[#E15162] text-white' : 'bg-transparent border-white/20 text-white/50 hover:border-white'}`}
-                        >
-                            UNBOTTLED
-                        </button>
-                    </div>
-                </div>
-
-                {/* Visualizer Center */}
-                <div className="w-full md:w-1/3 flex justify-center">
-                    <div className="relative w-64 h-80 rounded-[2rem] border-4 border-white shadow-[0_0_40px_rgba(225,81,98,0.3)] bg-white overflow-hidden group">
-                        <AnimatePresence mode="wait">
-                            <motion.img 
-                                key={isUnbottled ? 'pfp' : 'bottle'}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ type: "spring", bounce: 0.4 }}
-                                src={isUnbottled ? `https://d9emswcmuvawb.cloudfront.net/${activeMingle.id}.png` : activeMingle.image}
-                                className={`w-full h-full object-cover ${isUnbottled ? 'scale-125' : 'scale-100'}`} 
-                                alt="Active Mingle"
-                            />
-                        </AnimatePresence>
-                        
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4">
-                            <button className="bg-white text-[#1D1D1D] px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 hover:scale-105 transition-transform">
-                                <Download size={14}/> Download HD
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Details Right */}
-                <div className="w-full md:w-1/3 space-y-4">
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                        <h4 className="font-black text-xl mb-1 text-[#E15162]">Mingle #{activeMingle.id}</h4>
-                        <p className="text-sm font-medium opacity-70">
-                            {activeMingle.name}
-                        </p>
-                    </div>
-                    <div className="text-sm opacity-60 leading-relaxed">
-                        Unbottling your Mingle reveals the raw PFP version. Use this for your social profiles to gain extra multiplier points in the Raids.
-                    </div>
-                </div>
-
-             </div>
-          </section>
-      )}
-
-      {/* --- 5. FRIENDS SYSTEM --- */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Add Friend */}
-          <div className="bg-[#E15162] rounded-3xl p-8 text-white border-4 border-[#1D1D1D] shadow-[4px_4px_0_0_#1D1D1D]">
-              <div className="flex items-center gap-3 mb-4">
-                  <Users className="w-8 h-8" />
-                  <h2 className="text-2xl font-black uppercase">Add Friends</h2>
+                       Bottled
+                    </button>
+                    <button 
+                       onClick={() => setViewMode('unbottled')}
+                       className={`px-4 py-2 rounded-full text-xs font-black uppercase transition-all ${viewMode === 'unbottled' ? 'bg-[#E15162] text-white' : 'text-white hover:text-[#EDEDD9]'}`}
+                    >
+                       Unbottled
+                    </button>
+                 </div>
               </div>
-              <p className="font-medium mb-6 opacity-90">
-                  The more friends in your circle, the higher your $TEQUILA allocation multiplier.
-              </p>
-              <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="ENTER FRIEND CODE (e.g. MNGL-99)"
-                    value={friendCodeInput}
-                    onChange={(e) => setFriendCodeInput(e.target.value)}
-                    className="flex-1 bg-white text-[#1D1D1D] px-4 py-3 rounded-xl font-bold uppercase placeholder-gray-400 outline-none border-2 border-transparent focus:border-[#1D1D1D]"
-                  />
-                  <button className="bg-[#1D1D1D] text-white px-6 py-3 rounded-xl font-black border-2 border-[#1D1D1D] hover:bg-white hover:text-[#1D1D1D] transition-colors">
-                      ADD
-                  </button>
+
+              {/* RIGHT: DATA AREA */}
+              <div className="w-full md:w-1/2 p-8 flex flex-col bg-white overflow-y-auto">
+                 <div className="mb-6">
+                    <h2 className="text-4xl font-black uppercase text-[#1D1D1D] leading-[0.9] mb-2">{selectedMingle.name}</h2>
+                    <div className="flex gap-2">
+                       <span className="bg-[#E15162] text-white px-3 py-1 rounded-lg text-xs font-black uppercase">
+                          {selectedMingle.type || 'Tequila Worm'}
+                       </span>
+                       <span className="bg-[#EDEDD9] text-[#1D1D1D] border border-[#1D1D1D] px-3 py-1 rounded-lg text-xs font-black uppercase flex items-center gap-1">
+                          <ScanEye size={12}/> {viewMode === 'bottled' ? 'Full View' : 'Inspection Mode'}
+                       </span>
+                    </div>
+                 </div>
+
+                 {/* Stats / Traits */}
+                 <div className="flex-1 space-y-4">
+                    <h3 className="text-sm font-black uppercase text-[#1D1D1D]/40 border-b-2 border-[#1D1D1D]/10 pb-2">DNA Analysis</h3>
+                    
+                    {/* Mock Traits (Si el indexer no trae attributes aún, mostramos placeholders) */}
+                    <div className="grid grid-cols-2 gap-3">
+                       {['Background', 'Bottle', 'Worm Type', 'Hat', 'Item'].map((trait) => (
+                          <div key={trait} className="bg-[#EDEDD9] p-3 rounded-xl border-2 border-[#1D1D1D]/10">
+                             <p className="text-[10px] uppercase font-bold text-[#1D1D1D]/50">{trait}</p>
+                             <p className="text-sm font-black text-[#1D1D1D]">Loading...</p>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+
+                 {/* Actions Footer */}
+                 <div className="mt-8 flex gap-3 pt-6 border-t-2 border-[#1D1D1D]/10">
+                    <button className="flex-1 bg-[#1D1D1D] text-white py-4 rounded-xl font-black uppercase hover:bg-[#E15162] transition-colors flex items-center justify-center gap-2">
+                       <Download size={18} /> Download
+                    </button>
+                    <button className="px-4 py-4 border-2 border-[#1D1D1D] rounded-xl hover:bg-[#EDEDD9] transition-colors">
+                       <Share2 size={18} />
+                    </button>
+                    <a 
+                       href={`https://opensea.io/assets/ethereum/CONTRACT_ADDRESS/${selectedMingle.id}`} 
+                       target="_blank" 
+                       rel="noreferrer"
+                       className="px-4 py-4 border-2 border-[#1D1D1D] rounded-xl hover:bg-[#EDEDD9] transition-colors"
+                    >
+                       <ExternalLink size={18} />
+                    </a>
+                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
+      {/* --- DASHBOARD HEADER (Sin cambios) --- */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* LEFT: ID CARD */}
+          <div className="lg:col-span-4">
+              <div className="bg-[#1D1D1D] text-[#EDEDD9] p-6 rounded-[2.5rem] border-4 border-[#1D1D1D] shadow-[8px_8px_0_0_#E15162] relative overflow-hidden h-full flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                      <Wine size={120} />
+                  </div>
+                  <div>
+                      <div className="flex items-center gap-4 mb-6">
+                          <div className="w-20 h-20 rounded-2xl border-4 border-[#EDEDD9] overflow-hidden bg-white">
+                              <img src={mingles.length > 0 ? mingles[0].image : "/images/placeholder_bottle.png"} className="w-full h-full object-cover"/>
+                          </div>
+                          <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Operative</p>
+                              {isEditing ? (
+                                <div className="flex items-center gap-2">
+                                  <input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} className="bg-white/10 border border-white/20 rounded px-2 py-1 text-sm font-bold w-32" />
+                                  <button onClick={handleSaveProfile} className="bg-[#E15162] p-1 rounded hover:bg-white hover:text-black"><Save size={14}/></button>
+                                </div>
+                              ) : (
+                                <h2 className="text-2xl font-black uppercase leading-none flex items-center gap-2">
+                                  {loadingProfile ? "..." : profile.username}
+                                  <button onClick={() => setIsEditing(true)} className="opacity-50 hover:opacity-100 hover:text-[#E15162] transition-opacity"><Edit3 size={16} /></button>
+                                </h2>
+                              )}
+                              <div className="flex items-center gap-2 mt-1 bg-white/10 px-2 py-1 rounded-lg w-fit">
+                                  <span className="text-xs font-mono font-bold">{profile.code}</span>
+                                  <Copy size={12} className="cursor-pointer hover:text-[#E15162]" />
+                              </div>
+                          </div>
+                      </div>
+                      <div className="space-y-4">
+                          <div>
+                              <p className="text-[10px] font-black uppercase opacity-50 mb-1">Total Balance</p>
+                              <div className="flex items-baseline gap-2">
+                                  <span className="text-5xl font-black text-white">{profile.points}</span>
+                                  <span className="text-sm font-bold text-[#E15162]">$TEQUILA</span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <div className="mt-8 bg-[#EDEDD9] text-[#1D1D1D] p-4 rounded-xl flex justify-between items-center">
+                      <div>
+                          <p className="text-[10px] font-black uppercase opacity-60">Global Multiplier</p>
+                          <p className="text-2xl font-black flex items-center gap-1"><Zap size={20} className="fill-current text-[#E15162]" /> x{totalMult}</p>
+                      </div>
+                      <div className="text-right text-[10px] font-bold opacity-60"><p>Hold: x{holdMult}</p><p>Social: x{socialMult}</p></div>
+                  </div>
               </div>
           </div>
 
-          {/* Friend List (Preview) */}
-          <div className="bg-white rounded-3xl p-8 border-4 border-[#1D1D1D] shadow-sm">
-              <h2 className="text-2xl font-black uppercase mb-4 text-[#1D1D1D]">Your Circle ({USER_DATA.friendsCount})</h2>
-              <div className="space-y-3 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
-                  {[1,2,3,4].map((f) => (
-                      <div key={f} className="flex items-center justify-between p-3 bg-[#EDEDD9] rounded-xl border-2 border-[#1D1D1D]/10">
-                          <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-[#1D1D1D] rounded-full overflow-hidden">
-                                  {/* Placeholder para amigo */}
-                                  <div className="w-full h-full bg-[#E15162]"></div>
-                              </div>
-                              <div>
-                                  <p className="font-bold text-xs leading-none text-[#1D1D1D]">FriendName_{f}</p>
-                                  <p className="text-[10px] opacity-50 font-bold text-[#1D1D1D]">5 Mingles</p>
-                              </div>
-                          </div>
-                          <a href="#" className="p-2 hover:bg-white rounded-lg transition-colors">
-                              <ExternalLink size={14} className="text-[#1D1D1D]" />
-                          </a>
-                      </div>
+          {/* RIGHT: STATISTICS */}
+          <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-3xl border-4 border-[#1D1D1D] shadow-[4px_4px_0_0_#1D1D1D] flex flex-col justify-between">
+                  <div className="flex justify-between items-start mb-4">
+                      <div className="bg-[#EDEDD9] p-3 rounded-xl border-2 border-[#1D1D1D]"><Wine size={24} className="text-[#1D1D1D]" /></div>
+                      <span className="text-xs font-black uppercase bg-[#1D1D1D] text-white px-3 py-1 rounded-full">Hold Bonus: x{holdMult}</span>
+                  </div>
+                  <div>
+                      <h3 className="text-4xl font-black text-[#1D1D1D] mb-1">{isLoadingMingles ? <Loader2 className="animate-spin"/> : mingles.length}</h3>
+                      <p className="text-sm font-bold text-[#1D1D1D]/50 uppercase">Mingles in Wallet</p>
+                  </div>
+              </div>
+              <div className="bg-white p-6 rounded-3xl border-4 border-[#1D1D1D] shadow-[4px_4px_0_0_#1D1D1D] flex flex-col justify-between">
+                  <div className="flex justify-between items-start mb-4">
+                      <div className="bg-[#EDEDD9] p-3 rounded-xl border-2 border-[#1D1D1D]"><Users size={24} className="text-[#1D1D1D]" /></div>
+                      <span className="text-xs font-black uppercase bg-[#1D1D1D] text-white px-3 py-1 rounded-full">Social Bonus: x{socialMult}</span>
+                  </div>
+                  <div>
+                      <h3 className="text-4xl font-black text-[#1D1D1D] mb-1">{profile.friendsCount}</h3>
+                      <p className="text-sm font-bold text-[#1D1D1D]/50 uppercase">Circle Members</p>
+                  </div>
+              </div>
+              <div className="md:col-span-2 bg-[#E15162] p-6 rounded-3xl border-4 border-[#1D1D1D] text-white flex flex-col md:flex-row justify-between items-center gap-6">
+                  <div>
+                      <h3 className="text-2xl font-black uppercase mb-2">Grow your Circle</h3>
+                      <p className="text-sm font-bold opacity-80 max-w-md">Invite friends to join the Lair. Gain +5% multiplier for every member (Max x1.8).</p>
+                  </div>
+                  <div className="flex gap-2 w-full md:w-auto">
+                      <div className="bg-black/20 border-2 border-white/20 rounded-xl px-4 py-3 font-mono text-sm font-bold flex-1 md:flex-none truncate">mingles.wtf/join/{profile.code}</div>
+                      <button className="bg-white text-[#E15162] p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 transition-transform shadow-[2px_2px_0_0_#1D1D1D]"><Share2 size={20} /></button>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      {/* --- GALLERY SECTION --- */}
+      <section>
+          <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                  <div className="bg-[#1D1D1D] text-white p-2 rounded-lg"><Wine size={20} /></div>
+                  <h2 className="text-3xl font-black uppercase text-[#1D1D1D]">My Collection</h2>
+              </div>
+              <div className="flex gap-2">
+                  {TEQUILA_TYPES.map(type => (
+                      <button key={type} className="hidden md:block px-3 py-1 rounded-lg border-2 border-[#1D1D1D] text-xs font-black uppercase hover:bg-[#1D1D1D] hover:text-white transition-colors">{type}</button>
                   ))}
               </div>
           </div>
+
+          {isLoadingMingles ? (
+             <div className="flex justify-center py-20"><Loader2 size={48} className="text-[#1D1D1D] animate-spin" /></div>
+          ) : mingles.length === 0 ? (
+             <div className="text-center py-20 bg-white rounded-3xl border-4 border-[#1D1D1D] border-dashed">
+                <p className="text-xl font-black text-[#1D1D1D] mb-2">No Mingles Found</p>
+                <p className="text-sm font-bold text-[#1D1D1D]/50 mb-6">Your cellar is empty. Visit the market to start your collection.</p>
+                <button className="bg-[#E15162] text-white px-6 py-3 rounded-xl font-black uppercase border-2 border-[#1D1D1D] shadow-[4px_4px_0_0_#1D1D1D]">Buy Mingle</button>
+             </div>
+          ) : (
+             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {mingles.map((nft) => (
+                   <motion.div 
+                      key={nft.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => setSelectedMingle(nft as SelectedMingle)} // CLICK PARA ABRIR MODAL
+                      className="group bg-white p-3 rounded-2xl border-4 border-[#1D1D1D] shadow-[4px_4px_0_0_#1D1D1D] hover:translate-y-[-4px] hover:shadow-[6px_6px_0_0_#E15162] transition-all cursor-pointer"
+                   >
+                      <div className="aspect-square rounded-xl overflow-hidden border-2 border-[#1D1D1D]/10 mb-3 bg-[#EDEDD9] relative">
+                          <img src={nft.image} alt={nft.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          
+                          {/* Hover Overlay Icon */}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <Maximize2 className="text-white" size={32} />
+                          </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-start">
+                          <div>
+                              <h3 className="font-black text-sm uppercase text-[#1D1D1D] truncate max-w-[120px]">{nft.name}</h3>
+                              <p className="text-[10px] font-bold text-[#1D1D1D]/50">ID: {nft.id || 'Tequila Worm'}</p>
+                          </div>
+                      </div>
+                   </motion.div>
+                ))}
+             </div>
+          )}
       </section>
 
     </div>
