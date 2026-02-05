@@ -51,7 +51,7 @@ const Navbar = () => {
              <Link href="#how-it-works" className="font-bold">How It Works</Link>
              <Link href="#story" className="font-bold">Story</Link>
              <hr className="border-mingles-dark/20"/>
-             <Link href="/login" className="font-bold">Member Login</Link>
+             <Link href="/lair" className="font-bold">Member Login</Link>
              <ConnectButton label="Join Mingles" showBalance={false} />
         </div>
       )}
