@@ -2,6 +2,11 @@
 import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 
+export interface Trait {
+  trait_type: string;
+  value: string | number;
+}
+
 interface Token {
     id: string;
     name: string;
@@ -21,7 +26,8 @@ export interface MingleNFT {
   id?: string; // Token ID
   name: string;
   image: string; // URL de la imagen
-  type?: string; // Metadata extra si la hay
+  type?: string;
+  attributes?: Trait[]; // Metadata extra si la hay
 }
 
 // Átomos
