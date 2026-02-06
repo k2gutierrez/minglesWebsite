@@ -2,91 +2,84 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, Mail, Gift, ShieldCheck, ArrowRight, ExternalLink } from 'lucide-react';
+import { Wallet, Gift, Mail, ArrowDown, ExternalLink } from 'lucide-react';
 import { LairConnectButton } from '@/components/LairConnectButton';
 
 export const ConnectWalletView = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
+    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 py-10">
       
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl w-full bg-white rounded-[3rem] border-4 border-[#1D1D1D] shadow-[12px_12px_0_0_#1D1D1D] overflow-hidden"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md w-full bg-white rounded-[3rem] border-4 border-[#1D1D1D] shadow-[12px_12px_0_0_#1D1D1D] overflow-hidden relative"
       >
         
-        {/* HEADER: EL BENEFICIO CLARO */}
-        <div className="bg-[#1D1D1D] text-[#EDEDD9] p-8 text-center relative overflow-hidden">
-          {/* Background decoration */}
-          <Wallet size={180} className="absolute -bottom-10 -left-10 text-white opacity-5 rotate-12" />
-          
-          <h1 className="text-3xl md:text-4xl font-black uppercase mb-4 relative z-10">
-            Unlock Your Rewards
-          </h1>
-          <p className="text-sm md:text-base font-bold opacity-80 max-w-md mx-auto relative z-10 leading-relaxed">
-            To earn <span className="text-[#E15162]">$TEQUILA</span> and receive exclusive collectibles, 
-            we need a safe place to send them. That place is your <span className="text-white underline decoration-[#E15162] decoration-4 underline-offset-4">Digital Wallet</span>.
-          </p>
+        {/* 1. VISUAL HOOK: THE REWARDS */}
+        <div className="bg-[#E15162] p-8 flex flex-col items-center text-center relative overflow-hidden">
+           {/* Background Icons */}
+           <Gift size={120} className="absolute -top-6 -right-6 text-white opacity-10 rotate-12" />
+           <Wallet size={100} className="absolute -bottom-8 -left-8 text-white opacity-10 -rotate-12" />
+           
+           <div className="bg-white p-4 rounded-full border-4 border-[#1D1D1D] shadow-sm z-10 mb-4 relative">
+              <Gift size={48} className="text-[#E15162]" />
+              {/* Floating decorative elements */}
+              <motion.div animate={{ y: [-5, 5, -5] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute -top-2 -right-2 bg-[#EDEDD9] border-2 border-[#1D1D1D] text-[10px] font-black px-2 py-0.5 rounded-full">$TEQ</motion.div>
+              <motion.div animate={{ y: [5, -5, 5] }} transition={{ repeat: Infinity, duration: 2.5 }} className="absolute -bottom-1 -left-3 bg-[#EDEDD9] border-2 border-[#1D1D1D] text-[10px] font-black px-2 py-0.5 rounded-full">NFTs</motion.div>
+           </div>
+
+           <h1 className="text-3xl font-black uppercase text-white mb-2 z-10 leading-none">
+              Want Rewards?
+           </h1>
+           <p className="text-sm font-bold text-white/90 leading-tight max-w-[200px] z-10">
+              You need a place to keep them.
+           </p>
         </div>
 
-        <div className="p-8 md:p-10 space-y-10">
-          
-          {/* SECTION 1: WHAT IS IT? (Education) */}
-          <div className="flex gap-4 items-start">
-             <div className="bg-[#EDEDD9] p-3 rounded-2xl border-2 border-[#1D1D1D] shrink-0">
-                <ShieldCheck size={28} className="text-[#1D1D1D]" />
-             </div>
-             <div>
-                <h3 className="font-black uppercase text-lg text-[#1D1D1D]">It's just your Digital ID</h3>
-                <p className="text-sm font-bold text-[#1D1D1D]/60 leading-relaxed mt-1">
-                   Mingles operates on blockchain technology to ensure every collectible is truly yours. 
-                   Your wallet acts as your login and your backpack for rewards.
-                </p>
-             </div>
-          </div>
+        {/* 2. THE SIMPLE EXPLANATION (Graphic Flow) */}
+        <div className="p-8 flex flex-col items-center space-y-6 bg-[#EDEDD9]">
+           
+           {/* Metaphor */}
+           <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border-2 border-[#1D1D1D] w-full">
+              <div className="bg-[#1D1D1D] p-2 rounded-xl shrink-0">
+                 <Wallet size={24} className="text-white" />
+              </div>
+              <div>
+                 <h3 className="font-black uppercase text-sm text-[#1D1D1D]">A Wallet is just...</h3>
+                 <p className="text-xs font-bold text-[#1D1D1D]/60 leading-tight">
+                    Your secure digital backpack & ID for Mingles.
+                 </p>
+              </div>
+           </div>
 
-          {/* SECTION 2: THE EASY PATH (Glyph) */}
-          <div className="bg-[#E15162] rounded-3xl p-6 text-white border-4 border-[#1D1D1D] relative group">
-             <div className="absolute top-0 right-0 bg-[#1D1D1D] text-white text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl">
-                New User? Start Here
-             </div>
-             
-             <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="bg-white/20 p-4 rounded-full">
-                   <Mail size={32} />
-                </div>
-                <div className="flex-1 text-center md:text-left">
-                   <h3 className="font-black uppercase text-xl mb-1">No Wallet? No Problem.</h3>
-                   <p className="text-xs font-bold opacity-90 mb-4">
-                      Create one instantly using just your email. It's safe, fast, and free.
-                   </p>
-                   <a 
-                     href="https://useglyph.io" 
-                     target="_blank" 
-                     rel="noreferrer"
-                     className="inline-flex items-center gap-2 bg-white text-[#E15162] px-5 py-2 rounded-xl font-black uppercase text-xs hover:bg-[#1D1D1D] hover:text-white transition-colors shadow-sm"
-                   >
-                      Create Wallet with Email <ExternalLink size={14} />
-                   </a>
-                </div>
-             </div>
-          </div>
+           <ArrowDown size={24} className="text-[#1D1D1D]/20 animate-bounce" />
 
-          {/* SECTION 3: THE ACTION (Connect) */}
-          <div className="text-center space-y-4 pt-4 border-t-2 border-[#1D1D1D]/10">
-             <p className="text-xs font-black uppercase text-[#1D1D1D]/40">
-                Already have an email or wallet setup?
-             </p>
-             
-             <div className="flex justify-center">
-                {/* Usamos tu botón existente, pero centrado y grande */}
-                <div className="scale-110"> 
-                   <LairConnectButton isMobile={false} /> 
-                </div>
-             </div>
-          </div>
-
+           {/* The Action Area */}
+           <div className="w-full text-center space-y-4 relative z-20">
+              <div className="scale-110 inline-block">
+                 {/* Este botón abre el modal de Rainbowkit/Glyph */}
+                 <LairConnectButton isMobile={false} />
+              </div>
+              
+              <p className="text-xs font-black uppercase text-[#1D1D1D]/40">
+                 Click to connect or create one
+              </p>
+           </div>
         </div>
+
+        {/* 3. THE EASY PATH FOOTER */}
+        <a 
+           href="https://useglyph.io" 
+           target="_blank" 
+           rel="noreferrer"
+           className="block bg-[#1D1D1D] p-4 text-center text-white hover:bg-[#E15162] transition-colors group"
+        >
+           <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase opacity-80 group-hover:opacity-100">
+              <Mail size={16} />
+              New? Create a wallet easily with Email via Glyph 
+              <ExternalLink size={12} />
+           </div>
+        </a>
 
       </motion.div>
     </div>
