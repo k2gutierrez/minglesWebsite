@@ -8,12 +8,12 @@ import {
   Sword, Skull, Clock, Backpack, 
   CheckCircle2, Loader2, Map,
   TrendingUp, AlertTriangle, HelpCircle,
-  Play, TrendingDown
+  Play, Crosshair
 } from 'lucide-react';
 
 // Imports de tu arquitectura
 import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms';
-import { supabase } from '@/components/engine/supabase';
+import { supabase } from '@/components/engine/supabase'; 
 import { ConnectWalletView } from '@/components/ConnectWalletView';
 
 // --- 1. BASE DE DATOS DE ITEMS ---
@@ -50,7 +50,6 @@ const getTraitInfo = (type?: string) => {
 };
 
 // --- 3. CONFIGURACIÓN DE RAIDS ---
-// He agregado 4 slots de loot a cada boss para tu diseño
 const RAID_LOCATIONS = [
   {
     id: 1,
@@ -62,7 +61,6 @@ const RAID_LOCATIONS = [
     difficulty: "Easy",
     img: "/images/raids/raid_1.jpg",
     color: "from-green-900 to-black",
-    // 4 SLOTS DE LOOT
     bossLoot: [
         { id: "rusty_key", name: "Rusty Key", desc: "Increases Loot Chance in future raids.", dropRate: "40%", img: "/images/items/rusty_key.png" },
         { id: "xp_scroll", name: "XP Scroll", desc: "Boosts XP gain by 50%.", dropRate: "20%", img: "/images/items/scroll.png" },
@@ -112,7 +110,6 @@ export default function RaidsPage() {
 
   // Estados UI
   const [view, setView] = useState<'list' | 'setup' | 'active' | 'verifying' | 'result'>('list');
-  const [subTab, setSubTab] = useState<'squad' | 'boss'>('squad'); 
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [selectedDuration, setSelectedDuration] = useState<any>(DURATION_OPTIONS[0]);
   
@@ -200,12 +197,9 @@ export default function RaidsPage() {
   const estimatedTequila = useMemo(() => {
     if (!selectedLocation) return "0";
     const baseRange = selectedLocation.yields[selectedDuration.days];
-    
     const rawMin = baseRange.min * selectedMingles.length;
     const rawMax = baseRange.max * selectedMingles.length;
-    
     const totalMult = (1 + (stats.yieldBonus / 100)) * userMultipliers.hold * userMultipliers.social;
-    
     return `${Math.floor(rawMin * totalMult)} - ${Math.floor(rawMax * totalMult)}`;
   }, [selectedLocation, selectedDuration, selectedMingles, stats, userMultipliers]);
 
@@ -221,7 +215,6 @@ export default function RaidsPage() {
   const toggleItem = (itemId: string) => {
     const hasItem = inventory.find(i => i.item_id === itemId && i.quantity > 0);
     if (!hasItem) return;
-
     if (selectedItems.includes(itemId)) setSelectedItems(prev => prev.filter(i => i !== itemId));
     else {
       if (selectedItems.length >= 3) return alert("Backpack full (Max 3).");
@@ -232,9 +225,7 @@ export default function RaidsPage() {
   const startRaid = async () => {
     if (!address) return;
     if (selectedMingles.length === 0) return alert("Select squad.");
-
-    // PROD: selectedDuration.seconds
-    const durationSec = 30; // DEMO
+    const durationSec = 30; // DEMO TIME
     const now = new Date();
     const endTime = new Date(now.getTime() + (durationSec * 1000));
 
@@ -247,7 +238,6 @@ export default function RaidsPage() {
     }]).select().single();
 
     if (error) return alert("Error starting raid. Check console.");
-
     setActiveSession({ ...data, endTime: endTime.getTime(), location: selectedLocation });
     setTimeRemaining(durationSec);
     setView('active');
@@ -300,7 +290,7 @@ export default function RaidsPage() {
                <motion.div 
                   key={raid.id}
                   whileHover={{ scale: 1.01 }}
-                  onClick={() => { setSelectedLocation(raid); setView('setup'); setSubTab('squad'); }}
+                  onClick={() => { setSelectedLocation(raid); setView('setup'); }}
                   className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden border-4 border-[#1D1D1D] cursor-pointer group shadow-[8px_8px_0_0_#1D1D1D]"
                >
                   <img src={raid.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -326,10 +316,10 @@ export default function RaidsPage() {
       {view === 'setup' && selectedLocation && (
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* LEFT COLUMN */}
+            {/* LEFT COLUMN: SETUP & BOSS INTEL */}
             <div className="lg:col-span-8 space-y-6">
                
-               {/* 1. DURATION SELECTOR */}
+               {/* 1. DURATION */}
                <div className="bg-white p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                   <h3 className="text-xl font-black uppercase mb-4 flex items-center gap-2"><Clock/> 1. Select Duration</h3>
                   <div className="grid grid-cols-3 gap-4">
@@ -348,135 +338,129 @@ export default function RaidsPage() {
                   </div>
                </div>
 
-               {/* 2. TABBED AREA */}
-               <div className="bg-[#EDEDD9] p-6 rounded-[2rem] border-4 border-[#1D1D1D] min-h-[500px]">
-                  <div className="flex gap-4 mb-6 border-b-2 border-[#1D1D1D]/10 pb-4">
-                      <button onClick={() => setSubTab('squad')} className={`text-xl font-black uppercase ${subTab === 'squad' ? 'text-[#E15162]' : 'text-[#1D1D1D] opacity-50'}`}>2. Assemble Squad</button>
-                      <button onClick={() => setSubTab('boss')} className={`text-xl font-black uppercase ${subTab === 'boss' ? 'text-[#E15162]' : 'text-[#1D1D1D] opacity-50'}`}>Target Intel</button>
-                      <span className="ml-auto bg-[#1D1D1D] text-white px-3 py-1 rounded-full text-xs font-bold self-center">{selectedMingles.length}/10</span>
-                  </div>
-
-                  {subTab === 'squad' && (
-                      <>
-                        {/* MINGLES GRID */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar mb-6">
-                            {mingles.map((mingle) => {
-                                const isSelected = selectedMingles.includes(mingle.id!);
-                                const trait = getTraitInfo(mingle.type);
-                                console.log("mingle type: ", mingle.type);
-                                
-                                return (
-                                    <div 
-                                        key={mingle.id} 
-                                        onClick={() => toggleMingle(mingle.id!)}
-                                        className={`flex items-center gap-3 p-3 rounded-xl border-4 cursor-pointer transition-all ${isSelected ? 'bg-[#1D1D1D] border-[#1D1D1D] text-white' : 'bg-white border-[#1D1D1D]/20 hover:border-[#1D1D1D]'}`}
-                                    >
-                                        <img src={mingle.image} className="w-10 h-10 rounded-lg bg-gray-200 object-cover border border-white/20 shrink-0" />
-                                        <div className="flex-1 overflow-hidden">
-                                            <div className="flex justify-between">
-                                                <p className="text-[10px] font-black uppercase opacity-60 truncate">{mingle.name}</p>
-                                                {isSelected && <CheckCircle2 size={14} className="text-[#E15162] shrink-0" />}
-                                            </div>
-                                            <p className={`text-xs font-black uppercase leading-tight ${isSelected ? 'text-[#E15162]' : 'text-[#1D1D1D]'}`}>
-                                                {mingle.type} {trait.bonus}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        {/* BACKPACK SECTION (6 SLOTS FIXED) */}
-                        <div className="bg-white/50 p-4 rounded-xl border-2 border-[#1D1D1D]/10">
-                            <h4 className="text-sm font-black uppercase flex items-center gap-2 mb-3"><Backpack size={16}/> Supplies ({selectedItems.length}/3)</h4>
-                            
-                            <div className="grid grid-cols-6 gap-2">
-                                {[0, 1, 2, 3, 4, 5].map((index) => {
-                                    // Obtenemos el item real si existe
-                                    const invItem = inventory[index];
-                                    const itemDef = invItem ? ITEMS_DB[invItem.item_id] : null;
-                                    const isSelected = invItem ? selectedItems.includes(invItem.item_id) : false;
-
-                                    return (
-                                        <div 
-                                            key={index}
-                                            onClick={() => invItem && toggleItem(invItem.item_id)}
-                                            className={`
-                                                aspect-square rounded-xl border-2 flex flex-col items-center justify-center relative transition-all
-                                                ${invItem 
-                                                    ? 'bg-white cursor-pointer hover:scale-105' 
-                                                    : 'bg-transparent border-dashed border-[#1D1D1D]/20'
-                                                }
-                                                ${isSelected ? 'border-[#E15162] shadow-[0_0_10px_rgba(225,81,98,0.3)]' : invItem ? 'border-[#1D1D1D]/20' : ''}
-                                            `}
-                                        >
-                                            {invItem ? (
-                                                <>
-                                                    {/* PLACEHOLDER DE IMAGEN SI NO HAY */}
-                                                    <div className="text-xs font-black uppercase text-center leading-none z-10">{itemDef?.name.split(' ')[0]}</div>
-                                                    <div className="absolute top-1 right-1 bg-[#1D1D1D] text-white text-[8px] font-bold px-1 rounded-full">x{invItem.quantity}</div>
-                                                    {isSelected && <div className="absolute inset-0 border-2 border-[#E15162] rounded-xl pointer-events-none"/>}
-                                                </>
-                                            ) : (
-                                                <HelpCircle size={16} className="text-[#1D1D1D]/10" />
-                                            )}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                      </>
-                  )}
-
-                  {subTab === 'boss' && (
-                      <div className="flex flex-col md:flex-row gap-6 h-full">
-                          {/* BOSS CARD */}
-                          <div className="w-full md:w-5/12">
-                              <div className="aspect-[3/4] rounded-2xl overflow-hidden border-4 border-[#1D1D1D] relative shadow-lg group">
-                                  {/* Asegúrate de subir la imagen a /public/images/bosses/... */}
-                                  <img src={selectedLocation.bossImg} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
-                                  <div className="absolute bottom-0 inset-x-0 bg-[#1D1D1D]/90 p-4 text-white backdrop-blur-sm">
-                                      <p className="text-2xl font-black uppercase leading-none mb-1">{selectedLocation.boss}</p>
-                                      <p className="text-xs font-bold opacity-60">{selectedLocation.bossDesc}</p>
-                                  </div>
-                              </div>
-                          </div>
-                          
-                          {/* LOOT TABLE (4 SLOTS) */}
-                          <div className="flex-1">
-                              <h4 className="font-black uppercase text-lg border-b-2 border-[#1D1D1D]/10 pb-4 mb-4">Possible Drops</h4>
-                              <div className="grid grid-cols-2 gap-4">
-                                  {/* Renderizamos siempre 4 espacios */}
-                                  {[0, 1, 2, 3].map((idx) => {
-                                      const loot = selectedLocation.bossLoot[idx];
-                                      return (
-                                          <div key={idx} className="bg-white p-3 rounded-xl border-2 border-[#1D1D1D] flex flex-col gap-2 relative overflow-hidden group">
-                                              {loot ? (
-                                                  <>
-                                                      <div className="flex items-start justify-between">
-                                                          <div className="w-10 h-10 bg-[#EDEDD9] rounded-lg border border-[#1D1D1D]/10 flex items-center justify-center">
-                                                              {/* Aquí iría la imagen del loot */}
-                                                              <img src={loot.img || "/images/placeholder_bottle.png"} className="w-full h-full object-contain p-1" />
-                                                          </div>
-                                                          <span className="bg-[#E15162]/10 text-[#E15162] text-[9px] font-black px-1.5 py-0.5 rounded uppercase">{loot.dropRate}</span>
-                                                      </div>
-                                                      <div>
-                                                          <p className="font-black uppercase text-xs leading-none mb-1">{loot.name}</p>
-                                                          <p className="text-[10px] font-bold opacity-50 leading-tight">{loot.desc}</p>
-                                                      </div>
-                                                  </>
-                                              ) : (
-                                                  <div className="flex items-center justify-center h-full opacity-20">
-                                                      <HelpCircle size={24}/>
-                                                  </div>
-                                              )}
-                                          </div>
-                                      )
-                                  })}
+               {/* 2. TARGET INTEL (BOSS PANEL) - ALWAYS VISIBLE */}
+               <div className="bg-[#1D1D1D] text-white p-6 rounded-[2rem] border-4 border-[#1D1D1D] relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10"><Crosshair size={120} /></div>
+                  
+                  <h3 className="text-xl font-black uppercase mb-6 flex items-center gap-2 relative z-10"><Skull className="text-[#E15162]"/> Target Intel: {selectedLocation.boss}</h3>
+                  
+                  <div className="flex flex-col md:flex-row gap-6 relative z-10">
+                      {/* Boss Portrait */}
+                      <div className="w-full md:w-1/3 shrink-0">
+                          <div className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-white/20 relative shadow-lg group">
+                              <img src={selectedLocation.bossImg} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                              <div className="absolute bottom-0 inset-x-0 bg-black/80 p-3 backdrop-blur-sm">
+                                  <p className="text-[10px] font-bold uppercase opacity-60 mb-1">Threat Level: {selectedLocation.difficulty}</p>
+                                  <p className="text-xs font-medium leading-tight">{selectedLocation.bossDesc}</p>
                               </div>
                           </div>
                       </div>
-                  )}
+
+                      {/* Loot Grid (4 Items) */}
+                      <div className="flex-1">
+                          <p className="text-xs font-black uppercase opacity-50 mb-3 border-b border-white/10 pb-1">Known Loot Table</p>
+                          <div className="grid grid-cols-2 gap-3">
+                              {/* Siempre mostramos 4 slots */}
+                              {[0, 1, 2, 3].map((idx) => {
+                                  const loot = selectedLocation.bossLoot[idx];
+                                  return (
+                                      <div key={idx} className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3 hover:bg-white/10 transition-colors">
+                                          <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                              {loot ? (
+                                                  <img src={loot.img || "/images/placeholder_item.png"} className="w-8 h-8 object-contain" />
+                                              ) : (
+                                                  <HelpCircle size={16} className="opacity-30"/>
+                                              )}
+                                          </div>
+                                          <div className="overflow-hidden">
+                                              {loot ? (
+                                                  <>
+                                                      <p className="font-bold text-xs truncate text-[#E15162]">{loot.name}</p>
+                                                      <p className="text-[10px] opacity-50 truncate">{loot.desc}</p>
+                                                  </>
+                                              ) : (
+                                                  <p className="text-[10px] opacity-30 font-black uppercase">Unknown</p>
+                                              )}
+                                          </div>
+                                      </div>
+                                  )
+                              })}
+                          </div>
+                      </div>
+                  </div>
+               </div>
+
+               {/* 3. SQUAD SELECTION */}
+               <div className="bg-[#EDEDD9] p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
+                  <div className="flex justify-between items-center mb-4">
+                     <h3 className="text-xl font-black uppercase flex items-center gap-2"><Sword/> 2. Assemble Squad</h3>
+                     <span className="bg-[#1D1D1D] text-white px-3 py-1 rounded-full text-xs font-bold">{selectedMingles.length}/10</span>
+                  </div>
+
+                  {/* MINGLES GRID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar mb-6">
+                      {mingles.map((mingle) => {
+                          const isSelected = selectedMingles.includes(mingle.id!);
+                          const trait = getTraitInfo(mingle.type);
+                          
+                          return (
+                              <div 
+                                  key={mingle.id} 
+                                  onClick={() => toggleMingle(mingle.id!)}
+                                  className={`flex items-center gap-3 p-3 rounded-xl border-4 cursor-pointer transition-all ${isSelected ? 'bg-[#1D1D1D] border-[#1D1D1D] text-white' : 'bg-white border-[#1D1D1D]/20 hover:border-[#1D1D1D]'}`}
+                              >
+                                  <img src={mingle.image} className="w-10 h-10 rounded-lg bg-gray-200 object-cover border border-white/20 shrink-0" />
+                                  <div className="flex-1 overflow-hidden">
+                                      <div className="flex justify-between">
+                                          <p className="text-[10px] font-black uppercase opacity-60 truncate">{mingle.name}</p>
+                                          {isSelected && <CheckCircle2 size={14} className="text-[#E15162] shrink-0" />}
+                                      </div>
+                                      <p className={`text-xs font-black uppercase leading-tight ${isSelected ? 'text-[#E15162]' : 'text-[#1D1D1D]'}`}>
+                                          {trait.bonus}
+                                      </p>
+                                  </div>
+                              </div>
+                          )
+                      })}
+                  </div>
+
+                  {/* BACKPACK SECTION (6 SLOTS FIXED) */}
+                  <div className="bg-white/50 p-4 rounded-xl border-2 border-[#1D1D1D]/10">
+                      <h4 className="text-sm font-black uppercase flex items-center gap-2 mb-3"><Backpack size={16}/> Supplies ({selectedItems.length}/3)</h4>
+                      
+                      <div className="grid grid-cols-6 gap-2">
+                          {[0, 1, 2, 3, 4, 5].map((index) => {
+                              const invItem = inventory[index];
+                              const itemDef = invItem ? ITEMS_DB[invItem.item_id] : null;
+                              const isSelected = invItem ? selectedItems.includes(invItem.item_id) : false;
+
+                              return (
+                                  <div 
+                                      key={index}
+                                      onClick={() => invItem && toggleItem(invItem.item_id)}
+                                      className={`
+                                          aspect-square rounded-xl border-2 flex flex-col items-center justify-center relative transition-all
+                                          ${invItem 
+                                              ? 'bg-white cursor-pointer hover:scale-105' 
+                                              : 'bg-transparent border-dashed border-[#1D1D1D]/20'
+                                          }
+                                          ${isSelected ? 'border-[#E15162] shadow-[0_0_10px_rgba(225,81,98,0.3)]' : invItem ? 'border-[#1D1D1D]/20' : ''}
+                                      `}
+                                  >
+                                      {invItem ? (
+                                          <>
+                                              <div className="text-[10px] font-black uppercase text-center leading-none z-10 px-1">{itemDef?.name || "Unknown"}</div>
+                                              <div className="absolute top-1 right-1 bg-[#1D1D1D] text-white text-[8px] font-bold px-1 rounded-full">x{invItem.quantity}</div>
+                                              {isSelected && <div className="absolute inset-0 border-2 border-[#E15162] rounded-xl pointer-events-none"/>}
+                                          </>
+                                      ) : (
+                                          <HelpCircle size={16} className="text-[#1D1D1D]/10" />
+                                      )}
+                                  </div>
+                              )
+                          })}
+                      </div>
+                  </div>
                </div>
             </div>
 
