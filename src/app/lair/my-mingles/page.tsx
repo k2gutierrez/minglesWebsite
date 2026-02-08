@@ -51,6 +51,7 @@ export default function MyMinglesPage() {
   const { address, isConnected } = useAccount();
   const mingles = useAtomValue(minglesAtom);
   const isLoadingMingles = useAtomValue(isLoadingMinglesAtom);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // --- ESTADO PERFIL ---
   const [profile, setProfile] = useState({
@@ -185,6 +186,40 @@ export default function MyMinglesPage() {
     }
   };
 
+  // --- HANDLER: DOWNLOAD IMAGE ---
+  const handleDownload = async () => {
+    if (!selectedMingle) return;
+    
+    setIsDownloading(true);
+    const imageUrl = getModalImage() as string;
+    const fileName = `Mingle-${selectedMingle.id}-${viewMode}.png`;
+
+    try {
+      // 1. Obtenemos la imagen como datos binarios (Blob)
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // 2. Creamos un link temporal en memoria
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName; // Forzamos el nombre del archivo
+      
+      // 3. Simulamos el clic y limpiamos
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error("Download failed:", error);
+      // Fallback: Si falla (por bloqueos de seguridad del servidor de imagenes), abrir en nueva pestaña
+      window.open(imageUrl, '_blank');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   // --- LOGICA IMÁGENES MODAL ---
   const getModalImage = () => {
     if (!selectedMingle) return "";
@@ -256,8 +291,17 @@ export default function MyMinglesPage() {
                   </div>
 
                   <div className="space-y-3">
-                     <button className="w-full bg-[#1D1D1D] text-white py-4 rounded-xl font-black uppercase hover:bg-[#E15162] transition-colors flex items-center justify-center gap-2">
-                        <Download size={18} /> Download {viewMode}
+                     <button 
+                        onClick={handleDownload}
+                        disabled={isDownloading}
+                        className="w-full bg-[#1D1D1D] text-white py-4 rounded-xl font-black uppercase hover:bg-[#E15162] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                        {isDownloading ? (
+                           <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                           <Download size={18} />
+                        )}
+                        {isDownloading ? "Downloading..." : `Download ${viewMode}`}
                      </button>
                      
                      <a 
