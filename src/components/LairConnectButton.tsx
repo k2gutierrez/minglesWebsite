@@ -26,7 +26,7 @@ export const LairConnectButton = ({ isMobile = false }: { isMobile?: boolean }) 
       }
     };
     loadData();
-  }, [isConnected, address, setMingles, setIsLoading]);
+  }, [isConnected, address, setIsLoading]);
 
   return (
     <ConnectButton.Custom>

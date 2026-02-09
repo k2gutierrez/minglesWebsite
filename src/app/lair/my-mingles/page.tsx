@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAtomValue } from 'jotai'; 
+import { useAtomValue, useSetAtom } from 'jotai'; 
 import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms'; 
 import { useAccount } from 'wagmi';
 import { supabase } from '@/components/engine/supabase';
@@ -12,6 +12,7 @@ import {
   Maximize2, Plus, Twitter
 } from 'lucide-react';
 import { ConnectWalletView } from '@/components/ConnectWalletView';
+import { fetchUserMingles } from '@/components/engine/indexer';
 
 // --- TIPOS ---
 const TEQUILA_OPTIONS = ["Blanco", "Reposado", "Añejo", "Cristalino"];
@@ -52,6 +53,38 @@ export default function MyMinglesPage() {
   const mingles = useAtomValue(minglesAtom);
   const isLoadingMingles = useAtomValue(isLoadingMinglesAtom);
   const [isDownloading, setIsDownloading] = useState(false);
+  const setMingles = useSetAtom(minglesAtom); // Setter para actualizar el estado global
+  const [isRefreshing, setIsRefreshing] = useState(false); // Estado local para la animación del botón
+  const setIsLoading = useSetAtom(isLoadingMinglesAtom);
+
+   // --- NUEVA FUNCIÓN: RECARGA MANUAL ---
+  const handleManualRefresh = async () => {
+    if (!address) return;
+    setIsRefreshing(true);
+    try {
+        const nfts = await fetchUserMingles(address);
+        setMingles(nfts); // Actualizamos el estado global
+    } catch (e) {
+        console.error("Manual refresh failed", e);
+    } finally {
+        setTimeout(() => setIsRefreshing(false), 500); // Pequeño delay visual
+    }
+  };
+
+  // Efecto para cargar los Mingles cuando se conecta la wallet
+  useEffect(() => {
+    const loadData = async () => {
+      if (isConnected && address) {
+        setIsLoading(true);
+        const nfts = await fetchUserMingles(address);
+        setMingles(nfts);
+        setIsLoading(false);
+      } else {
+        setMingles([]); // Limpiar si se desconecta
+      }
+    };
+    loadData();
+  }, [isConnected, address, setIsLoading]);
 
   // --- ESTADO PERFIL ---
   const [profile, setProfile] = useState({

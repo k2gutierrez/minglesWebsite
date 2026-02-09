@@ -30,7 +30,7 @@ export const fetchUserMingles = async (userAddress: string) => {
         name: metadata.name || `Mingle #${token.tokenID}`,
         image: metadata.image || '/images/placeholder_bottle.png',
         // Guardamos el tipo limpio para uso fácil en el UI
-        type: typeTrait.value, // ? typeTrait.value : 'Classic White', 
+        type: typeTrait.value ? typeTrait.value : 'Classic White', // ? typeTrait.value : 'Classic White', 
         // Guardamos todos los atributos por si acaso se necesitan en el modal de detalle
         attributes: attributes 
       };
