@@ -195,25 +195,30 @@ export default function MyMinglesPage() {
     const fileName = `Mingle-${selectedMingle.id}-${viewMode}.png`;
 
     try {
-      // 1. Obtenemos la imagen como datos binarios (Blob)
-      const response = await fetch(imageUrl);
+      // CAMBIO CLAVE: Usamos nuestra API interna para evitar bloqueo CORS de AWS
+      // Esto hace: Tu Navegador -> Tu Servidor NextJS -> AWS -> Tu Navegador
+      const response = await fetch(`/api/download-image?url=${encodeURIComponent(imageUrl)}`);
+      
+      if (!response.ok) throw new Error("Network response was not ok");
+
       const blob = await response.blob();
       
-      // 2. Creamos un link temporal en memoria
+      // Crear link temporal y forzar descarga
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = fileName; // Forzamos el nombre del archivo
+      link.download = fileName; // Ahora sí respetará el nombre
       
-      // 3. Simulamos el clic y limpiamos
       document.body.appendChild(link);
       link.click();
+      
+      // Limpieza
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
     } catch (error) {
-      console.error("Download failed:", error);
-      // Fallback: Si falla (por bloqueos de seguridad del servidor de imagenes), abrir en nueva pestaña
+      console.error("Download failed, falling back to tab:", error);
+      // Solo si falla nuestro proxy, abrimos la pestaña
       window.open(imageUrl, '_blank');
     } finally {
       setIsDownloading(false);
