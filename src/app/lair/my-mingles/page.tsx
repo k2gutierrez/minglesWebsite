@@ -191,7 +191,7 @@ export default function MyMinglesPage() {
     if (!selectedMingle) return;
     
     setIsDownloading(true);
-    const imageUrl = getModalImage() as string;
+    const imageUrl = getModalImage() as string; // funcionó
     const fileName = `Mingle-${selectedMingle.id}-${viewMode}.png`;
 
     try {
