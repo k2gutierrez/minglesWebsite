@@ -7,18 +7,18 @@ import { useAccount } from 'wagmi';
 import { 
   Sword, Skull, Clock, Backpack, 
   CheckCircle2, Loader2, TrendingUp, HelpCircle,
-  XCircle, ArrowLeft
+  XCircle, ArrowLeft, ArrowRight, Play
 } from 'lucide-react';
 
-// Imports de tu arquitectura
 import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms';
 import { supabase } from '@/components/engine/supabase'; 
 import { ConnectWalletView } from '@/components/ConnectWalletView';
+import { fetchUserMingles } from '@/components/engine/indexer';
 
 // ==========================================
-// 🔧 CONFIGURACIÓN DE DESARROLLO (DEV MODE)
+// 🔧 CONFIGURACIÓN
 // ==========================================
-const IS_DEV_MODE = true; 
+const IS_DEV_MODE = true; // Cambiar a false para producción (7, 15, 30 días)
 
 const DURATION_CONFIG = {
   7:  { label: "7 Days",  seconds: IS_DEV_MODE ? 60 : 604800 },
@@ -27,9 +27,10 @@ const DURATION_CONFIG = {
 };
 
 // ==========================================
-// 🧠 DATOS Y REGLAS
+// 🧠 BASE DE DATOS COMPLETA (TRAITS & RAIDS)
 // ==========================================
 
+// 1. TRAITS DE GUSANOS (Definición completa)
 type TraitData = {
   rarity: 'Godlike' | 'Legendary' | 'Epic' | 'Rare' | 'Uncommon' | 'Common';
   passiveType: 'yield' | 'boss' | 'loot' | 'omni';
@@ -78,6 +79,17 @@ const getWormStats = (type?: string): TraitData => {
   return key ? WORM_DATABASE[key] : WORM_DATABASE['Unknown'];
 };
 
+// 2. ITEMS DB (Para visualización en Backpack)
+// Mapeamos ID de DB -> Nombre visual
+const ITEMS_INFO: Record<string, { name: string }> = {
+  'rusty_key': { name: "Rusty Key" },
+  'raven_monocle': { name: "Raven's Monocle" },
+  'dynamite': { name: "Dynamite" },
+  'golden_harvester': { name: "Golden Harvester" },
+  'xp_scroll': { name: "XP Scroll" }
+};
+
+// 3. RAIDS CONFIG (Con Loot y Boss Detallado)
 const RAID_LOCATIONS = [
   {
     id: 1,
@@ -90,10 +102,10 @@ const RAID_LOCATIONS = [
     img: "/images/raids/raid_1.jpg",
     color: "from-green-900 to-black",
     bossLoot: [
-        { name: "Rusty Key", dropRate: "40%", img: "/images/items/rusty_key.png" },
-        { name: "XP Scroll", dropRate: "20%", img: "/images/items/scroll.png" },
-        { name: "Mystery Box", dropRate: "5%", img: "/images/items/question.png" },
-        { name: "Rare Gem", dropRate: "1%", img: "/images/items/gem.png" }
+        { name: "Rusty Key", dropRate: "40%", img: "/images/items/rusty_key.png", desc: "Common loot key" },
+        { name: "XP Scroll", dropRate: "20%", img: "/images/items/scroll.png", desc: "Boosts XP" },
+        { name: "Mystery Box", dropRate: "5%", img: "/images/items/question.png", desc: "Unknown contents" },
+        { name: "Rare Gem", dropRate: "1%", img: "/images/items/gem.png", desc: "High value" }
     ],
     yields: {
         7: { min: 600, max: 800 },
@@ -112,10 +124,10 @@ const RAID_LOCATIONS = [
     img: "/images/raids/raid_2.jpg",
     color: "from-red-900 to-black",
     bossLoot: [
-        { name: "Raven's Monocle", dropRate: "15%", img: "/images/items/monocle.png" },
-        { name: "Dynamite Pack", dropRate: "25%", img: "/images/items/dynamite.png" },
-        { name: "Cork's Shield", dropRate: "10%", img: "/images/items/shield.png" },
-        { name: "Golden Ticket", dropRate: "0.5%", img: "/images/items/gold_ticket.png" }
+        { name: "Raven's Monocle", dropRate: "15%", img: "/images/items/monocle.png", desc: "Passive Yield Boost" },
+        { name: "Dynamite Pack", dropRate: "25%", img: "/images/items/dynamite.png", desc: "Boss Killer" },
+        { name: "Cork's Shield", dropRate: "10%", img: "/images/items/shield.png", desc: "Defense Item" },
+        { name: "Golden Ticket", dropRate: "0.5%", img: "/images/items/gold_ticket.png", desc: "Legendary Access" }
     ],
     yields: {
         7: { min: 1500, max: 2000 },
@@ -133,8 +145,6 @@ export default function RaidsPage() {
   // Estados UI
   const [view, setView] = useState<'list' | 'setup' | 'active' | 'verifying' | 'result'>('list');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
-  
-  // Duración
   const [selectedDurationKey, setSelectedDurationKey] = useState<7 | 15 | 30>(7);
   
   // Selección
@@ -144,10 +154,9 @@ export default function RaidsPage() {
   // Datos
   const [inventory, setInventory] = useState<any[]>([]);
   const [activeSession, setActiveSession] = useState<any>(null);
+  
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [raidResult, setRaidResult] = useState<any>(null);
-  
-  // Estado de carga para acciones
   const [isProcessing, setIsProcessing] = useState(false);
 
   // --- INIT ---
@@ -155,17 +164,21 @@ export default function RaidsPage() {
     const initData = async () => {
       if (!address) return;
 
-      // 1. Cargar Sesión Activa
+      // 1. Cargar Sesión
       const { data: session } = await supabase.from('active_raids').select('*').eq('wallet_address', address).single();
+      
       if (session) {
         const endTime = new Date(session.end_time).getTime();
         const now = Date.now();
         const timeLeft = Math.max(0, Math.ceil((endTime - now) / 1000));
+        
         const loc = RAID_LOCATIONS.find(r => r.id === session.raid_id);
         
         setActiveSession({ ...session, endTime, location: loc });
         setTimeRemaining(timeLeft);
         setView('active');
+      } else {
+        setTimeRemaining(null);
       }
 
       // 2. Cargar Inventario
@@ -190,7 +203,7 @@ export default function RaidsPage() {
     return () => clearInterval(interval);
   }, [view, activeSession, timeRemaining]);
 
-  // --- CALCULADORA DE ESTADÍSTICAS (LIVE) ---
+  // --- CALCULADORA ---
   const stats = useMemo(() => {
     let bossChance = 0; 
     if (selectedMingles.length >= 5) bossChance = 50 + ((Math.min(selectedMingles.length, 10) - 5) * 5);
@@ -198,6 +211,7 @@ export default function RaidsPage() {
     let totalYieldBonus = 0;
     let lootChanceBonus = 0;
 
+    // Traits
     selectedMingles.forEach(id => {
       const m = mingles.find(u => u.id === id);
       const data = getWormStats(m?.type);
@@ -217,12 +231,9 @@ export default function RaidsPage() {
   const estimatedTequila = useMemo(() => {
     if (!selectedLocation) return "0";
     const baseRange = selectedLocation.yields[selectedDurationKey];
-    
-    const rawMin = baseRange.min * selectedMingles.length;
-    const rawMax = baseRange.max * selectedMingles.length;
-    
+    const rawMin = baseRange.min * Math.max(1, selectedMingles.length);
+    const rawMax = baseRange.max * Math.max(1, selectedMingles.length);
     const totalMult = 1 + (stats.yieldBonus / 100);
-    
     return `${Math.floor(rawMin * totalMult)} - ${Math.floor(rawMax * totalMult)}`;
   }, [selectedLocation, selectedDurationKey, selectedMingles, stats]);
 
@@ -238,7 +249,6 @@ export default function RaidsPage() {
   const toggleItem = (itemId: string) => {
     const hasItem = inventory.find(i => i.item_id === itemId && i.quantity > 0);
     if (!hasItem) return;
-
     if (selectedItems.includes(itemId)) setSelectedItems(prev => prev.filter(i => i !== itemId));
     else {
       if (selectedItems.length >= 3) return alert("Backpack full (Max 3).");
@@ -267,7 +277,7 @@ export default function RaidsPage() {
     if (error) {
         setIsProcessing(false);
         console.error("Supabase Error:", error);
-        return alert("Error starting raid. Please try again.");
+        return alert("Error starting raid.");
     }
 
     setActiveSession({ ...data, endTime: endTime.getTime(), location: selectedLocation });
@@ -277,61 +287,155 @@ export default function RaidsPage() {
   };
 
   const cancelRaid = async () => {
-    if (!confirm("Are you sure you want to CANCEL? No rewards will be given.")) return;
+    if (!confirm("Are you sure? No rewards will be given.")) return;
     setIsProcessing(true);
-    
     const { error } = await supabase.from('active_raids').delete().eq('wallet_address', address);
-    
     if (!error) {
         setActiveSession(null);
         setView('list');
         setSelectedMingles([]);
         setSelectedItems([]);
+        setTimeRemaining(null);
     } else {
         alert("Error canceling raid.");
     }
     setIsProcessing(false);
   };
 
+  // --- FUNCIÓN FINALIZE REAL (CON PAGO DE PUNTOS) ---
+  // --- FUNCIÓN FINALIZE REAL (SEGURIDAD + PUNTOS + ITEMS) ---
   const finalizeRaid = async () => {
     console.log("👉 Claiming rewards initialized...");
-    if (!address || !activeSession) {
-        console.error("❌ No address or active session");
-        return;
-    }
+    if (!address || !activeSession) return;
 
     setIsProcessing(true);
-    
+    setView('verifying'); // Muestra el spinner de "Verifying..."
+
     try {
-        console.log("👉 Deleting raid from DB...");
-        const { error } = await supabase.from('active_raids').delete().eq('wallet_address', address);
+        // ---------------------------------------------------------
+        // 1. SECURITY CHECK (Anti-Venta)
+        // ---------------------------------------------------------
+        // Volvemos a leer la wallet en tiempo real
+        const currentMingles = await fetchUserMingles(address);
         
-        if (error) {
-            console.error("❌ DB Delete Error:", error);
-            throw new Error("Failed to sync with database. Try again.");
+        // Verificamos si CADA mingle que se envió a la misión sigue en la wallet
+        const squadIds = activeSession.squad; // IDs guardados en la raid
+        const stillOwnsAll = squadIds.every((id: string) => 
+            currentMingles.some((m: any) => m.id === id)
+        );
+
+        if (!stillOwnsAll) {
+            // ¡ALERTA! El usuario vendió o movió un Mingle
+            alert("Security Alert: Some Mingles are missing from your wallet. Raid Failed.");
+            
+            // Castigo: Borramos la raid sin dar premios
+            await supabase.from('active_raids').delete().eq('wallet_address', address);
+            setActiveSession(null);
+            setView('list');
+            setIsProcessing(false);
+            return; // Se detiene aquí
         }
 
-        console.log("✅ Raid deleted. Calculating rewards...");
+        // ---------------------------------------------------------
+        // 2. CÁLCULO DE RECOMPENSAS
+        // ---------------------------------------------------------
+        const raidConfig = RAID_LOCATIONS.find(r => r.id === activeSession.raid_id);
+        if (!raidConfig) throw new Error("Raid config not found");
 
-        setActiveSession(null);
+        // Determinar duración real para saber qué base usar
+        const startTime = new Date(activeSession.start_time).getTime();
+        const endTime = new Date(activeSession.end_time).getTime();
+        const durationSec = (endTime - startTime) / 1000;
+
+        let daysKey: 7 | 15 | 30 = 7;
+        // Lógica simple: si dura más de 10 días es 15, si más de 20 es 30 (ajustable)
+        if (durationSec > 1000000) daysKey = 15; 
+        if (durationSec > 2000000) daysKey = 30;
+
+        // Yield Random dentro del rango
+        const range = raidConfig.yields[daysKey];
+        const baseAmount = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        const totalReward = baseAmount * activeSession.squad.length; // Multiplicar por squad
+
+        // ---------------------------------------------------------
+        // 3. CÁLCULO DE LOOT Y GUARDADO (INVENTORY)
+        // ---------------------------------------------------------
+        const roll = Math.random() * 100;
+        let lootItemFound = null;
+
+        // Probabilidad base 30% de sacar el item común (índice 0)
+        // En un sistema avanzado usaríamos las probabilidades individuales de cada item
+        if (roll <= 30) {
+            // Agarramos el primer item de la lista de loot de esa raid
+            const lootDef = raidConfig.bossLoot[0]; 
+            
+            // Necesitamos un ID limpio para la base de datos (ej: "Rusty Key" -> "rusty_key")
+            // Lo ideal es que en RAID_LOCATIONS agregues una propiedad 'id' a cada loot.
+            // Aquí lo generamos dinámicamente si no existe:
+            const itemId = lootDef.name.toLowerCase().replace(/ /g, '_').replace(/'/g, ''); 
+            
+            lootItemFound = { ...lootDef, id: itemId };
+
+            // A. Leer inventario actual para ese item
+            const { data: existingItem } = await supabase
+                .from('player_inventory')
+                .select('*')
+                .match({ wallet_address: address, item_id: itemId })
+                .single();
+
+            // B. Calcular nueva cantidad
+            const newQty = (existingItem?.quantity || 0) + 1;
+
+            // C. Guardar (Upsert)
+            const { error: invError } = await supabase
+                .from('player_inventory')
+                .upsert({ 
+                    wallet_address: address, 
+                    item_id: itemId, 
+                    quantity: newQty,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'wallet_address, item_id' }); // Requiere restricción unique en DB
+
+            if (invError) console.error("Error saving loot:", invError);
+        }
+
+        // ---------------------------------------------------------
+        // 4. TRANSACCIÓN FINAL
+        // ---------------------------------------------------------
         
+        // A. Sumar Puntos al Usuario
+        const { error: rpcError } = await supabase.rpc('add_points', {
+            p_wallet: address,
+            p_amount: totalReward
+        });
+        if (rpcError) throw rpcError;
+
+        // B. Borrar Raid Activa (Ya cobró)
+        await supabase.from('active_raids').delete().eq('wallet_address', address);
+
+        // ---------------------------------------------------------
+        // 5. RESULTADO VISUAL
+        // ---------------------------------------------------------
+        setActiveSession(null);
         setRaidResult({ 
-            tequila: 4500, // Mock Value
+            tequila: totalReward, 
             xp: 100, 
-            bossKilled: true,
-            bossLootFound: selectedLocation.bossLoot[0] 
+            bossKilled: roll > 50, 
+            bossLootFound: lootItemFound 
         });
         
         setView('result');
 
     } catch (e: any) {
-        alert(e.message || "Error claiming rewards");
+        console.error("Claim Error:", e);
+        alert("Transaction failed. Please try again.");
     } finally {
         setIsProcessing(false);
     }
   };
 
   const formatTime = (seconds: number) => {
+    if (seconds === null) return "...";
     const d = Math.floor(seconds / 86400);
     const h = Math.floor((seconds % 86400) / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -339,6 +443,8 @@ export default function RaidsPage() {
     if (d > 0) return `${d}d ${h}h ${m}m`;
     return `${h}h ${m}m ${s}s`;
   };
+
+  // --- RENDER ---
 
   if (!isConnected) return <ConnectWalletView />;
   if (isLoadingMingles) return <div className="flex justify-center h-[50vh]"><Loader2 className="animate-spin text-[#E15162]"/></div>;
@@ -351,7 +457,7 @@ export default function RaidsPage() {
          <div>
             <h1 className="text-5xl font-black uppercase text-[#1D1D1D] leading-none mb-2">Mingles Raids</h1>
             <p className="font-bold text-[#1D1D1D]/60">
-                {IS_DEV_MODE ? "⚠️ DEV MODE ACTIVE (1-3 min raids)" : "Soft-Stake Strategy Game"}
+                {IS_DEV_MODE ? "⚠️ DEV MODE ACTIVE" : "Soft-Stake Strategy Game"}
             </p>
          </div>
          {view === 'setup' && (
@@ -360,65 +466,77 @@ export default function RaidsPage() {
       </div>
 
       {/* --- VISTA 1: LISTA --- */}
-      {view === 'list' && !activeSession && (
-         <div className="grid grid-cols-1 gap-8">
-            {RAID_LOCATIONS.map((raid) => (
-               <motion.div 
-                  key={raid.id}
-                  whileHover={{ scale: 1.01 }}
-                  // *** CORRECCIÓN AQUÍ: Eliminamos setSubTab('squad') ***
-                  onClick={() => { setSelectedLocation(raid); setView('setup'); }}
-                  className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden border-4 border-[#1D1D1D] cursor-pointer group shadow-[8px_8px_0_0_#1D1D1D]"
-               >
-                  <img src={raid.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${raid.color} opacity-90 group-hover:opacity-80 transition-opacity`} />
-                  <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
-                     <div className="flex justify-between items-end">
-                        <div>
-                           <div className="flex gap-2 mb-3">
-                               <span className="bg-[#E15162] text-white text-xs font-black uppercase px-3 py-1 rounded">Boss: {raid.boss}</span>
-                               <span className="bg-white text-[#1D1D1D] text-xs font-black uppercase px-3 py-1 rounded">Diff: {raid.difficulty}</span>
-                           </div>
-                           <h2 className="text-4xl md:text-5xl font-black uppercase leading-none mb-2 drop-shadow-lg">{raid.name}</h2>
-                           <p className="text-lg font-bold opacity-90 max-w-2xl leading-tight drop-shadow-md">{raid.description}</p>
-                        </div>
+      {view === 'list' && (
+         <div className="space-y-6">
+            {activeSession && (
+               <div className="bg-[#E15162] text-white p-6 rounded-[2rem] border-4 border-[#1D1D1D] shadow-[8px_8px_0_0_#1D1D1D] flex items-center justify-between animate-pulse">
+                  <div className="flex items-center gap-4">
+                     <div className="bg-white p-3 rounded-full text-[#E15162]"><Clock size={32}/></div>
+                     <div>
+                        <h2 className="text-2xl font-black uppercase">Mission In Progress</h2>
+                        <p className="font-bold opacity-90">Deployed at {activeSession.location?.name}</p>
                      </div>
                   </div>
-               </motion.div>
-            ))}
+                  <button onClick={() => setView('active')} className="bg-white text-[#1D1D1D] px-6 py-3 rounded-xl font-black uppercase flex items-center gap-2 hover:scale-105 transition-transform">
+                     Return <ArrowRight size={20}/>
+                  </button>
+               </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-8">
+               {RAID_LOCATIONS.map((raid) => (
+                  <motion.div 
+                     key={raid.id}
+                     whileHover={!activeSession ? { scale: 1.01 } : {}}
+                     onClick={() => { if (!activeSession) { setSelectedLocation(raid); setView('setup'); } }}
+                     className={`relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden border-4 border-[#1D1D1D] shadow-[8px_8px_0_0_#1D1D1D] ${activeSession ? 'grayscale opacity-50 cursor-not-allowed' : 'cursor-pointer group'}`}
+                  >
+                     <img src={raid.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                     <div className={`absolute inset-0 bg-gradient-to-t ${raid.color} opacity-90 group-hover:opacity-80 transition-opacity`} />
+                     <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
+                        <div className="flex justify-between items-end">
+                           <div>
+                              <div className="flex gap-2 mb-3">
+                                  <span className="bg-[#E15162] text-white text-xs font-black uppercase px-3 py-1 rounded">Boss: {raid.boss}</span>
+                                  <span className="bg-white text-[#1D1D1D] text-xs font-black uppercase px-3 py-1 rounded">Diff: {raid.difficulty}</span>
+                              </div>
+                              <h2 className="text-4xl md:text-5xl font-black uppercase leading-none mb-2 drop-shadow-lg">{raid.name}</h2>
+                              <p className="text-lg font-bold opacity-90 max-w-2xl leading-tight drop-shadow-md">{raid.description}</p>
+                           </div>
+                           {activeSession && <div className="bg-[#1D1D1D] px-4 py-2 rounded-xl font-black uppercase flex items-center gap-2"><XCircle size={16}/> Locked</div>}
+                        </div>
+                     </div>
+                  </motion.div>
+               ))}
+            </div>
          </div>
       )}
 
-      {/* --- VISTA 2: SETUP --- */}
+      {/* --- VISTA 2: SETUP (RESTAURADA COMPLETA) --- */}
       {view === 'setup' && selectedLocation && (
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* LEFT: CONFIG */}
             <div className="lg:col-span-8 space-y-6">
-               {/* DURATION */}
+               
+               {/* 1. DURATION */}
                <div className="bg-white p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                   <h3 className="text-xl font-black uppercase mb-4 flex items-center gap-2"><Clock/> 1. Select Duration</h3>
                   <div className="grid grid-cols-3 gap-4">
-                     {([7, 15, 30] as const).map((days) => {
-                        const conf = DURATION_CONFIG[days];
-                        return (
-                            <div 
-                            key={days}
-                            onClick={() => setSelectedDurationKey(days)}
-                            className={`cursor-pointer rounded-xl border-4 p-4 text-center transition-all ${selectedDurationKey === days ? 'border-[#E15162] bg-[#E15162] text-white shadow-lg scale-105' : 'border-[#1D1D1D] bg-white hover:bg-[#EDEDD9]'}`}
-                            >
-                            <p className="text-2xl font-black">{conf.label}</p>
-                            <p className="text-[10px] font-bold uppercase opacity-80 mt-1">
-                                Base: {selectedLocation.yields[days].min}-{selectedLocation.yields[days].max}
-                            </p>
-                            </div>
-                        );
-                     })}
+                     {([7, 15, 30] as const).map((days) => (
+                        <div key={days} onClick={() => setSelectedDurationKey(days)} className={`cursor-pointer rounded-xl border-4 p-4 text-center transition-all ${selectedDurationKey === days ? 'border-[#E15162] bg-[#E15162] text-white shadow-lg' : 'border-[#1D1D1D]'}`}>
+                           <p className="text-2xl font-black">{DURATION_CONFIG[days].label}</p>
+                           <p className="text-[10px] font-bold uppercase opacity-80 mt-1">Base: {selectedLocation.yields[days].min}-{selectedLocation.yields[days].max}</p>
+                        </div>
+                     ))}
                   </div>
                </div>
 
-               {/* TARGET INTEL */}
+               {/* 2. TARGET INTEL (BOSS + LOOT GRID) */}
                <div className="bg-[#1D1D1D] text-white p-6 rounded-[2rem] border-4 border-[#1D1D1D] relative overflow-hidden">
                   <h3 className="text-xl font-black uppercase mb-6 flex items-center gap-2 relative z-10"><Skull className="text-[#E15162]"/> Target Intel: {selectedLocation.boss}</h3>
                   <div className="flex flex-col md:flex-row gap-6 relative z-10">
+                      {/* Boss Img */}
                       <div className="w-full md:w-1/3 shrink-0">
                           <div className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-white/20 relative shadow-lg group">
                               <img src={selectedLocation.bossImg} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
@@ -427,6 +545,7 @@ export default function RaidsPage() {
                               </div>
                           </div>
                       </div>
+                      {/* Loot Grid */}
                       <div className="flex-1">
                           <p className="text-xs font-black uppercase opacity-50 mb-3 border-b border-white/10 pb-1">Known Loot Table</p>
                           <div className="grid grid-cols-2 gap-3">
@@ -441,7 +560,7 @@ export default function RaidsPage() {
                                               {loot ? (
                                                   <>
                                                       <p className="font-bold text-xs truncate text-[#E15162]">{loot.name}</p>
-                                                      <p className="text-[10px] opacity-50 truncate">Drop: {loot.dropRate}</p>
+                                                      <p className="text-[10px] opacity-50 truncate">{loot.dropRate}</p>
                                                   </>
                                               ) : (
                                                   <p className="text-[10px] opacity-30 font-black uppercase">Unknown</p>
@@ -455,30 +574,22 @@ export default function RaidsPage() {
                   </div>
                </div>
 
-               {/* SQUAD SELECTION */}
+               {/* 3. SQUAD + BACKPACK */}
                <div className="bg-[#EDEDD9] p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                   <div className="flex justify-between items-center mb-4">
                      <h3 className="text-xl font-black uppercase flex items-center gap-2"><Sword/> 2. Assemble Squad</h3>
                      <span className="bg-[#1D1D1D] text-white px-3 py-1 rounded-full text-xs font-bold">{selectedMingles.length}/10</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar mb-6">
+                  {/* Mingles */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar mb-6">
                       {mingles.map((mingle) => {
                           const isSelected = selectedMingles.includes(mingle.id!);
                           const stats = getWormStats(mingle.type);
-                          const rarityColor = 
-                             stats.rarity === 'Godlike' ? 'text-yellow-500' :
-                             stats.rarity === 'Legendary' ? 'text-orange-500' :
-                             stats.rarity === 'Epic' ? 'text-purple-600' :
-                             stats.rarity === 'Rare' ? 'text-blue-600' :
-                             stats.rarity === 'Uncommon' ? 'text-green-600' : 'text-[#1D1D1D]';
+                          const rarityColor = stats.rarity === 'Legendary' ? 'text-orange-500' : stats.rarity === 'Epic' ? 'text-purple-600' : 'text-[#1D1D1D]';
 
                           return (
-                              <div 
-                                  key={mingle.id} 
-                                  onClick={() => toggleMingle(mingle.id!)}
-                                  className={`flex items-center gap-3 p-3 rounded-xl border-4 cursor-pointer transition-all ${isSelected ? 'bg-[#1D1D1D] border-[#1D1D1D] text-white' : 'bg-white border-[#1D1D1D]/20 hover:border-[#1D1D1D]'}`}
-                              >
+                              <div key={mingle.id} onClick={() => toggleMingle(mingle.id!)} className={`flex items-center gap-3 p-3 rounded-xl border-4 cursor-pointer transition-all ${isSelected ? 'bg-[#1D1D1D] border-[#1D1D1D] text-white' : 'bg-white border-[#1D1D1D]/20 hover:border-[#1D1D1D]'}`}>
                                   <img src={mingle.image} className="w-10 h-10 rounded-lg bg-gray-200 object-cover border border-white/20 shrink-0" />
                                   <div className="flex-1 overflow-hidden">
                                       <div className="flex justify-between">
@@ -486,10 +597,7 @@ export default function RaidsPage() {
                                           {isSelected && <CheckCircle2 size={14} className="text-[#E15162] shrink-0" />}
                                       </div>
                                       <div className="flex items-center gap-1">
-                                         <p className={`text-xs font-black uppercase leading-tight ${isSelected ? 'text-[#E15162]' : rarityColor}`}>
-                                            +{stats.passiveVal}% {stats.passiveType}
-                                         </p>
-                                         <span className="text-[9px] opacity-50 uppercase">({stats.rarity})</span>
+                                         <p className={`text-xs font-black uppercase leading-tight ${isSelected ? 'text-[#E15162]' : rarityColor}`}>+{stats.passiveVal}% {stats.passiveType}</p>
                                       </div>
                                   </div>
                               </div>
@@ -497,7 +605,7 @@ export default function RaidsPage() {
                       })}
                   </div>
 
-                  {/* BACKPACK */}
+                  {/* Backpack */}
                   <div className="bg-white/50 p-4 rounded-xl border-2 border-[#1D1D1D]/10">
                       <h4 className="text-sm font-black uppercase flex items-center gap-2 mb-3"><Backpack size={16}/> Supplies ({selectedItems.length}/3)</h4>
                       <div className="grid grid-cols-6 gap-3">
@@ -505,25 +613,13 @@ export default function RaidsPage() {
                               const invItem = inventory[index];
                               const isSelected = invItem ? selectedItems.includes(invItem.item_id) : false;
                               return (
-                                  <div 
-                                      key={index}
-                                      onClick={() => invItem && toggleItem(invItem.item_id)}
-                                      className={`
-                                          aspect-square rounded-2xl border-2 flex flex-col items-center justify-center relative transition-all overflow-hidden
-                                          ${invItem ? 'bg-white cursor-pointer hover:scale-105 border-[#1D1D1D]' : 'bg-black/5 border-dashed border-[#1D1D1D]/20'}
-                                          ${isSelected ? 'ring-4 ring-[#E15162] ring-opacity-50' : ''}
-                                      `}
-                                  >
+                                  <div key={index} onClick={() => invItem && toggleItem(invItem.item_id)} className={`aspect-square rounded-2xl border-2 flex flex-col items-center justify-center relative transition-all overflow-hidden ${invItem ? 'bg-white cursor-pointer hover:scale-105 border-[#1D1D1D]' : 'bg-black/5 border-dashed border-[#1D1D1D]/20'} ${isSelected ? 'ring-4 ring-[#E15162]' : ''}`}>
                                       {invItem ? (
                                           <>
-                                              <img 
-                                                src={`/images/items/${invItem.item_id}.png`} 
-                                                onError={(e) => e.currentTarget.src = '/images/items/question.png'}
-                                                className="w-full h-full object-cover"
-                                              />
+                                              <img src={`/images/items/${invItem.item_id}.png`} onError={(e) => e.currentTarget.src = '/images/items/question.png'} className="w-full h-full object-cover"/>
                                               <div className="absolute top-1 right-1 bg-[#1D1D1D] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-10">x{invItem.quantity}</div>
                                           </>
-                                      ) : null}
+                                      ) : <div className="w-2 h-2 rounded-full bg-[#1D1D1D] opacity-10"/>}
                                   </div>
                               )
                           })}
@@ -532,10 +628,10 @@ export default function RaidsPage() {
                </div>
             </div>
 
-            {/* RIGHT COLUMN: LIVE STATS */}
+            {/* RIGHT: LIVE STATS */}
             <div className="lg:col-span-4 space-y-6">
                <div className="bg-[#1D1D1D] text-white p-6 rounded-[2rem] border-4 border-[#1D1D1D] shadow-[8px_8px_0_0_#EDEDD9] sticky top-4">
-                  <h3 className="text-2xl font-black uppercase mb-6 border-b border-white/20 pb-4">Mission Intel</h3>
+                  <h3 className="text-2xl font-black uppercase mb-6">Mission Intel</h3>
                   <div className="mb-8">
                      <p className="text-xs font-bold uppercase opacity-50 mb-1">Projected Earnings</p>
                      <div className="flex items-center gap-2">
@@ -548,59 +644,50 @@ export default function RaidsPage() {
                   </div>
                   <div className="space-y-4 mb-8">
                      <div className="bg-white/10 p-3 rounded-xl flex justify-between items-center">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-bold uppercase">Boss Kill Chance</span>
-                            <span className="text-[10px] opacity-50">Squad Power</span>
-                        </div>
+                        <span className="text-xs font-bold uppercase">Boss Chance</span>
                         <span className={`font-black ${stats.bossChance > 80 ? 'text-green-400' : 'text-orange-400'}`}>{stats.bossChance}%</span>
                      </div>
                      <div className="bg-white/10 p-3 rounded-xl flex justify-between items-center">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-bold uppercase">Loot Drop Chance</span>
-                            <span className="text-[10px] opacity-50">Passive Bonus</span>
-                        </div>
+                        <span className="text-xs font-bold uppercase">Loot Bonus</span>
                         <span className="font-black text-[#E15162]">+{stats.lootBonus}%</span>
                      </div>
                      <div className="bg-white/10 p-3 rounded-xl flex justify-between items-center">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-bold uppercase">Passive Yield</span>
-                            <span className="text-[10px] opacity-50">Squad Bonus</span>
-                        </div>
+                        <span className="text-xs font-bold uppercase">Yield Bonus</span>
                         <span className="font-black text-blue-400">+{stats.yieldBonus}%</span>
                      </div>
                   </div>
                   <button onClick={startRaid} disabled={selectedMingles.length === 0 || isProcessing} className="w-full bg-[#E15162] text-white py-4 rounded-xl font-black uppercase text-xl hover:bg-white hover:text-[#1D1D1D] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                     {isProcessing ? <Loader2 className="animate-spin"/> : <>Start Raid <Sword fill="currentColor" size={20}/></>}
+                     {isProcessing ? <Loader2 className="animate-spin"/> : <>Start Raid <Play fill="currentColor"/></>}
                   </button>
                </div>
             </div>
          </div>
       )}
 
-      {/* --- VISTA 3: ACTIVE (TIMER) --- */}
+      {/* --- VISTA 3: ACTIVE & COMPLETE --- */}
       {(view === 'active' || view === 'verifying') && activeSession && (
          <div className="max-w-2xl mx-auto text-center py-20">
             <div className="bg-white rounded-[3rem] border-4 border-[#1D1D1D] p-10 shadow-[12px_12px_0_0_#1D1D1D] relative overflow-hidden">
-               <div className="absolute inset-0 opacity-5 bg-[url('/images/pattern.png')]"></div>
                {view === 'verifying' ? (
-                  <div className="animate-pulse flex flex-col items-center">
+                  <div className="animate-pulse flex flex-col items-center py-10">
                      <Loader2 size={64} className="text-[#E15162] animate-spin mb-4" />
-                     <h2 className="text-3xl font-black uppercase">Verifying Loot...</h2>
+                     <h2 className="text-3xl font-black uppercase">Verifying Mission...</h2>
                   </div>
                ) : timeRemaining === 0 ? (
-                  <div className="space-y-6">
-                     <CheckCircle2 size={80} className="text-green-500 mx-auto" />
+                  <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+                     <div className="inline-block bg-green-100 p-4 rounded-full border-4 border-green-500 mb-2"><CheckCircle2 size={64} className="text-green-600" /></div>
                      <div>
                         <h2 className="text-4xl font-black uppercase text-[#1D1D1D]">Mission Complete</h2>
                         <p className="text-lg font-bold opacity-60">Your squad has returned.</p>
                      </div>
-                     <button onClick={finalizeRaid} disabled={isProcessing} className="w-full bg-[#1D1D1D] text-white py-4 rounded-2xl font-black uppercase text-xl shadow-[4px_4px_0_0_#E15162] hover:translate-y-[-2px] transition-transform">
-                        {isProcessing ? "Processing..." : "Claim Rewards"}
-                     </button>
-                     {/* BOTÓN VOLVER (NUEVO) */}
-                     <button onClick={() => setView('list')} className="text-sm font-black uppercase text-[#1D1D1D]/50 hover:text-[#1D1D1D] flex items-center justify-center gap-2 mx-auto">
-                        <ArrowLeft size={14}/> Back to Map (Claim later)
-                     </button>
+                     <div className="pt-4 space-y-3">
+                        <button onClick={finalizeRaid} disabled={isProcessing} className="w-full bg-[#1D1D1D] text-white py-4 rounded-2xl font-black uppercase text-xl shadow-[4px_4px_0_0_#E15162] hover:translate-y-[-2px] transition-transform">
+                           {isProcessing ? "Processing..." : "Claim Rewards"}
+                        </button>
+                        <button onClick={() => setView('list')} className="text-sm font-black uppercase text-[#1D1D1D]/40 hover:text-[#1D1D1D] flex items-center justify-center gap-2 mx-auto pt-2">
+                           <ArrowLeft size={14}/> Back to Map (Claim Later)
+                        </button>
+                     </div>
                   </div>
                ) : (
                   <div>
@@ -609,12 +696,11 @@ export default function RaidsPage() {
                      </div>
                      <Clock size={64} className="mx-auto text-[#1D1D1D] mb-4 animate-pulse" />
                      <p className="text-6xl md:text-8xl font-black font-mono text-[#1D1D1D] tracking-tighter">
-                        {formatTime(timeRemaining || 0)}
+                        {timeRemaining !== null ? formatTime(timeRemaining) : "Loading..."}
                      </p>
                      <p className="text-sm font-bold opacity-40 mt-4 uppercase tracking-widest">Time Remaining</p>
-                     
-                     <div className="mt-8 border-t-2 border-[#1D1D1D]/10 pt-6">
-                        <button onClick={cancelRaid} disabled={isProcessing} className="text-red-500 font-bold uppercase text-xs hover:text-red-700 flex items-center justify-center gap-1 mx-auto">
+                     <div className="mt-12 border-t-2 border-[#1D1D1D]/10 pt-6">
+                        <button onClick={cancelRaid} disabled={isProcessing} className="text-red-500 font-bold uppercase text-xs hover:text-red-700 flex items-center justify-center gap-1 mx-auto hover:bg-red-50 px-3 py-1 rounded transition-colors">
                            <XCircle size={14}/> Cancel Raid (No Rewards)
                         </button>
                      </div>
@@ -626,7 +712,7 @@ export default function RaidsPage() {
 
       {/* --- VISTA 4: RESULTADO --- */}
       {view === 'result' && raidResult && (
-         <div className="max-w-md mx-auto bg-white rounded-[3rem] border-4 border-[#1D1D1D] overflow-hidden text-center shadow-[12px_12px_0_0_#1D1D1D]">
+         <div className="max-w-md mx-auto bg-white rounded-[3rem] border-4 border-[#1D1D1D] overflow-hidden text-center shadow-[12px_12px_0_0_#1D1D1D] animate-in slide-in-from-bottom-10 fade-in duration-500">
             <div className="bg-[#E15162] p-8">
                <h2 className="text-4xl font-black uppercase text-white">Mission Report</h2>
             </div>
@@ -638,12 +724,12 @@ export default function RaidsPage() {
                {raidResult.bossLootFound && (
                   <div className="bg-[#EDEDD9] p-4 rounded-2xl border-2 border-[#1D1D1D]">
                      <p className="text-xs font-black uppercase mb-2">Rare Loot Found!</p>
-                     <p className="text-xl font-bold flex items-center justify-center gap-2">
-                        <span>{raidResult.bossLootFound.name}</span>
+                     <p className="text-xl font-bold flex items-center justify-center gap-2 text-[#E15162]">
+                        {raidResult.bossLootFound.name}
                      </p>
                   </div>
                )}
-               <button onClick={() => { setRaidResult(null); setView('list'); }} className="w-full bg-[#1D1D1D] text-white py-3 rounded-xl font-black uppercase">
+               <button onClick={() => { setRaidResult(null); setView('list'); }} className="w-full bg-[#1D1D1D] text-white py-3 rounded-xl font-black uppercase hover:bg-[#E15162] transition-colors">
                   Return to Base
                </button>
             </div>
