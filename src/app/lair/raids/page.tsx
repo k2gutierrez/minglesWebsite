@@ -7,8 +7,8 @@ import { useAccount } from 'wagmi';
 import { 
   Sword, Skull, Clock, Backpack, 
   CheckCircle2, Loader2, TrendingUp, HelpCircle,
-  XCircle, Play, Briefcase, ChevronRight, ArrowLeft, 
-  Lock, Info, Filter, Zap, LayoutGrid, AlertCircle
+  XCircle, Play, AlertTriangle, Briefcase, ChevronRight, ArrowLeft, 
+  Lock, Info, Filter, Zap, LayoutGrid
 } from 'lucide-react';
 
 import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms';
@@ -259,6 +259,15 @@ export default function RaidsPage() {
     }
   };
 
+  // RESTAURED FUNCTION
+  const cancelRaid = async (sessionId: number) => {
+    if (!confirm("Cancel mission? Items used will NOT be returned.")) return;
+    setIsProcessing(true);
+    await supabase.from('active_raids').delete().eq('id', sessionId);
+    await loadUserData();
+    setIsProcessing(false);
+  };
+
   const resolveMission = async (session: any) => {
     setIsProcessing(true);
     try {
@@ -327,14 +336,6 @@ export default function RaidsPage() {
     } finally {
         setIsProcessing(false);
     }
-  };
-
-  const cancelRaid = async (sessionId: number) => {
-    if (!confirm("Cancel mission? Items used will NOT be returned.")) return;
-    setIsProcessing(true);
-    await supabase.from('active_raids').delete().eq('id', sessionId);
-    await loadUserData();
-    setIsProcessing(false);
   };
 
   // --- UI HELPERS ---
@@ -483,8 +484,8 @@ export default function RaidsPage() {
                             </div>
                         </div>
                         
-                        {/* 1. CORRECCION UI: GRID DE SQUAD (Vertical cards for 3 cols) */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
+                        {/* 1. MINGLES GRID (SQUARE + INFO) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
                             {sortedMingles.map(mingle => {
                                 const isLocked = lockedMingles.includes(mingle.id!);
                                 const isSelected = selectedMingles.includes(mingle.id!);
@@ -493,24 +494,27 @@ export default function RaidsPage() {
                                 return (
                                     <div key={mingle.id} onClick={() => !isLocked && toggleMingle(mingle.id!)}
                                          className={`
-                                            relative flex flex-col rounded-xl border-4 overflow-hidden cursor-pointer transition-all h-auto
-                                            ${isLocked ? 'opacity-40 grayscale cursor-not-allowed bg-gray-200' : 'hover:scale-[1.02]'} 
+                                            group relative flex items-center gap-3 p-2 rounded-xl border-4 transition-all cursor-pointer overflow-hidden
+                                            ${isLocked ? 'opacity-50 grayscale cursor-not-allowed bg-gray-200' : 'hover:scale-[1.02]'} 
                                             ${isSelected ? 'bg-[#1D1D1D] text-white border-[#1D1D1D]' : 'bg-white border-[#1D1D1D]/10 hover:border-[#1D1D1D]/30'}
                                          `}
                                     >
-                                        {/* Image Container: Square Aspect Ratio */}
-                                        <div className="w-full aspect-square relative bg-gray-200">
-                                            <img src={mingle.image} className="absolute inset-0 w-full h-full object-cover"/>
-                                            {isSelected && <div className="absolute top-2 right-2 bg-[#E15162] rounded-full p-1"><CheckCircle2 size={12} className="text-white"/></div>}
-                                            {isLocked && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase">Busy</span></div>}
+                                        {/* Image Container: Fixed Square */}
+                                        <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-200 border border-black/10">
+                                            <img src={mingle.image} className="w-full h-full object-cover"/>
+                                            {isSelected && <div className="absolute inset-0 bg-[#E15162]/20 flex items-center justify-center"><CheckCircle2 size={24} className="text-white drop-shadow-md"/></div>}
                                         </div>
                                         
-                                        {/* Info Section */}
-                                        <div className="p-3 flex flex-col justify-between flex-1">
-                                            <p className="text-[11px] font-black uppercase leading-tight mb-1">#{mingle.id}</p>
-                                            <span className={`text-[10px] font-bold leading-tight ${isSelected ? 'text-[#E15162]' : 'opacity-60'}`}>
-                                                +{stats.passiveVal}% {stats.passiveType.toUpperCase()}
-                                            </span>
+                                        {/* Info */}
+                                        <div className="flex flex-col justify-center min-w-0">
+                                            <p className="text-[12px] font-black uppercase leading-tight mb-1 truncate">#{mingle.id}</p>
+                                            {isLocked ? (
+                                                <span className="text-[10px] font-bold text-red-500 uppercase flex items-center gap-1"><Lock size={10}/> Busy</span>
+                                            ) : (
+                                                <span className={`text-[10px] font-bold leading-tight ${isSelected ? 'text-[#E15162]' : 'opacity-60'}`}>
+                                                    +{stats.passiveVal}% {stats.passiveType.toUpperCase()}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 )
@@ -563,19 +567,19 @@ export default function RaidsPage() {
                          
                          <div>
                              <p className="text-[10px] font-bold uppercase opacity-50 mb-2">Possible Drops</p>
-                             {/* 2. CORRECCION UI: Grid Boss Items 2x2 (Image Left, Info Right) */}
-                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                             {/* 2. GRID BOSS ITEMS 2x2 PERFECTO */}
+                             <div className="grid grid-cols-2 gap-2">
                                  {selectedLocation.bossLoot.map((loot:any, i:number) => (
-                                     <div key={i} className="flex h-20 bg-white/5 rounded-lg overflow-hidden border border-white/10 items-stretch">
-                                         {/* Left: Image Container */}
-                                         <div className="w-20 bg-white/5 flex items-center justify-center p-2 shrink-0 border-r border-white/5">
-                                             <img src={loot.img} className="max-w-full max-h-full object-contain"/>
+                                     <div key={i} className="flex bg-white/5 rounded-lg overflow-hidden border border-white/10 h-16">
+                                         {/* Left 40% Image */}
+                                         <div className="w-16 bg-black/20 flex items-center justify-center p-1 shrink-0 border-r border-white/5">
+                                             <img src={loot.img} className="w-full h-full object-contain"/>
                                          </div>
-                                         {/* Right: Info */}
-                                         <div className="flex-1 p-2 flex flex-col justify-between">
-                                             <p className="font-bold text-[10px] leading-tight line-clamp-2 text-[#E15162]">{loot.name}</p>
-                                             <p className="text-[8px] opacity-60 line-clamp-1">{loot.desc}</p>
-                                             <div className="mt-1 self-start bg-white/10 px-1.5 rounded text-[8px] font-mono">{loot.dropRate}</div>
+                                         {/* Right 60% Info */}
+                                         <div className="flex-1 p-2 flex flex-col justify-center min-w-0">
+                                             <p className="font-bold text-[9px] leading-tight text-[#E15162] truncate mb-0.5">{loot.name}</p>
+                                             <p className="text-[8px] opacity-50 leading-tight truncate mb-1">{loot.desc}</p>
+                                             <span className="text-[8px] font-mono bg-white/10 px-1 rounded self-start">{loot.dropRate}</span>
                                          </div>
                                      </div>
                                  ))}
