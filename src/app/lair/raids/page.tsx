@@ -7,8 +7,8 @@ import { useAccount } from 'wagmi';
 import { 
   Sword, Skull, Clock, Backpack, 
   CheckCircle2, Loader2, TrendingUp, HelpCircle,
-  XCircle, Play, AlertTriangle, Briefcase, ChevronRight, ArrowLeft, 
-  Lock, Info, Filter, Zap, LayoutGrid
+  XCircle, Play, Briefcase, ChevronRight, ArrowLeft, 
+  Lock, Info, Filter, Zap, LayoutGrid, AlertCircle
 } from 'lucide-react';
 
 import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms';
@@ -101,7 +101,9 @@ const RAID_LOCATIONS = [
     color: "from-red-900 to-black",
     bossLoot: [
         { name: "Dynamite Pack", dropRate: "25%", img: "https://placehold.co/200x200/900/fff/png?text=TNT", desc: "Boss Killer" },
-        { name: "Cork's Shield", dropRate: "10%", img: "https://placehold.co/200x200/555/fff/png?text=Shield", desc: "Defense Item" }
+        { name: "Cork's Shield", dropRate: "10%", img: "https://placehold.co/200x200/555/fff/png?text=Shield", desc: "Defense Item" },
+        { name: "Raven Plans", dropRate: "5%", img: "https://placehold.co/200x200/000/fff/png?text=Plans", desc: "Intel Item" },
+        { name: "Golden Medal", dropRate: "1%", img: "https://placehold.co/200x200/gold/000/png?text=Medal", desc: "Trophy" }
     ],
     yields: { 7: { min: 1500, max: 2000 }, 15: { min: 3500, max: 4500 }, 30: { min: 8000, max: 10000 } }
   }
@@ -468,7 +470,7 @@ export default function RaidsPage() {
                         </div>
                     </div>
 
-                    {/* SQUAD SELECTION - GRID CORREGIDO */}
+                    {/* SQUAD SELECTION */}
                     <div className="bg-[#EDEDD9] p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                             <h3 className="text-xl font-black uppercase flex items-center gap-2"><Sword/> 2. Squad <span className="bg-[#1D1D1D] text-white px-2 py-0.5 rounded text-xs ml-2">{selectedMingles.length}/10</span></h3>
@@ -481,8 +483,8 @@ export default function RaidsPage() {
                             </div>
                         </div>
                         
-                        {/* 1. CORRECCION UI: Tarjetas de Mingle 50/50 Horizontal */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
+                        {/* 1. CORRECCION UI: GRID DE SQUAD (Vertical cards for 3 cols) */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
                             {sortedMingles.map(mingle => {
                                 const isLocked = lockedMingles.includes(mingle.id!);
                                 const isSelected = selectedMingles.includes(mingle.id!);
@@ -491,28 +493,24 @@ export default function RaidsPage() {
                                 return (
                                     <div key={mingle.id} onClick={() => !isLocked && toggleMingle(mingle.id!)}
                                          className={`
-                                            flex h-20 rounded-xl border-4 overflow-hidden cursor-pointer transition-all
-                                            ${isLocked ? 'opacity-40 grayscale cursor-not-allowed bg-gray-200' : 'cursor-pointer'} 
+                                            relative flex flex-col rounded-xl border-4 overflow-hidden cursor-pointer transition-all h-auto
+                                            ${isLocked ? 'opacity-40 grayscale cursor-not-allowed bg-gray-200' : 'hover:scale-[1.02]'} 
                                             ${isSelected ? 'bg-[#1D1D1D] text-white border-[#1D1D1D]' : 'bg-white border-[#1D1D1D]/10 hover:border-[#1D1D1D]/30'}
                                          `}
                                     >
-                                        {/* Left 40% Image */}
-                                        <div className="w-2/5 h-full relative bg-gray-200">
-                                            <img src={mingle.image} className="w-full h-full object-cover"/>
+                                        {/* Image Container: Square Aspect Ratio */}
+                                        <div className="w-full aspect-square relative bg-gray-200">
+                                            <img src={mingle.image} className="absolute inset-0 w-full h-full object-cover"/>
+                                            {isSelected && <div className="absolute top-2 right-2 bg-[#E15162] rounded-full p-1"><CheckCircle2 size={12} className="text-white"/></div>}
+                                            {isLocked && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase">Busy</span></div>}
                                         </div>
-                                        {/* Right 60% Info */}
-                                        <div className="w-3/5 p-2 flex flex-col justify-center">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <p className="text-[10px] font-black uppercase">#{mingle.id}</p>
-                                                {isSelected && <CheckCircle2 size={14} className="text-[#E15162] fill-white"/>}
-                                            </div>
-                                            {isLocked ? (
-                                                <span className="text-[9px] font-bold text-red-500">BUSY</span>
-                                            ) : (
-                                                <span className={`text-[9px] font-bold leading-tight ${isSelected ? 'opacity-100 text-[#E15162]' : 'opacity-60'}`}>
-                                                    +{stats.passiveVal}% {stats.passiveType.toUpperCase()}
-                                                </span>
-                                            )}
+                                        
+                                        {/* Info Section */}
+                                        <div className="p-3 flex flex-col justify-between flex-1">
+                                            <p className="text-[11px] font-black uppercase leading-tight mb-1">#{mingle.id}</p>
+                                            <span className={`text-[10px] font-bold leading-tight ${isSelected ? 'text-[#E15162]' : 'opacity-60'}`}>
+                                                +{stats.passiveVal}% {stats.passiveType.toUpperCase()}
+                                            </span>
                                         </div>
                                     </div>
                                 )
@@ -552,11 +550,10 @@ export default function RaidsPage() {
                 {/* --- RIGHT COLUMN --- */}
                 <div className="lg:col-span-4 space-y-6">
                     
-                    {/* TARGET CARD (BOSS) - CORREGIDO */}
+                    {/* TARGET CARD (BOSS) */}
                     <div className="bg-[#1D1D1D] text-white p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                          <h3 className="text-xl font-black uppercase mb-4 flex items-center gap-2"><Skull className="text-[#E15162]"/> Target</h3>
                          
-                         {/* Boss Big Image */}
                          <div className="aspect-square rounded-xl overflow-hidden mb-4 relative border-2 border-white/20">
                              <img src={selectedLocation.bossImg} className="w-full h-full object-cover"/>
                              <div className="absolute bottom-0 inset-x-0 bg-black/80 p-3">
@@ -566,16 +563,19 @@ export default function RaidsPage() {
                          
                          <div>
                              <p className="text-[10px] font-bold uppercase opacity-50 mb-2">Possible Drops</p>
-                             {/* 2. CORRECCION UI: Grid de Loot 2x2 Horizontal */}
-                             <div className="grid grid-cols-1 gap-2">
+                             {/* 2. CORRECCION UI: Grid Boss Items 2x2 (Image Left, Info Right) */}
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                  {selectedLocation.bossLoot.map((loot:any, i:number) => (
-                                     <div key={i} className="flex h-12 bg-white/10 rounded-lg overflow-hidden border border-white/10 items-center">
-                                         <div className="w-12 h-full p-1 bg-white/5 flex items-center justify-center shrink-0">
-                                             <img src={loot.img} className="h-full w-full object-contain"/>
+                                     <div key={i} className="flex h-20 bg-white/5 rounded-lg overflow-hidden border border-white/10 items-stretch">
+                                         {/* Left: Image Container */}
+                                         <div className="w-20 bg-white/5 flex items-center justify-center p-2 shrink-0 border-r border-white/5">
+                                             <img src={loot.img} className="max-w-full max-h-full object-contain"/>
                                          </div>
-                                         <div className="px-3 flex flex-col justify-center overflow-hidden">
-                                             <p className="font-bold text-[10px] leading-tight truncate">{loot.name}</p>
-                                             <p className="text-[9px] opacity-60 truncate">{loot.desc}</p>
+                                         {/* Right: Info */}
+                                         <div className="flex-1 p-2 flex flex-col justify-between">
+                                             <p className="font-bold text-[10px] leading-tight line-clamp-2 text-[#E15162]">{loot.name}</p>
+                                             <p className="text-[8px] opacity-60 line-clamp-1">{loot.desc}</p>
+                                             <div className="mt-1 self-start bg-white/10 px-1.5 rounded text-[8px] font-mono">{loot.dropRate}</div>
                                          </div>
                                      </div>
                                  ))}
@@ -662,7 +662,7 @@ export default function RaidsPage() {
             )}
         </section>
 
-        {/* AVAILABLE RAIDS (HORIZONTAL CARDS) */}
+        {/* AVAILABLE RAIDS */}
         <section>
             <h2 className="text-xl font-black uppercase mb-4 flex items-center gap-2"><LayoutGrid/> Available Raids</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
