@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Wallet, Gift, Mail, ArrowDown, ExternalLink } from 'lucide-react';
 import { LairConnectButton } from '@/components/LairConnectButton';
+import Link from 'next/link';
 
 export const ConnectWalletView = () => {
   return (
@@ -68,7 +69,7 @@ export const ConnectWalletView = () => {
         </div>
 
         {/* 3. THE EASY PATH FOOTER */}
-        <a 
+        <Link
            href="https://useglyph.io" 
            target="_blank" 
            rel="noreferrer"
@@ -79,7 +80,7 @@ export const ConnectWalletView = () => {
               New? Create a wallet easily with Email via Glyph 
               <ExternalLink size={12} />
            </div>
-        </a>
+        </Link>
 
       </motion.div>
     </div>

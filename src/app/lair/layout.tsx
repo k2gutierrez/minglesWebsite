@@ -120,7 +120,7 @@ export default function LairLayout({ children }: { children: React.ReactNode }) 
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                <div className="flex gap-4">
                   {['Twitter', 'Discord', 'Magic Eden', 'OpenSea'].map((link) => (
-                     <a key={link} href="#" className="text-xs font-bold uppercase hover:text-[#E15162] transition-colors">{link}</a>
+                     <Link key={link} href="#" className="text-xs font-bold uppercase hover:text-[#E15162] transition-colors">{link}</Link>
                   ))}
                </div>
                <p className="text-[10px] opacity-50">© 2026 Mingles DAO. All rights reserved.</p>

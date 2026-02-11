@@ -276,7 +276,7 @@ export default function MinglesRaffle() {
                         </div>
                         <div className="flex justify-between items-end mb-4 border-b border-slate-100 pb-4">
                             <div><h3 className="text-2xl font-black text-slate-900 leading-none">Koda #3946</h3><div className="flex gap-2 mt-2"><span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1"><Zap className="w-3 h-3"/> Core Traits</span></div></div>
-                            <a href="https://opensea.io/" target="_blank" rel="noreferrer" className="group/btn relative w-12 h-12 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:shadow-xl transition-all duration-300" title="View on OpenSea"><img src={ASSETS.openSeaLogo} alt="OpenSea" className="w-6 h-6 opacity-80 group-hover/btn:opacity-100 transition object-contain"/></a>
+                            <Link href="https://opensea.io/" target="_blank" rel="noreferrer" className="group/btn relative w-12 h-12 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:shadow-xl transition-all duration-300" title="View on OpenSea"><img src={ASSETS.openSeaLogo} alt="OpenSea" className="w-6 h-6 opacity-80 group-hover/btn:opacity-100 transition object-contain"/></Link>
                         </div>
                         <p className="text-sm text-slate-500 leading-relaxed">The ultimate prize. This Koda includes rare traits and will be transferred immediately to the raffle winner.</p>
                     </div>

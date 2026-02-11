@@ -6,15 +6,17 @@ import { RainbowKitProvider, connectorsForWallets, darkTheme, lightTheme, Theme 
 import { glyphConnectorDetails, GlyphProvider, glyphWalletRK, StrategyType, WalletClientType } from "@use-glyph/sdk-react";
 import JotaiProviders from "@/components/engine/JotaiProviders";
 //import config from "@/rainbowKitConfig";
-import { WagmiProvider, createConfig } from "wagmi";
+import { WagmiProvider, createConfig, createStorage, cookieStorage } from "wagmi";
 import { Transport, Chain, http } from "viem";
 import { apeChain, curtis, anvil } from "wagmi/chains";
 import { useState, type ReactNode } from "react";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import "@rainbow-me/rainbowkit/styles.css";
 
+const queryClient = new QueryClient();
+
 export function Providers(props: { children: ReactNode }) {
-    const [queryClient] = useState(() => new QueryClient())
+    // const [queryClient] = useState(() => new QueryClient())
 
     const supportedChains: [Chain, ...Chain[]] = [apeChain, curtis, anvil];
 
@@ -44,6 +46,10 @@ export function Providers(props: { children: ReactNode }) {
             return acc;
         }, {} as Record<number, Transport>),
         connectors,
+        storage: createStorage({
+            storage: cookieStorage,
+        }),
+        ssr: true,
     })
 
     return (

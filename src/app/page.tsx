@@ -337,7 +337,7 @@ const Footer = () => (
                     <li><Link href="https://x.com/MinglesNFT" className="hover:text-mingles-red">Twitter / X</Link></li>
                     <li><Link href="⁠https://giphy.com/minglestequila" className="hover:text-mingles-red">Giphy</Link></li>
                     <li><Link href="⁠https://discord.gg/5ubwCpDZFa" className="hover:text-mingles-red">Discord</Link></li>
-                    <li><a href="mailto:mingles@mingles.com" className="hover:text-mingles-red">Contact Us</a></li>
+                    <li><Link href="mailto:mingles@mingles.com" className="hover:text-mingles-red">Contact Us</Link></li>
                 </ul>
             </div>
         </div>

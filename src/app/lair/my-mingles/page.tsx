@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ConnectWalletView } from '@/components/ConnectWalletView';
 import { fetchUserMingles } from '@/components/engine/indexer';
+import Link from 'next/link';
 
 // --- TIPOS ---
 const TEQUILA_OPTIONS = ["Blanco", "Reposado", "Añejo", "Cristalino"];
@@ -342,13 +343,13 @@ export default function MyMinglesPage() {
                         {isDownloading ? "Downloading..." : `Download ${viewMode}`}
                      </button>
                      
-                     <a 
+                     <Link
                        href={`https://twitter.com/intent/tweet?text=Check out my Mingle!&url=${window.location.href}`} 
                        target="_blank" rel="noreferrer"
                        className="w-full border-2 border-[#1D1D1D] py-4 rounded-xl font-black uppercase hover:bg-[#EDEDD9] transition-colors flex items-center justify-center gap-2"
                      >
                         <Share2 size={18} /> Share on X
-                     </a>
+                     </Link>
                   </div>
                </div>
             </motion.div>
@@ -414,9 +415,9 @@ export default function MyMinglesPage() {
                          <>
                            <p className="text-sm font-bold opacity-70 max-w-lg leading-relaxed">{profile.bio}</p>
                            {profile.twitter && (
-                              <a href={`https://twitter.com/${profile.twitter.replace('@','')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black bg-black/30 hover:bg-[#E15162] transition-colors px-3 py-1.5 rounded-lg border border-white/10">
+                              <Link href={`https://twitter.com/${profile.twitter.replace('@','')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-black bg-black/30 hover:bg-[#E15162] transition-colors px-3 py-1.5 rounded-lg border border-white/10">
                                  <Twitter size={12}/> {profile.twitter}
-                              </a>
+                              </Link>
                            )}
                          </>
                       )}
@@ -511,7 +512,7 @@ export default function MyMinglesPage() {
                         {profile.code || "GENERATING..."}
                      </div>
                      <button onClick={() => navigator.clipboard.writeText(profile.code)} className="bg-white text-[#E15162] p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"><Copy size={20} /></button>
-                     <a href={`https://twitter.com/intent/tweet?text=Join my Lair using code: ${profile.code}`} target="_blank" rel="noreferrer" className="bg-[#1D1D1D] text-white p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"><Twitter size={20} /></a>
+                     <Link href={`https://twitter.com/intent/tweet?text=Join my Lair using code: ${profile.code}`} target="_blank" rel="noreferrer" className="bg-[#1D1D1D] text-white p-3 rounded-xl border-2 border-[#1D1D1D] hover:scale-105 active:scale-95 shadow-sm"><Twitter size={20} /></Link>
                   </div>
                </div>
                <div>

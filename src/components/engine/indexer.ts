@@ -9,7 +9,7 @@ const MINGLES_CONTRACT_ADDRESS = MinglesAddress;
 // Asumiremos Curtis por ahora, cambia 'curtis' por 'apechain' para mainnet
 const indexer = new SequenceIndexer('https://apechain-indexer.sequence.app', process.env.SEQUENCER);
 
-export const fetchUserMingles = async (userAddress: string) => {
+export const fetchUserMingles2 = async (userAddress: string) => {
   try {
     const tokenBalances = await indexer.getTokenBalances({
       accountAddress: userAddress,
@@ -37,6 +37,66 @@ export const fetchUserMingles = async (userAddress: string) => {
     });
   } catch (error) {
     console.error("Error fetching Mingles:", error);
+    return [];
+  }
+};
+
+export const fetchUserMingles = async (address: string) => {
+  try {
+    let allBalances: any[] = [];
+    let keepFetching = true;
+    let pageKey: number | undefined = undefined;
+
+    // 2. BUCLE DE PAGINACIÓN
+    while (keepFetching) {
+      const response: any = await indexer.getTokenBalances({
+        accountAddress: address,
+        contractAddress: MINGLES_CONTRACT_ADDRESS,
+        includeMetadata: true,
+        page: {
+          page: pageKey,
+        }
+      });
+
+      // Acumulamos los resultados
+      if (response.balances) {
+        allBalances = [...allBalances, ...response.balances];
+      }
+
+      // Verificamos si hay más páginas
+      if (response.page && response.page.more && response.page.pageKey) {
+        pageKey = response.page.pageKey; // Guardamos la llave para la siguiente vuelta
+      } else {
+        keepFetching = false; // Se acabaron los mingles, salimos del bucle
+      }
+    }
+
+    // 3. FORMATEO DE DATOS
+    // Convertimos la data de Sequence al formato que usa tu juego
+    const formattedMingles = allBalances.map((balance) => {
+      const metadata = balance.tokenMetadata || {};
+      
+      // Buscamos el trait "Type" dentro de los atributos
+      const typeAttribute = metadata.attributes?.find(
+        (a: any) => a.trait_type === "Type"
+      );
+
+      const typeTrait = metadata.attributes.find((a: any) => a.trait_type == 'Tequila Worm');
+
+      return {
+        id: balance.tokenID,
+        image: metadata.image || "/images/placeholder.png",
+        type: typeTrait.value ? typeTrait.value : "Unknown",
+        name: metadata.name || `Mingle #${balance.tokenID}`,
+        attributes: metadata.attributes 
+      };
+    });
+    
+
+    return formattedMingles;
+
+  } catch (error) {
+    console.error("Error fetching mingles from Sequence:", error);
     return [];
   }
 };
