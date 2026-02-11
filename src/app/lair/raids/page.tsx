@@ -485,7 +485,7 @@ export default function RaidsPage() {
                         </div>
                         
                         {/* 1. MINGLES GRID (SQUARE + INFO) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
                             {sortedMingles.map(mingle => {
                                 const isLocked = lockedMingles.includes(mingle.id!);
                                 const isSelected = selectedMingles.includes(mingle.id!);
