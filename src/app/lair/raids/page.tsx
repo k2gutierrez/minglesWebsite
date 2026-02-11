@@ -259,15 +259,6 @@ export default function RaidsPage() {
     }
   };
 
-  // RESTAURED FUNCTION
-  const cancelRaid = async (sessionId: number) => {
-    if (!confirm("Cancel mission? Items used will NOT be returned.")) return;
-    setIsProcessing(true);
-    await supabase.from('active_raids').delete().eq('id', sessionId);
-    await loadUserData();
-    setIsProcessing(false);
-  };
-
   const resolveMission = async (session: any) => {
     setIsProcessing(true);
     try {
@@ -336,6 +327,14 @@ export default function RaidsPage() {
     } finally {
         setIsProcessing(false);
     }
+  };
+
+  const cancelRaid = async (sessionId: number) => {
+    if (!confirm("Cancel mission? Items used will NOT be returned.")) return;
+    setIsProcessing(true);
+    await supabase.from('active_raids').delete().eq('id', sessionId);
+    await loadUserData();
+    setIsProcessing(false);
   };
 
   // --- UI HELPERS ---
@@ -484,8 +483,8 @@ export default function RaidsPage() {
                             </div>
                         </div>
                         
-                        {/* 1. MINGLES GRID (SQUARE + INFO) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
+                        {/* 1. GRID MINGLES FIXED (2 cols mobile, 4 cols computer) */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
                             {sortedMingles.map(mingle => {
                                 const isLocked = lockedMingles.includes(mingle.id!);
                                 const isSelected = selectedMingles.includes(mingle.id!);
@@ -494,27 +493,30 @@ export default function RaidsPage() {
                                 return (
                                     <div key={mingle.id} onClick={() => !isLocked && toggleMingle(mingle.id!)}
                                          className={`
-                                            group relative flex items-center gap-3 p-2 rounded-xl border-4 transition-all cursor-pointer overflow-hidden
-                                            ${isLocked ? 'opacity-50 grayscale cursor-not-allowed bg-gray-200' : 'hover:scale-[1.02]'} 
+                                            relative flex flex-col rounded-xl border-4 overflow-visible cursor-pointer transition-all h-auto group
+                                            ${isLocked ? 'opacity-40 grayscale cursor-not-allowed bg-gray-200' : 'hover:scale-[1.02]'} 
                                             ${isSelected ? 'bg-[#1D1D1D] text-white border-[#1D1D1D]' : 'bg-white border-[#1D1D1D]/10 hover:border-[#1D1D1D]/30'}
                                          `}
                                     >
-                                        {/* Image Container: Fixed Square */}
-                                        <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-200 border border-black/10">
-                                            <img src={mingle.image} className="w-full h-full object-cover"/>
-                                            {isSelected && <div className="absolute inset-0 bg-[#E15162]/20 flex items-center justify-center"><CheckCircle2 size={24} className="text-white drop-shadow-md"/></div>}
+                                        {/* Checkmark Outside (Floating Top Right) */}
+                                        {isSelected && (
+                                            <div className="absolute -top-2 -right-2 z-20 bg-white rounded-full p-0.5 border-2 border-[#1D1D1D]">
+                                                <CheckCircle2 size={18} className="text-[#E15162] fill-white"/>
+                                            </div>
+                                        )}
+
+                                        {/* Image Container: Square Aspect Ratio */}
+                                        <div className="w-full aspect-square relative bg-gray-200 rounded-t-lg overflow-hidden">
+                                            <img src={mingle.image} className="absolute inset-0 w-full h-full object-cover"/>
+                                            {isLocked && <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]"><span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase shadow-sm">Busy</span></div>}
                                         </div>
                                         
-                                        {/* Info */}
-                                        <div className="flex flex-col justify-center min-w-0">
-                                            <p className="text-[12px] font-black uppercase leading-tight mb-1 truncate">#{mingle.id}</p>
-                                            {isLocked ? (
-                                                <span className="text-[10px] font-bold text-red-500 uppercase flex items-center gap-1"><Lock size={10}/> Busy</span>
-                                            ) : (
-                                                <span className={`text-[10px] font-bold leading-tight ${isSelected ? 'text-[#E15162]' : 'opacity-60'}`}>
-                                                    +{stats.passiveVal}% {stats.passiveType.toUpperCase()}
-                                                </span>
-                                            )}
+                                        {/* Info Section */}
+                                        <div className="p-2 flex flex-col justify-between flex-1">
+                                            <p className="text-[11px] font-black uppercase leading-tight mb-1 truncate">#{mingle.id}</p>
+                                            <span className={`text-[10px] font-bold leading-tight ${isSelected ? 'text-[#E15162]' : 'opacity-60'}`}>
+                                                +{stats.passiveVal}% {stats.passiveType.toUpperCase()}
+                                            </span>
                                         </div>
                                     </div>
                                 )
@@ -613,7 +615,6 @@ export default function RaidsPage() {
                             <p className="text-4xl font-black text-[#E15162] tracking-tighter">{estimatedTequila} $TEQ</p>
                         </div>
 
-                        {/* 3. CORRECCION UI: BOTÓN GIGANTE */}
                         <button 
                             onClick={startRaid} 
                             disabled={isProcessing} 
