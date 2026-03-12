@@ -51,6 +51,8 @@ export default function RaidsPage() {
     const [resultModal, setResultModal] = useState<any>(null);
     const [userPoints, setUserPoints] = useState(0);
 
+    const [minglesStats, setMinglesStats] = useState<Record<string, { level: number, xp: number }>>({});
+
     // ==========================================
     // 1. CARGAR CONFIGURACIÓN DEL JUEGO (ITEMS, BOSSES, RAIDS)
     // ==========================================
@@ -141,6 +143,13 @@ export default function RaidsPage() {
             });
             setUnstackedInventory(flatItems);
         }
+        // --- NUEVO: Cargar Niveles y XP de los Mingles ---
+        const { data: stats } = await supabase.from('mingle_stats').select('*');
+        if (stats) {
+            const statsMap: Record<string, { level: number, xp: number }> = {};
+            stats.forEach(s => statsMap[s.mingle_id] = { level: s.level, xp: s.xp });
+            setMinglesStats(statsMap);
+        }
     };
 
     // Recargar user data cuando cambian las raids o la wallet
@@ -185,9 +194,17 @@ export default function RaidsPage() {
         selectedMingles.forEach(id => {
             const m = mingles.find(u => u.id === id);
             const data = getWormStats(m?.type);
-            if (data.passive_type === 'boss' || data.passive_type === 'omni') bossChance += data.passive_value;
-            if (data.passive_type === 'yield' || data.passive_type === 'omni') yieldBonus += data.passive_value;
-            if (data.passive_type === 'loot' || data.passive_type === 'omni') lootBonus += data.passive_value;
+
+            // Obtenemos el nivel (Si no existe, es nivel 0)
+            const mingleLevel = minglesStats[id]?.level || 0;
+            // Calculamos el multiplicador: Nivel 0 = 1 (100%), Nivel 10 = 2 (200%)
+            const levelMultiplier = 1 + (mingleLevel * 0.1);
+            // Aplicamos el multiplicador al pasivo base
+            const effectiveStat = (data.passive_value || 0) * levelMultiplier;
+
+            if (data.passive_type === 'boss' || data.passive_type === 'omni') bossChance += effectiveStat;
+            if (data.passive_type === 'yield' || data.passive_type === 'omni') yieldBonus += effectiveStat;
+            if (data.passive_type === 'loot' || data.passive_type === 'omni') lootBonus += effectiveStat;
         });
 
         const groupedItems: Record<string, number> = {};
@@ -205,7 +222,7 @@ export default function RaidsPage() {
         }
 
         return { bossChance: Math.min(bossChance, 100), yieldBonus, lootBonus, breakdown };
-    }, [selectedMingles, selectedItemInstances, mingles, dbItems, dbTraits]);
+    }, [selectedMingles, selectedItemInstances, mingles, dbItems, dbTraits, minglesStats]);
 
     const estimatedTequila = useMemo(() => {
         if (!selectedLocation) return "0";
@@ -227,8 +244,21 @@ export default function RaidsPage() {
 
         setIsProcessing(true);
         const durationConfig = DURATION_CONFIG[selectedDurationKey];
+
+        // Calcular Reducción de Tiempo por Items
+        let sTimeReduction = 0;
+        selectedItemInstances.forEach(inst => {
+            const info = dbItems[inst.itemId];
+            if (info && info.type === 'time') sTimeReduction += info.value;
+        });
+
+        // Limitamos la reducción a máximo 90% para que no existan misiones de 0 segundos
+        const reductionMultiplier = Math.max(0.1, 1 - (sTimeReduction / 100));
+        const finalDurationSeconds = durationConfig.seconds * reductionMultiplier;
+
         const now = new Date();
-        const endTime = new Date(now.getTime() + (durationConfig.seconds * 1000));
+        const endTime = new Date(now.getTime() + (finalDurationSeconds * 1000));
+
         const itemIdsToBurn = selectedItemInstances.map(i => i.itemId);
 
         try {
@@ -263,7 +293,7 @@ export default function RaidsPage() {
     const resolveMission = async (session: any) => {
         setIsProcessing(true);
         try {
-            // 1. Validar Seguridad (Que el usuario aún tenga los Mingles en su wallet)
+            // 1. VALIDAR SEGURIDAD (Que el usuario siga teniendo los Mingles)
             const currentMingles = await fetchUserMingles(address!);
             const stillOwns = session.squad.every((id: string) => currentMingles.some((m: any) => m.id === id));
 
@@ -278,19 +308,28 @@ export default function RaidsPage() {
             const raidConfig = dbRaids.find(r => r.id === session.raid_id);
             if (!raidConfig) throw new Error("Configuración de Raid no encontrada");
 
-            // 2. Calcular Modificadores (Suma de los pasivos de los Mingles y los Items usados)
+            // 2. CALCULAR MODIFICADORES (Pasivos escalados por Nivel + Items)
             let sYieldBonus = 0;
             let sBossChance = 0;
             let sLootBonus = 0;
+            let sXpBonus = 0; // Para sumar el % de los items de XP
 
+            // A. Sumar modificadores de los Mingles (con su bono por nivel)
             session.squad.forEach((id: string) => {
                 const m = currentMingles.find((u: any) => u.id === id);
                 const d = getWormStats(m?.type);
-                if (d.passive_type === 'yield' || d.passive_type === 'omni') sYieldBonus += d.passive_value || 0;
-                if (d.passive_type === 'boss' || d.passive_type === 'omni') sBossChance += d.passive_value || 0;
-                if (d.passive_type === 'loot' || d.passive_type === 'omni') sLootBonus += d.passive_value || 0;
+
+                // Matemática de Nivel: Base + (Base * Nivel * 0.1)
+                const mingleLevel = minglesStats[id]?.level || 0;
+                const levelMultiplier = 1 + (mingleLevel * 0.1);
+                const effectiveStat = (d.passive_value || 0) * levelMultiplier;
+
+                if (d.passive_type === 'yield' || d.passive_type === 'omni') sYieldBonus += effectiveStat;
+                if (d.passive_type === 'boss' || d.passive_type === 'omni') sBossChance += effectiveStat;
+                if (d.passive_type === 'loot' || d.passive_type === 'omni') sLootBonus += effectiveStat;
             });
 
+            // B. Sumar modificadores de los Items usados en la Raid
             if (session.items) {
                 session.items.forEach((itemId: string) => {
                     const info = dbItems[itemId];
@@ -298,16 +337,17 @@ export default function RaidsPage() {
                         if (info.type === 'yield') sYieldBonus += info.value || 0;
                         if (info.type === 'boss') sBossChance += info.value || 0;
                         if (info.type === 'loot') sLootBonus += info.value || 0;
+                        if (info.type === 'xp') sXpBonus += info.value || 0;
                     }
                 });
             }
 
-            // Bono extra si llevan el squad de 5 o más
+            // C. Bono extra de daño si llevan el squad de 5 o más
             if (session.squad.length >= 5) {
                 sBossChance += 50 + ((Math.min(session.squad.length, 10) - 5) * 5);
             }
 
-            // 3. PAGO DE TEQUILA (Garantizado por el tiempo de la misión)
+            // 3. PAGO DE TEQUILA (Según la duración que configuró Memo en el Admin)
             const durationSec = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 1000;
             let daysKey: 7 | 15 | 30 = 7;
             if (durationSec > 1000000) daysKey = 15;
@@ -318,58 +358,104 @@ export default function RaidsPage() {
             const yieldMult = 1 + (sYieldBonus / 100);
             const totalTequila = Math.floor(baseAmount * session.squad.length * yieldMult);
 
-            // 4. EVENTO: BOSS FIGHT (Calculamos si ganan o pierden la raid)
+            // 4. EVENTO: BOSS FIGHT (Calculamos si ganan o pierden)
             const roll = Math.random() * 100;
             const bossDefeated = roll <= Math.min(sBossChance, 100);
 
-            // 5. GUARDAR EN BASE DE DATOS: Tequila + Stats de Victoria/Derrota en un solo paso
+            // 5. GUARDAR EN BD: Tequila y Estadísticas (Victorias/Derrotas)
             await supabase.rpc('add_points_and_stats', {
                 p_wallet: address,
                 p_amount: totalTequila,
                 p_is_win: bossDefeated
             });
 
-            // 6. LOOT DEL BOSS (Solo cae si el boss fue derrotado)
+            // 6. REPARTIR EXPERIENCIA (XP)
+            let earnedXp = raidConfig.base_xp || 50;
+            // Incrementamos la XP si usaron items tipo 'xp'
+            earnedXp = Math.floor(earnedXp * (1 + (sXpBonus / 100)));
+
+            await supabase.rpc('add_mingles_xp', {
+                p_mingle_ids: session.squad,
+                p_xp_amount: earnedXp
+            });
+
+            // 7. LOOT DEL BOSS (Si lo mataron)
             let bossLoot = null;
             if (bossDefeated) {
                 const lootRoll = Math.random() * 100;
-                const lootChance = 30 + sLootBonus; // Probabilidad Base 30% + Bonus del equipo
+                const lootChance = 30 + sLootBonus; // Base 30% + el bono de loot
 
-                // Si el tiro de suerte funciona y el boss tiene items configurados
                 if (lootRoll <= lootChance && raidConfig.bossLoot && raidConfig.bossLoot.length > 0) {
-                    bossLoot = raidConfig.bossLoot[0]; // Toma el primer item para este MVP
+                    bossLoot = raidConfig.bossLoot[0];
 
-                    // Guardar el item encontrado en el inventario del jugador
-                    const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: bossLoot.id }).single();
+                    const itemIdToSave = bossLoot.item_id || bossLoot.id;
+                    const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemIdToSave }).single();
                     await supabase.from('player_inventory').upsert({
                         wallet_address: address,
-                        item_id: bossLoot.id,
+                        item_id: itemIdToSave,
                         quantity: (exist?.quantity || 0) + 1
                     }, { onConflict: 'wallet_address, item_id' });
                 }
             }
 
-            // 7. LOOT GENÉRICO DE MINGLES (El 5% de encontrar una Reliquia Perdida)
+            // 8. LOOT EXCLUSIVO DE MINGLES
             const mingleLoot: any[] = [];
-            session.squad.forEach((mId: string) => {
-                if (Math.random() < 0.05) {
-                    mingleLoot.push({
-                        name: "Lost Relic",
-                        img: "https://placehold.co/100x100/purple/fff?text=Relic",
-                        desc: `Found by Mingle #${mId}`
-                    });
-                }
-            });
 
-            // 8. LIMPIEZA Y RESULTADO: Borramos la misión activa y mostramos el modal
+            if (bossDefeated) {
+                for (const mId of session.squad) {
+                    const mingleNFT = currentMingles.find((u: any) => u.id === mId);
+                    const traits = getWormStats(mingleNFT?.type);
+                    const mingleLevel = minglesStats[mId]?.level || 0;
+
+                    // LA REGLA DE MEMO: 5% Base + 1% por Nivel
+                    const exclusiveChance = 5 + mingleLevel;
+
+                    // Si el Mingle tiene un item exclusivo configurado en BD, tira los dados
+                    if (traits.exclusive_item_id) {
+                        const personalRoll = Math.random() * 100;
+                        if (personalRoll <= exclusiveChance) {
+                            const itemInfo = dbItems[traits.exclusive_item_id];
+                            if (itemInfo) {
+                                mingleLoot.push({
+                                    ...itemInfo,
+                                    desc: `Encontrado por ${mingleNFT?.type} #${mId}`
+                                });
+
+                                const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemInfo.id }).single();
+                                await supabase.from('player_inventory').upsert({
+                                    wallet_address: address,
+                                    item_id: itemInfo.id,
+                                    quantity: (exist?.quantity || 0) + 1
+                                }, { onConflict: 'wallet_address, item_id' });
+                            }
+                        }
+                    }
+
+                    // (Opcional) Mantenemos el Easter Egg de la Reliquia con un 5% estático
+                    if (Math.random() < 0.05) {
+                        mingleLoot.push({
+                            name: "Lost Relic",
+                            img: "https://placehold.co/100x100/purple/fff?text=Relic",
+                            desc: `Encontrado por Mingle #${mId}`
+                        });
+                    }
+                }
+            }
+
+            // 9. LIMPIEZA Y MODAL DE RESULTADOS
             await supabase.from('active_raids').delete().eq('id', session.id);
 
             setResultModal({
                 bossDefeated,
-                rewards: { tequila: totalTequila, bossLoot, mingleLoot }
+                rewards: {
+                    tequila: totalTequila,
+                    xpEarned: earnedXp, // Enviamos la XP ganada al UI
+                    bossLoot,
+                    mingleLoot
+                }
             });
 
-            await loadUserData(); // Refrescamos la pantalla
+            await loadUserData();
 
         } catch (e) {
             console.error(e);
@@ -559,10 +645,25 @@ export default function RaidsPage() {
                                                 <img src={mingle.image} className="absolute inset-0 w-full h-full object-cover" />
                                                 {isLocked && <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]"><span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase shadow-sm">Busy</span></div>}
                                             </div>
-                                            <div className="p-2 flex flex-col justify-between flex-1">
+                                            {/*<div className="p-2 flex flex-col justify-between flex-1">
                                                 <p className="text-[11px] font-black uppercase leading-tight mb-1 truncate">#{mingle.id}</p>
                                                 <span className={`text-[10px] font-bold leading-tight ${isSelected ? 'text-[#E15162]' : 'opacity-60'}`}>
                                                     +{stats.passive_value}% {stats.passive_type?.toUpperCase()}
+                                                </span>
+                                            </div>*/}
+                                            {/* Info Section */}
+                                            <div className="p-2 flex flex-col justify-between flex-1">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <p className="text-[11px] font-black uppercase leading-tight truncate">#{mingle.id}</p>
+                                                    {/* Etiqueta de Nivel */}
+                                                    <span className="bg-[#1D1D1D] text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+                                                        Lv. {minglesStats[mingle.id!]?.level || 0}
+                                                    </span>
+                                                </div>
+
+                                                {/* Mostrar el pasivo ya potenciado por el nivel */}
+                                                <span className={`text-[10px] font-bold leading-tight ${isSelected ? 'text-[#E15162]' : 'opacity-60'}`}>
+                                                    +{((stats.passive_value || 0) * (1 + ((minglesStats[mingle.id!]?.level || 0) * 0.1))).toFixed(1)}% {stats.passive_type?.toUpperCase()}
                                                 </span>
                                             </div>
                                         </div>

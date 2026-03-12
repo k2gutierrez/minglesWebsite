@@ -174,12 +174,17 @@ export default function AdminPage() {
             case 'game_items':
                 return (
                     <>
-                        <label className="text-xs font-bold text-gray-500">ID Único (Ej: rusty_key)</label>
+                        <label className="text-xs font-bold text-gray-500">ID Único (Ej: potion_xp)</label>
                         <input placeholder="ID" value={editForm.id || ''} onChange={e => setEditForm({ ...editForm, id: e.target.value })} className={`border p-2 rounded w-full mb-2 ${editingId !== 'new' ? 'bg-gray-100 text-gray-500' : ''}`} disabled={editingId !== 'new'} />
 
                         <input placeholder="Nombre" value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="border p-2 rounded w-full mb-2" />
                         <select value={editForm.type || 'loot'} onChange={e => setEditForm({ ...editForm, type: e.target.value })} className="border p-2 rounded w-full mb-2">
-                            <option value="yield">Yield</option><option value="boss">Boss</option><option value="loot">Loot</option>
+                            <option value="yield">Yield Bonus (Tequila)</option>
+                            <option value="boss">Boss Damage</option>
+                            <option value="loot">Loot Chance</option>
+                            {/* NUEVAS OPCIONES */}
+                            <option value="time">Reducir Tiempo (Raid)</option>
+                            <option value="xp">Bono de Experiencia (XP)</option>
                         </select>
                         <input type="number" placeholder="Valor %" value={editForm.value || 0} onChange={e => setEditForm({ ...editForm, value: parseInt(e.target.value) })} className="border p-2 rounded w-full mb-2" />
                         <input placeholder="Descripción" value={editForm.description || ''} onChange={e => setEditForm({ ...editForm, description: e.target.value })} className="border p-2 rounded w-full mb-2" />
@@ -209,13 +214,13 @@ export default function AdminPage() {
                         <input type="number" placeholder="Valor Pasivo %" value={editForm.passive_value || 0} onChange={e => setEditForm({ ...editForm, passive_value: parseInt(e.target.value) })} className="border p-2 rounded w-full mb-4" />
 
                         <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                            <label className="text-sm font-black text-blue-900 block mb-2">💎 Item Exclusivo (Opcional)</label>
+                            <label className="text-sm font-black text-blue-900 block mb-2">💎 Item Exclusivo</label>
                             <select value={editForm.exclusive_item_id || ''} onChange={e => setEditForm({ ...editForm, exclusive_item_id: e.target.value })} className="border p-2 rounded w-full mb-2 text-sm">
                                 <option value="">-- Ningún Item --</option>
                                 {allItems.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                             </select>
-                            <input type="number" placeholder="% Drop Exclusivo" value={editForm.exclusive_drop_rate || ''} onChange={e => setEditForm({ ...editForm, exclusive_drop_rate: parseInt(e.target.value) })} className="border p-2 rounded w-full text-sm" />
-                            <p className="text-[10px] text-blue-600 mt-1">Probabilidad de que este tipo de Mingle encuentre este item al ganar una raid.</p>
+                            {/* Eliminamos el input de Drop Rate que causaba el error. Ahora es automático. */}
+                            <p className="text-[10px] text-blue-600 mt-1">Probabilidad automática: 5% base + 1% por nivel del Mingle.</p>
                         </div>
                     </>
                 );
