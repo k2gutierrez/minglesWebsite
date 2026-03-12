@@ -83,7 +83,7 @@ const Hero = () => (
         <div className="absolute inset-0 bg-mingles-red/10 rounded-full blur-3xl transform scale-90"></div>
         {/* Placeholder for "Mingles Characters in social scene" */}
         <div className="relative bg-transparent border-4 border-mingles-dark rounded-3xl p-4 shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] rotate-2 hover:rotate-0 transition-transform duration-500 aspect-square flex items-center justify-center overflow-hidden">
-             <Image className='rounded-xl' src={"/images/events/cheers.jpeg"} alt='Cheers!' width={1000} height={1000} />
+             <Image className='rounded-xl' src={"/images/MinglesFriends.webp"} alt='Cheers!' width={1500} height={1500} />
              {/*<span className="text-gray-400 font-bold text-center p-8">
                  [IMAGEN AQUI: Personajes Mingles (Gusanos Tequileros) jugando y brindando en estilo Crypto/Gamer 3D o 2D vibrante]
              </span>*/}
