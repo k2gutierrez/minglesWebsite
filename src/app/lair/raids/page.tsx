@@ -18,9 +18,9 @@ import { fetchUserMingles } from '@/components/engine/indexer';
 // CONFIGURACIÓN DE TIEMPO
 const IS_DEV_MODE = true;
 const DURATION_CONFIG = {
-    7: { label: "7 Days", seconds: IS_DEV_MODE ? 60 : 604800 },
-    15: { label: "15 Days", seconds: IS_DEV_MODE ? 120 : 1296000 },
-    30: { label: "30 Days", seconds: IS_DEV_MODE ? 180 : 2592000 }
+    "1": { label: "1 Hora", seconds: IS_DEV_MODE ? 2 : 3600 },
+    "12": { label: "12 Horas", seconds: IS_DEV_MODE ? 5 : 43200 },
+    "24": { label: "24 Horas", seconds: IS_DEV_MODE ? 8 : 86400 }
 };
 
 export default function RaidsPage() {
@@ -36,7 +36,7 @@ export default function RaidsPage() {
     // --- ESTADOS DE UI ---
     const [view, setView] = useState<'dashboard' | 'setup'>('dashboard');
     const [selectedLocation, setSelectedLocation] = useState<any>(null);
-    const [selectedDurationKey, setSelectedDurationKey] = useState<7 | 15 | 30>(7);
+    const [selectedDurationKey, setSelectedDurationKey] = useState<1 | 12 | 24>(1);
     const [selectedMingles, setSelectedMingles] = useState<string[]>([]);
     const [selectedItemInstances, setSelectedItemInstances] = useState<{ itemId: string, uid: string }[]>([]);
     const [squadFilter, setSquadFilter] = useState<'all' | 'yield' | 'boss' | 'loot'>('all');
@@ -165,12 +165,26 @@ export default function RaidsPage() {
     // 3. HELPERS (Updated to use State instead of Constants)
     // ==========================================
 
-    const getWormStats = (type?: string) => {
-        if (!type) return { passiveType: 'yield', passiveVal: 0 }; // Fallback
+
+    const getWormStats = (type?: string): any => {
+        // 1. Soluciona el error de "undefined": Si el gusano no tiene tipo, regresa esto por defecto.
+        if (!type) return { passive_type: 'yield', passive_value: 0 };
+
         const normalizedType = type.toLowerCase();
-        // Buscar match parcial en las keys de dbTraits
-        const key = Object.keys(dbTraits).find(k => normalizedType.includes(k));
-        return key ? dbTraits[key] : { passiveType: 'yield', passiveVal: 0 };
+
+        // 2. Busca match parcial ignorando mayúsculas/minúsculas en ambas partes
+        // (Ej: Si tu NFT es "Golden Mingle", encontrará la llave "gold" en la DB)
+        const key = Object.keys(dbTraits).find(k =>
+            normalizedType.includes(k.toLowerCase())
+        );
+
+        // 3. Retorna la info, asegurando que use los nombres de columnas de Supabase
+        if (key && dbTraits[key]) {
+            return dbTraits[key];
+        }
+
+        // Fallback si no encuentra la raza en la base de datos
+        return { passive_type: 'yield', passive_value: 0 };
     };
 
     // ==========================================
@@ -349,11 +363,11 @@ export default function RaidsPage() {
 
             // 3. PAGO DE TEQUILA (Según la duración que configuró Memo en el Admin)
             const durationSec = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 1000;
-            let daysKey: 7 | 15 | 30 = 7;
-            if (durationSec > 1000000) daysKey = 15;
-            if (durationSec > 2000000) daysKey = 30;
+            let hoursKey: 1 | 12 | 24 = 1;
+            if (durationSec > 30000) hoursKey = 12; // Si duró más de ~8 horas, cobramos la de 12
+            if (durationSec > 70000) hoursKey = 24; // Si duró más de ~19 horas, cobramos la de 24
 
-            const range = raidConfig.yields[daysKey] || raidConfig.yields["7"];
+            const range = raidConfig.yield_config?.[hoursKey] || raidConfig.yield_config?.["1"] || { min: 0, max: 0 };
             const baseAmount = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
             const yieldMult = 1 + (sYieldBonus / 100);
             const totalTequila = Math.floor(baseAmount * session.squad.length * yieldMult);
@@ -383,12 +397,22 @@ export default function RaidsPage() {
             let bossLoot = null;
             if (bossDefeated) {
                 const lootRoll = Math.random() * 100;
-                const lootChance = 30 + sLootBonus; // Base 30% + el bono de loot
+                const lootChance = 30 + sLootBonus;
 
-                if (lootRoll <= lootChance && raidConfig.bossLoot && raidConfig.bossLoot.length > 0) {
-                    bossLoot = raidConfig.bossLoot[0];
+                // Usa loot_table en lugar de bossLoot (según cómo lo guardaste en admin)
+                if (lootRoll <= lootChance && raidConfig.loot_table && raidConfig.loot_table.length > 0) {
+                    const droppedLoot = raidConfig.loot_table[0];
+                    const itemIdToSave = droppedLoot.item_id;
 
-                    const itemIdToSave = bossLoot.item_id || bossLoot.id;
+                    // Buscar la info completa del item para mostrar la imagen en el modal
+                    const fullItemInfo = dbItems[itemIdToSave];
+
+                    bossLoot = {
+                        id: itemIdToSave,
+                        name: fullItemInfo?.name || "Boss Item",
+                        image_url: fullItemInfo?.image_url || "" // Aseguramos la imagen
+                    };
+
                     const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemIdToSave }).single();
                     await supabase.from('player_inventory').upsert({
                         wallet_address: address,
@@ -431,14 +455,6 @@ export default function RaidsPage() {
                         }
                     }
 
-                    // (Opcional) Mantenemos el Easter Egg de la Reliquia con un 5% estático
-                    if (Math.random() < 0.05) {
-                        mingleLoot.push({
-                            name: "Lost Relic",
-                            img: "https://placehold.co/100x100/purple/fff?text=Relic",
-                            desc: `Encontrado por Mingle #${mId}`
-                        });
-                    }
                 }
             }
 
@@ -601,7 +617,7 @@ export default function RaidsPage() {
                         <div className="bg-white p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                             <h3 className="text-xl font-black uppercase mb-4 flex items-center gap-2"><Clock /> 1. Duration</h3>
                             <div className="grid grid-cols-3 gap-3 md:gap-4">
-                                {([7, 15, 30] as const).map(d => (
+                                {([1, 12, 24] as const).map(d => (
                                     <div key={d} onClick={() => setSelectedDurationKey(d)} className={`cursor-pointer border-4 rounded-xl p-3 md:p-4 text-center transition-all ${selectedDurationKey === d ? 'bg-[#E15162] border-[#E15162] text-white shadow-lg' : 'border-[#1D1D1D] hover:bg-gray-50'}`}>
                                         <span className="text-xl md:text-2xl font-black">{DURATION_CONFIG[d].label}</span>
                                     </div>

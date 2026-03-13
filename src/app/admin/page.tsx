@@ -225,7 +225,7 @@ export default function AdminPage() {
                     </>
                 );
             case 'game_raids':
-                const yields = editForm.yield_config || { "7": { min: 0, max: 0 }, "15": { min: 0, max: 0 }, "30": { min: 0, max: 0 } };
+                const yields = editForm.yield_config || { "1": { min: 0, max: 0 }, "12": { min: 0, max: 0 }, "24": { min: 0, max: 0 } };
                 const loot = editForm.loot_table || [];
 
                 return (
@@ -273,12 +273,12 @@ export default function AdminPage() {
 
                         <div className="bg-gray-50 p-4 rounded-xl border">
                             <label className="text-sm font-black mb-2 block">💰 Tequila Rewards (Yield Config)</label>
-                            {(['7', '15', '30'] as const).map(days => (
-                                <div key={days} className="flex items-center gap-2 mb-2">
-                                    <span className="w-16 font-bold text-xs text-gray-600">{days} Días:</span>
-                                    <input type="number" placeholder="Min" value={yields[days]?.min || 0} onChange={e => setEditForm({ ...editForm, yield_config: { ...yields, [days]: { ...yields[days], min: parseInt(e.target.value) } } })} className="border p-1.5 rounded w-full text-sm" />
+                            {(['1', '12', '24'] as const).map(hours => (
+                                <div key={hours} className="flex items-center gap-2 mb-2">
+                                    <span className="w-16 font-bold text-xs text-gray-600">{hours} Hora(s):</span>
+                                    <input type="number" placeholder="Min" value={yields[hours]?.min || 0} onChange={e => setEditForm({ ...editForm, yield_config: { ...yields, [hours]: { ...yields[hours], min: parseInt(e.target.value) } } })} className="border p-1.5 rounded w-full text-sm" />
                                     <span className="text-gray-400">-</span>
-                                    <input type="number" placeholder="Max" value={yields[days]?.max || 0} onChange={e => setEditForm({ ...editForm, yield_config: { ...yields, [days]: { ...yields[days], max: parseInt(e.target.value) } } })} className="border p-1.5 rounded w-full text-sm" />
+                                    <input type="number" placeholder="Max" value={yields[hours]?.max || 0} onChange={e => setEditForm({ ...editForm, yield_config: { ...yields, [hours]: { ...yields[hours], max: parseInt(e.target.value) } } })} className="border p-1.5 rounded w-full text-sm" />
                                 </div>
                             ))}
                         </div>
