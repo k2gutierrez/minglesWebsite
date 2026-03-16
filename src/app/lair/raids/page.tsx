@@ -18,9 +18,9 @@ import { fetchUserMingles } from '@/components/engine/indexer';
 // CONFIGURACIÓN DE TIEMPO
 const IS_DEV_MODE = true;
 const DURATION_CONFIG = {
-    "1": { label: "1 Hora", seconds: IS_DEV_MODE ? 2 : 3600 },
-    "12": { label: "12 Horas", seconds: IS_DEV_MODE ? 5 : 43200 },
-    "24": { label: "24 Horas", seconds: IS_DEV_MODE ? 8 : 86400 }
+    "1": { label: "1 Hour", seconds: IS_DEV_MODE ? 2 : 3600 },
+    "12": { label: "12 Hours", seconds: IS_DEV_MODE ? 5 : 43200 },
+    "24": { label: "24 Hours", seconds: IS_DEV_MODE ? 8 : 86400 }
 };
 
 export default function RaidsPage() {
@@ -167,24 +167,19 @@ export default function RaidsPage() {
 
 
     const getWormStats = (type?: string): any => {
-        // 1. Soluciona el error de "undefined": Si el gusano no tiene tipo, regresa esto por defecto.
-        if (!type) return { passive_type: 'yield', passive_value: 0 };
+        // 1. Validar que el tipo y la base de datos existan
+        if (!type || !dbTraits || !Array.isArray(dbTraits)) {
+            return { passive_type: 'yield', passive_value: 0 };
+        }
 
         const normalizedType = type.toLowerCase();
 
-        // 2. Busca match parcial ignorando mayúsculas/minúsculas en ambas partes
-        // (Ej: Si tu NFT es "Golden Mingle", encontrará la llave "gold" en la DB)
-        const key = Object.keys(dbTraits).find(k =>
-            normalizedType.includes(k.toLowerCase())
+        // 2. Buscar en el ARREGLO de la base de datos
+        const found = dbTraits.find(t =>
+            t.type_key && normalizedType.includes(t.type_key.toLowerCase())
         );
 
-        // 3. Retorna la info, asegurando que use los nombres de columnas de Supabase
-        if (key && dbTraits[key]) {
-            return dbTraits[key];
-        }
-
-        // Fallback si no encuentra la raza en la base de datos
-        return { passive_type: 'yield', passive_value: 0 };
+        return found || { passive_type: 'yield', passive_value: 0 };
     };
 
     // ==========================================
@@ -307,7 +302,6 @@ export default function RaidsPage() {
     const resolveMission = async (session: any) => {
         setIsProcessing(true);
         try {
-            // 1. VALIDAR SEGURIDAD (Que el usuario siga teniendo los Mingles)
             const currentMingles = await fetchUserMingles(address!);
             const stillOwns = session.squad.every((id: string) => currentMingles.some((m: any) => m.id === id));
 
@@ -322,18 +316,13 @@ export default function RaidsPage() {
             const raidConfig = dbRaids.find(r => r.id === session.raid_id);
             if (!raidConfig) throw new Error("Configuración de Raid no encontrada");
 
-            // 2. CALCULAR MODIFICADORES (Pasivos escalados por Nivel + Items)
-            let sYieldBonus = 0;
-            let sBossChance = 0;
-            let sLootBonus = 0;
-            let sXpBonus = 0; // Para sumar el % de los items de XP
+            let sYieldBonus = 0; let sBossChance = 0; let sLootBonus = 0; let sXpBonus = 0;
 
-            // A. Sumar modificadores de los Mingles (con su bono por nivel)
+            // --- CÁLCULO DE MINGLES SEGURO ---
             session.squad.forEach((id: string) => {
                 const m = currentMingles.find((u: any) => u.id === id);
                 const d = getWormStats(m?.type);
 
-                // Matemática de Nivel: Base + (Base * Nivel * 0.1)
                 const mingleLevel = minglesStats[id]?.level || 0;
                 const levelMultiplier = 1 + (mingleLevel * 0.1);
                 const effectiveStat = (d.passive_value || 0) * levelMultiplier;
@@ -343,8 +332,8 @@ export default function RaidsPage() {
                 if (d.passive_type === 'loot' || d.passive_type === 'omni') sLootBonus += effectiveStat;
             });
 
-            // B. Sumar modificadores de los Items usados en la Raid
-            if (session.items) {
+            // --- CÁLCULO DE ITEMS SEGURO (Previene Bug 6) ---
+            if (session.items && Array.isArray(session.items)) {
                 session.items.forEach((itemId: string) => {
                     const info = dbItems[itemId];
                     if (info) {
@@ -356,85 +345,67 @@ export default function RaidsPage() {
                 });
             }
 
-            // C. Bono extra de daño si llevan el squad de 5 o más
-            if (session.squad.length >= 5) {
-                sBossChance += 50 + ((Math.min(session.squad.length, 10) - 5) * 5);
-            }
-
-            // 3. PAGO DE TEQUILA (Según la duración que configuró Memo en el Admin)
+            // --- BUG 5: REPARTO DE TEQUILA CORREGIDO ---
             const durationSec = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 1000;
-            let hoursKey: 1 | 12 | 24 = 1;
-            if (durationSec > 30000) hoursKey = 12; // Si duró más de ~8 horas, cobramos la de 12
-            if (durationSec > 70000) hoursKey = 24; // Si duró más de ~19 horas, cobramos la de 24
+            let hoursKey = "1"; // Forzamos que sea texto para que coincida con el JSON
+            if (durationSec > 30000) hoursKey = "12";
+            if (durationSec > 70000) hoursKey = "24";
 
-            const range = raidConfig.yield_config?.[hoursKey] || raidConfig.yield_config?.["1"] || { min: 0, max: 0 };
+            // Aseguramos leer el JSON como texto y ponemos un fallback seguro
+            const yieldConfig = typeof raidConfig.yield_config === 'string' ? JSON.parse(raidConfig.yield_config) : raidConfig.yield_config;
+            const range = yieldConfig?.[hoursKey] || { min: 100, max: 200 };
+
             const baseAmount = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
             const yieldMult = 1 + (sYieldBonus / 100);
             const totalTequila = Math.floor(baseAmount * session.squad.length * yieldMult);
 
-            // 4. EVENTO: BOSS FIGHT (Calculamos si ganan o pierden)
             const roll = Math.random() * 100;
             const bossDefeated = roll <= Math.min(sBossChance, 100);
 
-            // 5. GUARDAR EN BD: Tequila y Estadísticas (Victorias/Derrotas)
             await supabase.rpc('add_points_and_stats', {
-                p_wallet: address,
-                p_amount: totalTequila,
-                p_is_win: bossDefeated
+                p_wallet: address, p_amount: totalTequila, p_is_win: bossDefeated
             });
 
-            // 6. REPARTIR EXPERIENCIA (XP)
             let earnedXp = raidConfig.base_xp || 50;
-            // Incrementamos la XP si usaron items tipo 'xp'
             earnedXp = Math.floor(earnedXp * (1 + (sXpBonus / 100)));
+            await supabase.rpc('add_mingles_xp', { p_mingle_ids: session.squad, p_xp_amount: earnedXp });
 
-            await supabase.rpc('add_mingles_xp', {
-                p_mingle_ids: session.squad,
-                p_xp_amount: earnedXp
-            });
-
-            // 7. LOOT DEL BOSS (Si lo mataron)
             let bossLoot = null;
             if (bossDefeated) {
                 const lootRoll = Math.random() * 100;
                 const lootChance = 30 + sLootBonus;
 
-                // Usa loot_table en lugar de bossLoot (según cómo lo guardaste en admin)
-                if (lootRoll <= lootChance && raidConfig.loot_table && raidConfig.loot_table.length > 0) {
-                    const droppedLoot = raidConfig.loot_table[0];
-                    const itemIdToSave = droppedLoot.item_id;
+                const lootTable = typeof raidConfig.loot_table === 'string' ? JSON.parse(raidConfig.loot_table) : raidConfig.loot_table;
 
-                    // Buscar la info completa del item para mostrar la imagen en el modal
+                if (lootRoll <= lootChance && lootTable && lootTable.length > 0) {
+                    const droppedLoot = lootTable[0];
+                    const itemIdToSave = droppedLoot.item_id || droppedLoot.id;
                     const fullItemInfo = dbItems[itemIdToSave];
 
+                    // Mapeamos img para el modal
                     bossLoot = {
                         id: itemIdToSave,
-                        name: fullItemInfo?.name || "Boss Item",
-                        image_url: fullItemInfo?.image_url || "" // Aseguramos la imagen
+                        name: fullItemInfo?.name || "Boss Loot",
+                        img: fullItemInfo?.image_url || "", // <-- BUG 3 Resuelto
+                        image_url: fullItemInfo?.image_url || ""
                     };
 
                     const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemIdToSave }).single();
                     await supabase.from('player_inventory').upsert({
-                        wallet_address: address,
-                        item_id: itemIdToSave,
-                        quantity: (exist?.quantity || 0) + 1
+                        wallet_address: address, item_id: itemIdToSave, quantity: (exist?.quantity || 0) + 1
                     }, { onConflict: 'wallet_address, item_id' });
                 }
             }
 
-            // 8. LOOT EXCLUSIVO DE MINGLES
             const mingleLoot: any[] = [];
-
             if (bossDefeated) {
                 for (const mId of session.squad) {
                     const mingleNFT = currentMingles.find((u: any) => u.id === mId);
                     const traits = getWormStats(mingleNFT?.type);
                     const mingleLevel = minglesStats[mId]?.level || 0;
 
-                    // LA REGLA DE MEMO: 5% Base + 1% por Nivel
                     const exclusiveChance = 5 + mingleLevel;
 
-                    // Si el Mingle tiene un item exclusivo configurado en BD, tira los dados
                     if (traits.exclusive_item_id) {
                         const personalRoll = Math.random() * 100;
                         if (personalRoll <= exclusiveChance) {
@@ -442,40 +413,33 @@ export default function RaidsPage() {
                             if (itemInfo) {
                                 mingleLoot.push({
                                     ...itemInfo,
-                                    desc: `Encontrado por ${mingleNFT?.type} #${mId}`
+                                    img: itemInfo.image_url, // <-- BUG 3 Resuelto
+                                    image: itemInfo.image_url,
+                                    desc: `Found by ${mingleNFT?.type} #${mId}`
                                 });
 
                                 const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemInfo.id }).single();
                                 await supabase.from('player_inventory').upsert({
-                                    wallet_address: address,
-                                    item_id: itemInfo.id,
-                                    quantity: (exist?.quantity || 0) + 1
+                                    wallet_address: address, item_id: itemInfo.id, quantity: (exist?.quantity || 0) + 1
                                 }, { onConflict: 'wallet_address, item_id' });
                             }
                         }
                     }
-
                 }
             }
 
-            // 9. LIMPIEZA Y MODAL DE RESULTADOS
             await supabase.from('active_raids').delete().eq('id', session.id);
 
             setResultModal({
                 bossDefeated,
-                rewards: {
-                    tequila: totalTequila,
-                    xpEarned: earnedXp, // Enviamos la XP ganada al UI
-                    bossLoot,
-                    mingleLoot
-                }
+                rewards: { tequila: totalTequila, xpEarned: earnedXp, bossLoot, mingleLoot }
             });
 
             await loadUserData();
 
         } catch (e) {
             console.error(e);
-            alert("Error resolviendo la misión.");
+            alert("Error resolviendo la misión. Revisa la consola.");
         } finally {
             setIsProcessing(false);
         }
