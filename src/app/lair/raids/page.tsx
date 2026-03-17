@@ -26,7 +26,7 @@ const DURATION_CONFIG: any = {
 
 export default function RaidsPage() {
     const { address, isConnected } = useAccount();
-    const mingles = useAtomValue(minglesAtom); 
+    const mingles = useAtomValue(minglesAtom);
 
     // --- ESTADOS DE DATOS DEL JUEGO ---
     const [dbItems, setDbItems] = useState<Record<string, any>>({});
@@ -143,7 +143,7 @@ export default function RaidsPage() {
     const getWormStats = (type?: string): any => {
         if (!type || !dbTraits) return { passive_type: 'yield', passive_value: 0 };
         const normalizedType = type.toLowerCase();
-        
+
         const foundKey = Object.keys(dbTraits).find(k => normalizedType.includes(k.toLowerCase()));
         if (foundKey && dbTraits[foundKey]) return dbTraits[foundKey];
         return { passive_type: 'yield', passive_value: 0 };
@@ -185,7 +185,7 @@ export default function RaidsPage() {
         selectedItemInstances.forEach(inst => { groupedItems[inst.itemId] = (groupedItems[inst.itemId] || 0) + 1; });
 
         for (const [id, count] of Object.entries(groupedItems)) {
-            const info = dbItems[id]; 
+            const info = dbItems[id];
             if (info && info.type && typeof info.value !== 'undefined') {
                 const totalVal = info.value * count;
                 if (info.type === 'boss') bossChance += totalVal;
@@ -206,7 +206,7 @@ export default function RaidsPage() {
         // 🧮 3. Usar Motor para Predicción de Tequila
         const minTeq = GameMath.getFinalTequila(baseRange.min, Math.max(1, selectedMingles.length), setupStats.yieldBonus);
         const maxTeq = GameMath.getFinalTequila(baseRange.max, Math.max(1, selectedMingles.length), setupStats.yieldBonus);
-        
+
         return `${minTeq} - ${maxTeq}`;
     }, [selectedLocation, selectedDurationKey, selectedMingles, setupStats]);
 
@@ -285,7 +285,7 @@ export default function RaidsPage() {
                 const d = getWormStats(m?.type);
                 const mingleLevel = minglesStats[id]?.level || 0;
 
-                // 🧮 5. Usar Motor
+                // 🧮 Usar Motor para pasivos de los Mingles
                 const effectiveStat = GameMath.getMinglePassive(d.passive_value || 0, mingleLevel);
 
                 if (d.passive_type === 'yield' || d.passive_type === 'omni') sYieldBonus += effectiveStat;
@@ -305,11 +305,11 @@ export default function RaidsPage() {
                 });
             }
 
-            // 🧮 6. Usar Motor para Squad Bonus
+            // 🧮 Usar Motor para Squad Bonus
             sBossChance += GameMath.getSquadBonus(session.squad.length);
 
             const durationSec = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 1000;
-            let hoursKey = "1"; 
+            let hoursKey = "1";
             if (durationSec > 30000) hoursKey = "12";
             if (durationSec > 70000) hoursKey = "24";
 
@@ -317,7 +317,7 @@ export default function RaidsPage() {
             const range = yieldConfig?.[hoursKey] || { min: 100, max: 200 };
             const baseAmount = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
-            // 🧮 7. Usar Motor para Tequila
+            // 🧮 Usar Motor para Tequila
             const totalTequila = GameMath.getFinalTequila(baseAmount, session.squad.length, sYieldBonus);
 
             const roll = Math.random() * 100;
@@ -327,26 +327,32 @@ export default function RaidsPage() {
                 p_wallet: address, p_amount: totalTequila, p_is_win: bossDefeated
             });
 
-            // 🧮 8. Usar Motor para XP
+            // 🧮 Usar Motor para XP
             let earnedXp = raidConfig.base_xp || 50;
             earnedXp = GameMath.getFinalXp(earnedXp, sXpBonus);
-            
+
             await supabase.rpc('add_mingles_xp', { p_mingle_ids: session.squad, p_xp_amount: earnedXp });
 
+            // ==========================================
+            // 🎁 LOOT DEL BOSS (CORREGIDO)
+            // ==========================================
             let bossLoot = null;
             if (bossDefeated) {
                 const lootRoll = Math.random() * 100;
-                const lootChance = 30 + sLootBonus;
 
-                const lootTable = typeof raidConfig.loot_table === 'string' ? JSON.parse(raidConfig.loot_table) : raidConfig.loot_table;
+                // 🧮 Usamos el Motor Matemático (30 es la probabilidad base)
+                const lootChance = GameMath.getBossLootChance(30, sLootBonus);
 
-                if (lootRoll <= lootChance && lootTable && lootTable.length > 0) {
-                    const droppedLoot = lootTable[0];
-                    const itemIdToSave = droppedLoot.item_id || droppedLoot.id;
-                    const fullItemInfo = dbItems[itemIdToSave];
+                // Usamos la variable correcta de la Base de Datos (raidConfig.bossLoot)
+                if (lootRoll <= lootChance && raidConfig.bossLoot && raidConfig.bossLoot.length > 0) {
+                    const droppedLoot = raidConfig.bossLoot[0];
+                    const itemIdToSave = droppedLoot.id;
 
                     bossLoot = {
-                        id: itemIdToSave, name: fullItemInfo?.name || "Boss Loot", img: fullItemInfo?.image_url || "", image_url: fullItemInfo?.image_url || ""
+                        id: itemIdToSave,
+                        name: droppedLoot.name || "Boss Loot",
+                        img: droppedLoot.image_url || "",
+                        image_url: droppedLoot.image_url || ""
                     };
 
                     const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemIdToSave }).single();
@@ -363,7 +369,7 @@ export default function RaidsPage() {
                     const traits = getWormStats(mingleNFT?.type);
                     const mingleLevel = minglesStats[mId]?.level || 0;
 
-                    // 🧮 9. Usar Motor para Drop Exclusivo
+                    // 🧮 Usar Motor para Drop Exclusivo
                     const exclusiveChance = GameMath.getExclusiveDropChance(mingleLevel);
 
                     if (traits.exclusive_item_id) {

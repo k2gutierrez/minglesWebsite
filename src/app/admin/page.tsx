@@ -342,7 +342,19 @@ export default function AdminPage() {
             <div className="ml-64 p-8 md:p-12 w-full max-w-6xl">
                 <div className="flex justify-between items-center mb-8 border-b-2 border-gray-200 pb-4">
                     <h2 className="text-4xl font-black uppercase text-[#1D1D1D]">{activeTab.replace('game_', '').replace('_', ' ')}</h2>
-                    <button onClick={() => { setEditingId('new'); setEditForm({}); }} className="bg-[#1D1D1D] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-md">
+                    <button
+                        onClick={() => {
+                            setEditingId('new');
+                            // ¡INYECTAMOS VALORES POR DEFECTO PARA QUE NO SE GUARDEN NULOS!
+                            setEditForm({
+                                type: 'yield',
+                                passive_type: 'yield',
+                                difficulty: 'Easy',
+                                yield_config: { "1": { min: 0, max: 0 }, "12": { min: 0, max: 0 }, "24": { min: 0, max: 0 } }
+                            });
+                        }}
+                        className="bg-[#1D1D1D] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-md"
+                    >
                         <Plus size={20} /> Agregar Nuevo
                     </button>
                 </div>

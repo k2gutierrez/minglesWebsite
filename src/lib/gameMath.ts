@@ -42,5 +42,12 @@ export const GameMath = {
     getReducedDurationSeconds: (baseSeconds: number, timeReductionPercent: number): number => {
         const reductionMultiplier = Math.max(0.1, 1 - (timeReductionPercent / 100));
         return Math.floor(baseSeconds * reductionMultiplier);
+    },
+
+    // 7. PROBABILIDAD DE LOOT DEL BOSS
+    // Fórmula: Probabilidad Base (Ej: 30%) + Bono de Loot de Mingles/Items
+    getBossLootChance: (baseChance: number, totalLootBonus: number): number => {
+        // Usamos Math.min para asegurarnos de que nunca pase del 100%
+        return Math.min(baseChance + totalLootBonus, 100); 
     }
 };
