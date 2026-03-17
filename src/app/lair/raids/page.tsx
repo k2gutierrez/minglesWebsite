@@ -167,19 +167,24 @@ export default function RaidsPage() {
 
 
     const getWormStats = (type?: string): any => {
-        // 1. Validar que el tipo y la base de datos existan
-        if (!type || !dbTraits || !Array.isArray(dbTraits)) {
-            return { passive_type: 'yield', passive_value: 0 };
-        }
+        // 1. Fallback seguro si no hay tipo o la DB no ha cargado
+        if (!type || !dbTraits) return { passive_type: 'yield', passive_value: 0 };
 
         const normalizedType = type.toLowerCase();
 
-        // 2. Buscar en el ARREGLO de la base de datos
-        const found = dbTraits.find(t =>
-            t.type_key && normalizedType.includes(t.type_key.toLowerCase())
+        // 2. Buscamos en las llaves del Objeto dbTraits
+        const foundKey = Object.keys(dbTraits).find(k =>
+            normalizedType.includes(k.toLowerCase())
         );
 
-        return found || { passive_type: 'yield', passive_value: 0 };
+        // 3. Si lo encuentra, lo devuelve y avisa en consola. Si no, avisa del error.
+        if (foundKey && dbTraits[foundKey]) {
+            // console.log(`✅ MATCH: "${type}" -> "${foundKey}"`);
+            return dbTraits[foundKey];
+        } else {
+            console.log(`❌ NO MATCH: El NFT dice "${type}", no existe en la Base de Datos.`);
+            return { passive_type: 'yield', passive_value: 0 };
+        }
     };
 
     // ==========================================
@@ -198,17 +203,15 @@ export default function RaidsPage() {
         let bossChance = 0; let yieldBonus = 0; let lootBonus = 0;
         const breakdown = { items: [] as string[] };
 
+        // Bono de Escuadrón Completo
         if (selectedMingles.length >= 5) bossChance = 50 + ((Math.min(selectedMingles.length, 10) - 5) * 5);
 
         selectedMingles.forEach(id => {
             const m = mingles.find(u => u.id === id);
             const data = getWormStats(m?.type);
 
-            // Obtenemos el nivel (Si no existe, es nivel 0)
             const mingleLevel = minglesStats[id]?.level || 0;
-            // Calculamos el multiplicador: Nivel 0 = 1 (100%), Nivel 10 = 2 (200%)
             const levelMultiplier = 1 + (mingleLevel * 0.1);
-            // Aplicamos el multiplicador al pasivo base
             const effectiveStat = (data.passive_value || 0) * levelMultiplier;
 
             if (data.passive_type === 'boss' || data.passive_type === 'omni') bossChance += effectiveStat;
@@ -220,13 +223,19 @@ export default function RaidsPage() {
         selectedItemInstances.forEach(inst => { groupedItems[inst.itemId] = (groupedItems[inst.itemId] || 0) + 1; });
 
         for (const [id, count] of Object.entries(groupedItems)) {
-            const info = dbItems[id]; // Usar DB Items
-            if (info) {
+            const info = dbItems[id];
+            // 🚨 SOLUCIÓN AL CRASH: Verificamos que 'info', 'value' y 'type' existan realmente
+            if (info && info.type && typeof info.value !== 'undefined') {
                 const totalVal = info.value * count;
+
                 if (info.type === 'boss') bossChance += totalVal;
                 if (info.type === 'yield') yieldBonus += totalVal;
                 if (info.type === 'loot') lootBonus += totalVal;
+                // Nota: 'time' y 'xp' no se suman aquí porque se usan al resolver la misión
+
                 breakdown.items.push(`${count}x ${info.name} (+${totalVal}% ${info.type.toUpperCase()})`);
+            } else {
+                console.error(`🚨 ITEM ROTO EN DB: El item con ID "${id}" tiene datos incompletos.`, info);
             }
         }
 
