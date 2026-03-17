@@ -25,16 +25,17 @@ export const GameMath = {
     },
 
     // 4. CÁLCULO DE EXPERIENCIA FINAL (XP)
-    // Fórmula: XP Base * (1 + (BonoItemsXP / 100))
-    getFinalXp: (baseXp: number, xpBonusFromItems: number): number => {
+    // Fórmula: (XP Base * Horas Invertidas) * (1 + (BonoItemsXP / 100))
+    getFinalXp: (baseXp: number, xpBonusFromItems: number, missionHours: number): number => {
         const xpMultiplier = 1 + (xpBonusFromItems / 100);
-        return Math.floor(baseXp * xpMultiplier);
+        // Multiplicamos la XP por la cantidad de horas (1h = 1x, 12h = 12x, 24h = 24x)
+        return Math.floor(baseXp * missionHours * xpMultiplier);
     },
 
     // 5. PROBABILIDAD DE DROP EXCLUSIVO (REGLA DEL 5%)
     // Fórmula: 5% Base + 1% por Nivel del Mingle
     getExclusiveDropChance: (mingleLevel: number): number => {
-        return 5 + mingleLevel; 
+        return 5 + mingleLevel;
     },
 
     // 6. REDUCCIÓN DE TIEMPO POR ITEMS
@@ -48,6 +49,6 @@ export const GameMath = {
     // Fórmula: Probabilidad Base (Ej: 30%) + Bono de Loot de Mingles/Items
     getBossLootChance: (baseChance: number, totalLootBonus: number): number => {
         // Usamos Math.min para asegurarnos de que nunca pase del 100%
-        return Math.min(baseChance + totalLootBonus, 100); 
+        return Math.min(baseChance + totalLootBonus, 100);
     }
 };

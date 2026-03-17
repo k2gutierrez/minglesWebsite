@@ -200,10 +200,17 @@ export default function RaidsPage() {
 
     const estimatedTequila = useMemo(() => {
         if (!selectedLocation) return "0";
-        const baseRange = selectedLocation.yields[selectedDurationKey];
+
+        // 1. Traducimos el texto a Objeto JSON de forma segura
+        const yieldsObj = typeof selectedLocation.yields === 'string'
+            ? JSON.parse(selectedLocation.yields)
+            : selectedLocation.yields;
+
+        // 2. Buscamos la llave usando texto (ej: "1", "12", "24")
+        const baseRange = yieldsObj?.[selectedDurationKey.toString()];
         if (!baseRange) return "0";
 
-        // 🧮 3. Usar Motor para Predicción de Tequila
+        // 3. 🧮 Usar Motor para Predicción de Tequila
         const minTeq = GameMath.getFinalTequila(baseRange.min, Math.max(1, selectedMingles.length), setupStats.yieldBonus);
         const maxTeq = GameMath.getFinalTequila(baseRange.max, Math.max(1, selectedMingles.length), setupStats.yieldBonus);
 
@@ -327,9 +334,10 @@ export default function RaidsPage() {
                 p_wallet: address, p_amount: totalTequila, p_is_win: bossDefeated
             });
 
-            // 🧮 Usar Motor para XP
+            // 🧮 8. Usar Motor para XP (AHORA CON HORAS)
             let earnedXp = raidConfig.base_xp || 50;
-            earnedXp = GameMath.getFinalXp(earnedXp, sXpBonus);
+            // Pasamos hoursKey convertido a número (1, 12 o 24) a la fórmula de Memo
+            earnedXp = GameMath.getFinalXp(earnedXp, sXpBonus, parseInt(hoursKey));
 
             await supabase.rpc('add_mingles_xp', { p_mingle_ids: session.squad, p_xp_amount: earnedXp });
 
