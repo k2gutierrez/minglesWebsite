@@ -360,34 +360,37 @@ export default function RaidsPage() {
             await supabase.rpc('add_mingles_xp', { p_mingle_ids: session.squad, p_xp_amount: earnedXp });
 
             // ==========================================
-            // 🎁 LOOT DEL BOSS (CORREGIDO)
+            // 🎁 LOOT DEL BOSS (TIRADAS INDEPENDIENTES MULTIPLES)
             // ==========================================
-            let bossLoot = null;
-            if (bossDefeated) {
-                const lootRoll = Math.random() * 100;
+            let bossLoot: any[] = []; // AHORA ES UN ARREGLO PARA GUARDAR VARIOS ITEMS
 
-                // 🧮 Usamos el Motor Matemático (30 es la probabilidad base)
-                const lootChance = GameMath.getBossLootChance(30, sLootBonus);
+            if (bossDefeated && raidConfig.bossLoot && raidConfig.bossLoot.length > 0) {
 
-                // Usamos la variable correcta de la Base de Datos (raidConfig.bossLoot)
-                if (lootRoll <= lootChance && raidConfig.bossLoot && raidConfig.bossLoot.length > 0) {
-                    const droppedLoot = raidConfig.bossLoot[0];
-                    const itemIdToSave = droppedLoot.id;
+                // Iteramos por CADA item que el boss tiene en su configuración
+                for (const droppedLoot of raidConfig.bossLoot) {
+                    const baseDropRate = parseInt(droppedLoot.dropRate) || 0;
+                    const lootRoll = Math.random() * 100;
+                    const lootChance = GameMath.getBossLootChance(baseDropRate, sLootBonus);
 
-                    bossLoot = {
-                        id: itemIdToSave,
-                        name: droppedLoot.name || "Boss Loot",
-                        img: droppedLoot.image_url || "",
-                        image_url: droppedLoot.image_url || ""
-                    };
+                    // Si ganas la tirada de este item en específico, te lo da
+                    if (lootRoll <= lootChance) {
+                        const itemIdToSave = droppedLoot.id;
 
-                    const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemIdToSave }).single();
-                    await supabase.from('player_inventory').upsert({
-                        wallet_address: address, item_id: itemIdToSave, quantity: (exist?.quantity || 0) + 1
-                    }, { onConflict: 'wallet_address, item_id' });
+                        bossLoot.push({
+                            id: itemIdToSave,
+                            name: droppedLoot.name || "Boss Loot",
+                            img: droppedLoot.image_url || "",
+                            image_url: droppedLoot.image_url || ""
+                        });
+
+                        // Guarda este item en tu inventario
+                        const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemIdToSave }).single();
+                        await supabase.from('player_inventory').upsert({
+                            wallet_address: address, item_id: itemIdToSave, quantity: (exist?.quantity || 0) + 1
+                        }, { onConflict: 'wallet_address, item_id' });
+                    }
                 }
             }
-
             const mingleLoot: any[] = [];
             if (bossDefeated) {
                 for (const mId of session.squad) {
@@ -501,12 +504,23 @@ export default function RaidsPage() {
                                 {resultModal.bossDefeated ? <CheckCircle2 className="text-green-600" /> : <XCircle className="text-red-600" />}
                                 <h3 className="text-lg font-black uppercase">{resultModal.bossDefeated ? "Boss Defeated" : "Boss Escaped"}</h3>
                             </div>
-                            {resultModal.rewards.bossLoot ? (
-                                <div className="mt-3 bg-white p-2 rounded-xl border border-green-200 flex items-center gap-3 text-left">
-                                    <img src={resultModal.rewards.bossLoot.image_url} className="w-12 h-12 object-contain" />
-                                    <div><p className="text-[10px] font-black text-green-600 uppercase">Boss Loot Dropped!</p><p className="font-bold text-sm leading-none">{resultModal.rewards.bossLoot.name}</p></div>
+
+                            {/* REVISAMOS SI HAY ITEMS EN EL ARREGLO */}
+                            {resultModal.rewards.bossLoot && resultModal.rewards.bossLoot.length > 0 ? (
+                                <div className="mt-3 space-y-2">
+                                    {resultModal.rewards.bossLoot.map((loot: any, idx: number) => (
+                                        <div key={idx} className="bg-white p-2 rounded-xl border border-green-200 flex items-center gap-3 text-left">
+                                            <img src={loot.image_url} className="w-12 h-12 object-contain" />
+                                            <div>
+                                                <p className="text-[10px] font-black text-green-600 uppercase">Boss Loot Dropped!</p>
+                                                <p className="font-bold text-sm leading-none">{loot.name}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ) : (<p className="text-xs font-bold opacity-60">No Boss loot for you this time.</p>)}
+                            ) : (
+                                <p className="text-xs font-bold opacity-60">No Boss loot for you this time.</p>
+                            )}
                         </div>
 
                         <div className="text-left">
