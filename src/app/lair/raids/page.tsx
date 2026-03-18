@@ -161,12 +161,24 @@ export default function RaidsPage() {
         }
     }, [userPoints, inventory, lockedMingles, mingles]);
 
+    // 🌍 MULTIPLICADOR GLOBAL DE LA CUENTA (My Mingles)
+    const globalMultiplier = useMemo(() => {
+        // Ejemplo: Empiezas con 1.0x. Cada Mingle que posees en tu wallet te da +10% (0.1) a toda la cuenta.
+        // Si tienes 10 Mingles, tu multiplicador es 2.0x.
+        const mingleHoldBonus = mingles.length * 0.1;
+
+        // TODO (Para Memo): Aquí puedes sumar el bono de la base de datos de los amigos referidos
+        const friendsBonus = 0;
+
+        return 1 + mingleHoldBonus + friendsBonus;
+    }, [mingles.length]); // <-- Agrega aquí la variable de amigos cuando la tengan
+
     const setupStats = useMemo(() => {
         let bossChance = 0; let yieldBonus = 0; let lootBonus = 0;
         const breakdown = { items: [] as string[] };
 
         // 🧮 1. Usar Motor para Bono de Escuadrón
-        bossChance += GameMath.getSquadBonus(selectedMingles.length);
+        // bossChance += GameMath.getSquadBonus(selectedMingles.length);
 
         selectedMingles.forEach(id => {
             const m = mingles.find(u => u.id === id);
@@ -210,9 +222,9 @@ export default function RaidsPage() {
         const baseRange = yieldsObj?.[selectedDurationKey.toString()];
         if (!baseRange) return "0";
 
-        // 3. 🧮 Usar Motor para Predicción de Tequila
-        const minTeq = GameMath.getFinalTequila(baseRange.min, Math.max(1, selectedMingles.length), setupStats.yieldBonus);
-        const maxTeq = GameMath.getFinalTequila(baseRange.max, Math.max(1, selectedMingles.length), setupStats.yieldBonus);
+        // 🧮 Usar Motor para Predicción de Tequila (ACTUALIZADO)
+        const minTeq = GameMath.getFinalTequila(baseRange.min, globalMultiplier, setupStats.yieldBonus);
+        const maxTeq = GameMath.getFinalTequila(baseRange.max, globalMultiplier, setupStats.yieldBonus);
 
         return `${minTeq} - ${maxTeq}`;
     }, [selectedLocation, selectedDurationKey, selectedMingles, setupStats]);
@@ -313,7 +325,7 @@ export default function RaidsPage() {
             }
 
             // 🧮 Usar Motor para Squad Bonus
-            sBossChance += GameMath.getSquadBonus(session.squad.length);
+            // sBossChance += GameMath.getSquadBonus(session.squad.length);
 
             const durationSec = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 1000;
             let hoursKey = "1";
@@ -325,7 +337,8 @@ export default function RaidsPage() {
             const baseAmount = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
             // 🧮 Usar Motor para Tequila
-            const totalTequila = GameMath.getFinalTequila(baseAmount, session.squad.length, sYieldBonus);
+            // ✅ ACTUALIZAR ESTA LÍNEA:
+            const totalTequila = GameMath.getFinalTequila(baseAmount, globalMultiplier, sYieldBonus);
 
             const roll = Math.random() * 100;
             const bossDefeated = roll <= Math.min(sBossChance, 100);

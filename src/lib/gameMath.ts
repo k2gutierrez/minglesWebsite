@@ -3,11 +3,11 @@
 export const GameMath = {
     // 1. BONO DE ESCUADRÓN (SQUAD)
     // Fórmula: Si son 5 o más, da 50% base + 5% extra por cada mingle adicional (máx 10).
-    getSquadBonus: (squadSize: number): number => {
-        return 0;
-        // if (squadSize < 5) return 0;
-        // return 50 + ((Math.min(squadSize, 10) - 5) * 5);
-    },
+    // getSquadBonus: (squadSize: number): number => {
+    //     return 0;
+    //     // if (squadSize < 5) return 0;
+    //     // return 50 + ((Math.min(squadSize, 10) - 5) * 5);
+    // },
 
     // 2. PASIVO INDIVIDUAL DEL MINGLE (CON NIVEL)
     // Fórmula: Pasivo Base + (10% del Pasivo Base por cada Nivel)
@@ -16,12 +16,14 @@ export const GameMath = {
         return baseValue * levelMultiplier;
     },
 
-    // 3. CÁLCULO DE TEQUILA FINAL
-    // Fórmula: Base generada * (1 + (YieldBonusTotal / 100))
-    getFinalTequila: (baseAmount: number, squadSize: number, totalYieldBonus: number): number => {
+    // 3. CÁLCULO DE TEQUILA FINAL (CON MULTIPLICADOR GLOBAL DE LA CUENTA)
+    // Fórmula: (Base Raid * Multiplicador Global) * (1 + (BonoYieldItemsYPasivos / 100))
+    getFinalTequila: (baseAmount: number, globalMultiplier: number, totalYieldBonus: number): number => {
+        // El porcentaje extra que dan los pasivos de los mingles que fueron a la raid y los items
         const yieldMultiplier = 1 + (totalYieldBonus / 100);
-        // Multiplicamos por la cantidad de mingles y aplicamos el bonus
-        return Math.floor(baseAmount * squadSize * yieldMultiplier);
+        
+        // Primero multiplicamos la base por el poder de tu cuenta, y luego le sumamos el bono de los items
+        return Math.floor((baseAmount * globalMultiplier) * yieldMultiplier);
     },
 
     // 4. CÁLCULO DE EXPERIENCIA FINAL (XP)
