@@ -7,7 +7,7 @@ import { supabase } from '@/components/engine/supabase';
 import { ConnectWalletView } from '@/components/ConnectWalletView';
 import { Loader2, Trash2, Plus, Save, Lock, Edit } from 'lucide-react';
 
-const TABLES = ['game_items', 'game_bosses', 'game_raids', 'mingle_traits'] as const;
+const TABLES = ['game_items', 'game_bosses', 'game_raids', 'mingle_traits', 'danger_zone'] as const;
 type TableName = typeof TABLES[number];
 
 export default function AdminPage() {
@@ -57,6 +57,12 @@ export default function AdminPage() {
 
     // 2. CARGAR DATOS DE LA TABLA Y CATÁLOGOS
     const fetchData = async (table: TableName) => {
+        // --- NUEVO: Si es la Danger Zone, no busques en la base de datos ---
+        if (table === 'danger_zone') {
+            setData([]);
+            return;
+        }
+
         setLoading(true);
         const { data, error } = await supabase.from(table).select('*').order('created_at', { ascending: false });
         if (!error && data) setData(data);
@@ -128,6 +134,37 @@ export default function AdminPage() {
         const { error } = await supabase.from(activeTab).delete().eq(pk, id);
         if (!error) fetchData(activeTab);
         else alert("Error borrando: " + error.message);
+    };
+
+    // --- FUNCIONES DE SERVER WIPE (RESET) ---
+    const handleResetTequila = async () => {
+        const confirm1 = window.confirm("⚠️ ¿ESTÁS SEGURO? Esto borrará el Tequila de TODOS los jugadores.");
+        if (!confirm1) return;
+        const confirm2 = window.prompt("Escribe 'BORRAR' para confirmar el reseteo global de Tequila:");
+        if (confirm2 !== 'BORRAR') return;
+
+        // Si pasó los filtros, ejecutamos el borrado
+        const { error } = await supabase.rpc('reset_all_tequila');
+        if (error) {
+            alert("Error al resetear: " + error.message);
+        } else {
+            alert("✅ TEQUILA GLOBAL RESETEADO A 0.");
+        }
+    };
+
+    const handleResetXP = async () => {
+        const confirm1 = window.confirm("⚠️ ¿ESTÁS SEGURO? Esto regresará a TODOS los Mingles al Nivel 0.");
+        if (!confirm1) return;
+        const confirm2 = window.prompt("Escribe 'BORRAR' para confirmar el reseteo global de XP:");
+        if (confirm2 !== 'BORRAR') return;
+
+        // Si pasó los filtros, ejecutamos el borrado
+        const { error } = await supabase.rpc('reset_all_mingles_xp');
+        if (error) {
+            alert("Error al resetear: " + error.message);
+        } else {
+            alert("✅ XP Y NIVELES RESETEADOS A 0 PARA TODOS.");
+        }
     };
 
     // --- COMPONENTES UI ---
@@ -306,6 +343,39 @@ export default function AdminPage() {
                         </div>
                     </div>
                 );
+            case 'danger_zone':
+                return (
+                    <div className="bg-white p-8 rounded-[2rem] border-4 border-red-500 shadow-[8px_8px_0_0_#ef4444]">
+                        <h2 className="text-3xl font-black uppercase text-red-500 mb-2">Danger Zone (Server Wipes)</h2>
+                        <p className="font-bold text-gray-500 mb-8">Úsalas únicamente para reiniciar la economía antes de lanzamientos oficiales o para pruebas desde cero. Estas acciones NO se pueden deshacer.</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* RESET TEQUILA */}
+                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
+                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de Tequila</h3>
+                                <p className="text-xs font-bold text-red-600/70 mb-6">Regresa el balance de $TEQ de todas las wallets registradas exactamente a cero (0).</p>
+                                <button
+                                    onClick={handleResetTequila}
+                                    className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all"
+                                >
+                                    Ejecutar Reset de Tequila
+                                </button>
+                            </div>
+
+                            {/* RESET XP */}
+                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
+                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de XP/Niveles</h3>
+                                <p className="text-xs font-bold text-red-600/70 mb-6">Regresa la experiencia y el nivel de todos los Mingles de todas las wallets a Nivel 0.</p>
+                                <button
+                                    onClick={handleResetXP}
+                                    className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all"
+                                >
+                                    Ejecutar Reset de XP
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
         }
     };
 
@@ -340,63 +410,99 @@ export default function AdminPage() {
 
             {/* MAIN CONTENT */}
             <div className="ml-64 p-8 md:p-12 w-full max-w-6xl">
-                <div className="flex justify-between items-center mb-8 border-b-2 border-gray-200 pb-4">
-                    <h2 className="text-4xl font-black uppercase text-[#1D1D1D]">{activeTab.replace('game_', '').replace('_', ' ')}</h2>
-                    <button
-                        onClick={() => {
-                            setEditingId('new');
-                            // ¡INYECTAMOS VALORES POR DEFECTO PARA QUE NO SE GUARDEN NULOS!
-                            setEditForm({
-                                type: 'yield',
-                                passive_type: 'yield',
-                                difficulty: 'Easy',
-                                yield_config: { "1": { min: 0, max: 0 }, "12": { min: 0, max: 0 }, "24": { min: 0, max: 0 } }
-                            });
-                        }}
-                        className="bg-[#1D1D1D] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-md"
-                    >
-                        <Plus size={20} /> Agregar Nuevo
-                    </button>
-                </div>
 
-                {loading ? <div className="flex justify-center mt-20"><Loader2 className="animate-spin text-[#E15162]" size={40} /></div> : (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50 border-b">
-                                <tr>
-                                    <th className="p-4 font-black text-xs uppercase text-gray-500 w-1/4">ID / Nombre</th>
-                                    <th className="p-4 font-black text-xs uppercase text-gray-500">Detalles Rápidos</th>
-                                    <th className="p-4 font-black text-xs uppercase text-gray-500 text-right w-24">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {data.map((item) => (
-                                    <tr key={item.id || item.type_key} className="hover:bg-blue-50/50 transition-colors">
-                                        <td className="p-4">
-                                            <p className="font-bold text-gray-900">{item.name || item.type_key}</p>
-                                            <p className="text-xs font-mono text-gray-400">{item.id}</p>
-                                        </td>
-                                        <td className="p-4">
-                                            {/* Pequeño preview visual en la tabla si hay imagen */}
-                                            <div className="flex items-center gap-3">
-                                                {item.image_url && <img src={item.image_url} className="w-8 h-8 rounded object-cover border" />}
-                                                <p className="text-xs text-gray-500 max-w-md truncate">
-                                                    {JSON.stringify(item).replace(/["{}]/g, '').slice(0, 80)}...
-                                                </p>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-right flex justify-end gap-1">
-                                            <button onClick={() => { setEditingId(item.id || item.type_key); setEditForm(item); }} className="p-2 hover:bg-blue-100 text-blue-600 rounded transition-colors" title="Editar"><Edit size={18} /></button>
-                                            <button onClick={() => handleDelete(item.id || item.type_key)} className="p-2 hover:bg-red-100 text-red-600 rounded transition-colors" title="Borrar"><Trash2 size={18} /></button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {data.length === 0 && (
-                                    <tr><td colSpan={3} className="p-8 text-center text-gray-400 font-bold italic">No hay datos en esta tabla aún.</td></tr>
-                                )}
-                            </tbody>
-                        </table>
+                {/* SI ESTAMOS EN DANGER ZONE */}
+                {activeTab === 'danger_zone' ? (
+                    <div className="bg-white p-8 rounded-[2rem] border-4 border-red-500 shadow-[8px_8px_0_0_#ef4444] animate-in slide-in-from-bottom-4">
+                        <h2 className="text-3xl font-black uppercase text-red-500 mb-2">Danger Zone (Server Wipes)</h2>
+                        <p className="font-bold text-gray-500 mb-8">Úsalas únicamente para reiniciar la economía antes de lanzamientos oficiales o para pruebas desde cero. Estas acciones NO se pueden deshacer.</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* RESET TEQUILA */}
+                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
+                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de Tequila</h3>
+                                <p className="text-xs font-bold text-red-600/70 mb-6">Regresa el balance de $TEQ de todas las wallets registradas exactamente a cero (0).</p>
+                                <button
+                                    onClick={handleResetTequila}
+                                    className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all"
+                                >
+                                    Ejecutar Reset de Tequila
+                                </button>
+                            </div>
+
+                            {/* RESET XP */}
+                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
+                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de XP/Niveles</h3>
+                                <p className="text-xs font-bold text-red-600/70 mb-6">Regresa la experiencia y el nivel de todos los Mingles de todas las wallets a Nivel 0.</p>
+                                <button
+                                    onClick={handleResetXP}
+                                    className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all"
+                                >
+                                    Ejecutar Reset de XP
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                ) : (
+                    /* SI ESTAMOS EN CUALQUIER OTRA PESTAÑA (TABLAS NORMALES) */
+                    <>
+                        <div className="flex justify-between items-center mb-8 border-b-2 border-gray-200 pb-4">
+                            <h2 className="text-4xl font-black uppercase text-[#1D1D1D]">{activeTab.replace('game_', '').replace('_', ' ')}</h2>
+                            <button
+                                onClick={() => {
+                                    setEditingId('new');
+                                    setEditForm({
+                                        type: 'yield',
+                                        passive_type: 'yield',
+                                        difficulty: 'Easy',
+                                        yield_config: { "1": { min: 0, max: 0 }, "12": { min: 0, max: 0 }, "24": { min: 0, max: 0 } }
+                                    });
+                                }}
+                                className="bg-[#1D1D1D] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-md"
+                            >
+                                <Plus size={20} /> Agregar Nuevo
+                            </button>
+                        </div>
+
+                        {loading ? <div className="flex justify-center mt-20"><Loader2 className="animate-spin text-[#E15162]" size={40} /></div> : (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50 border-b">
+                                        <tr>
+                                            <th className="p-4 font-black text-xs uppercase text-gray-500 w-1/4">ID / Nombre</th>
+                                            <th className="p-4 font-black text-xs uppercase text-gray-500">Detalles Rápidos</th>
+                                            <th className="p-4 font-black text-xs uppercase text-gray-500 text-right w-24">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {data.map((item) => (
+                                            <tr key={item.id || item.type_key} className="hover:bg-blue-50/50 transition-colors">
+                                                <td className="p-4">
+                                                    <p className="font-bold text-gray-900">{item.name || item.type_key}</p>
+                                                    <p className="text-xs font-mono text-gray-400">{item.id}</p>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        {item.image_url && <img src={item.image_url} className="w-8 h-8 rounded object-cover border" />}
+                                                        <p className="text-xs text-gray-500 max-w-md truncate">
+                                                            {JSON.stringify(item).replace(/["{}]/g, '').slice(0, 80)}...
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-right flex justify-end gap-1">
+                                                    <button onClick={() => { setEditingId(item.id || item.type_key); setEditForm(item); }} className="p-2 hover:bg-blue-100 text-blue-600 rounded transition-colors" title="Editar"><Edit size={18} /></button>
+                                                    <button onClick={() => handleDelete(item.id || item.type_key)} className="p-2 hover:bg-red-100 text-red-600 rounded transition-colors" title="Borrar"><Trash2 size={18} /></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {data.length === 0 && (
+                                            <tr><td colSpan={3} className="p-8 text-center text-gray-400 font-bold italic">No hay datos en esta tabla aún.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 

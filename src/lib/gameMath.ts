@@ -21,7 +21,7 @@ export const GameMath = {
     getFinalTequila: (baseAmount: number, globalMultiplier: number, totalYieldBonus: number): number => {
         // El porcentaje extra que dan los pasivos de los mingles que fueron a la raid y los items
         const yieldMultiplier = 1 + (totalYieldBonus / 100);
-        
+
         // Primero multiplicamos la base por el poder de tu cuenta, y luego le sumamos el bono de los items
         return Math.floor((baseAmount * globalMultiplier) * yieldMultiplier);
     },
@@ -52,5 +52,36 @@ export const GameMath = {
     getBossLootChance: (baseChance: number, totalLootBonus: number): number => {
         // Usamos Math.min para asegurarnos de que nunca pase del 100%
         return Math.min(baseChance + totalLootBonus, 100);
+    },
+
+    getHoldMultiplier: (count: number): number => {
+        if (count >= 51) return 1.30;
+        if (count >= 21) return 1.20; // 49 mingles cae aquí
+        if (count >= 11) return 1.15;
+        if (count >= 6) return 1.10;
+        if (count >= 2) return 1.05;
+        return 1.0; 
+    },
+
+    getSocialMultiplier: (friendsCount: number): number => {
+        if (friendsCount >= 100) return 1.20;
+        if (friendsCount >= 50) return 1.15;
+        if (friendsCount >= 16) return 1.10;
+        if (friendsCount >= 5) return 1.05;
+        if (friendsCount >= 1) return 1.02;
+        return 1.0;
+    },
+
+    // 🧮 FÓRMULA MAESTRA: Ahora usamos SUMA ADITIVA para no romper el límite de 1.5x
+    getGlobalMultiplier: (minglesCount: number, friendsCount: number): number => {
+        if (minglesCount === 0) return 0;
+        const holdMult = GameMath.getHoldMultiplier(minglesCount);
+        const socialMult = GameMath.getSocialMultiplier(friendsCount);
+        
+        // Extraemos los "bonos" (quitándole el 1.0 de la base a cada uno) y los sumamos
+        const holdBonus = holdMult - 1.0;
+        const socialBonus = socialMult - 1.0;
+        
+        return 1.0 + holdBonus + socialBonus; 
     }
 };

@@ -53,6 +53,7 @@ export default function RaidsPage() {
     const [userPoints, setUserPoints] = useState(0);
 
     const [minglesStats, setMinglesStats] = useState<Record<string, { level: number, xp: number }>>({});
+    const [friendsCount, setFriendsCount] = useState(0);
 
     // ==========================================
     // 1. CARGAR CONFIGURACIÓN DEL JUEGO
@@ -127,6 +128,14 @@ export default function RaidsPage() {
             stats.forEach(s => statsMap[s.mingle_id] = { level: s.level, xp: s.xp });
             setMinglesStats(statsMap);
         }
+
+        // --- CARGAR AMIGOS PARA EL MULTIPLICADOR ---
+        const { count: fCount } = await supabase
+            .from('friends')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_wallet', address);
+
+        if (fCount !== null) setFriendsCount(fCount);
     };
 
     useEffect(() => {
@@ -161,17 +170,13 @@ export default function RaidsPage() {
         }
     }, [userPoints, inventory, lockedMingles, mingles]);
 
-    // 🌍 MULTIPLICADOR GLOBAL DE LA CUENTA (My Mingles)
+    // 🌍 MULTIPLICADOR GLOBAL DE LA CUENTA (Fórmula oficial de Carlos)
     const globalMultiplier = useMemo(() => {
-        // Ejemplo: Empiezas con 1.0x. Cada Mingle que posees en tu wallet te da +10% (0.1) a toda la cuenta.
-        // Si tienes 10 Mingles, tu multiplicador es 2.0x.
-        const mingleHoldBonus = mingles.length * 0.1;
+        if (mingles.length === 0) return 0; // Si no hay mingles, no hay multiplicador
 
-        // TODO (Para Memo): Aquí puedes sumar el bono de la base de datos de los amigos referidos
-        const friendsBonus = 0;
-
-        return 1 + mingleHoldBonus + friendsBonus;
-    }, [mingles.length]); // <-- Agrega aquí la variable de amigos cuando la tengan
+        // Llamamos al motor matemático enviándole los Mingles y los Amigos
+        return GameMath.getGlobalMultiplier(mingles.length, friendsCount);
+    }, [mingles.length, friendsCount]);
 
     const setupStats = useMemo(() => {
         let bossChance = 0; let yieldBonus = 0; let lootBonus = 0;
