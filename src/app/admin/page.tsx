@@ -167,6 +167,21 @@ export default function AdminPage() {
         }
     };
 
+    const handleResetInventory = async () => {
+        const confirm1 = window.confirm("⚠️ ¿ESTÁS SEGURO? Esto vaciará el inventario (Items/Loot) de TODOS los jugadores.");
+        if (!confirm1) return;
+        const confirm2 = window.prompt("Escribe 'BORRAR' para confirmar el reseteo global de Items:");
+        if (confirm2 !== 'BORRAR') return;
+
+        // Ejecutamos el vaciado de inventarios
+        const { error } = await supabase.rpc('reset_all_inventory');
+        if (error) {
+            alert("Error al resetear el inventario: " + error.message);
+        } else {
+            alert("✅ INVENTARIOS VACIADOS PARA TODOS.");
+        }
+    };
+
     // --- COMPONENTES UI ---
 
     // Reusable Image Uploader UI
@@ -349,15 +364,14 @@ export default function AdminPage() {
                         <h2 className="text-3xl font-black uppercase text-red-500 mb-2">Danger Zone (Server Wipes)</h2>
                         <p className="font-bold text-gray-500 mb-8">Úsalas únicamente para reiniciar la economía antes de lanzamientos oficiales o para pruebas desde cero. Estas acciones NO se pueden deshacer.</p>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Cambiamos a grid-cols-3 para acomodar el nuevo botón */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                             {/* RESET TEQUILA */}
                             <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
                                 <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de Tequila</h3>
                                 <p className="text-xs font-bold text-red-600/70 mb-6">Regresa el balance de $TEQ de todas las wallets registradas exactamente a cero (0).</p>
-                                <button
-                                    onClick={handleResetTequila}
-                                    className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all"
-                                >
+                                <button onClick={handleResetTequila} className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all">
                                     Ejecutar Reset de Tequila
                                 </button>
                             </div>
@@ -366,13 +380,20 @@ export default function AdminPage() {
                             <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
                                 <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de XP/Niveles</h3>
                                 <p className="text-xs font-bold text-red-600/70 mb-6">Regresa la experiencia y el nivel de todos los Mingles de todas las wallets a Nivel 0.</p>
-                                <button
-                                    onClick={handleResetXP}
-                                    className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all"
-                                >
+                                <button onClick={handleResetXP} className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all">
                                     Ejecutar Reset de XP
                                 </button>
                             </div>
+
+                            {/* RESET INVENTARIO (NUEVO) */}
+                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
+                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de Items</h3>
+                                <p className="text-xs font-bold text-red-600/70 mb-6">Elimina todos los items, reliquias y loot de los inventarios de TODAS las wallets.</p>
+                                <button onClick={handleResetInventory} className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all">
+                                    Ejecutar Reset de Items
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 );

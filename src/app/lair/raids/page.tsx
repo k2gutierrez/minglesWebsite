@@ -75,8 +75,17 @@ export default function RaidsPage() {
             const { data: raids } = await supabase.from('game_raids').select('*, game_bosses(*)').eq('is_active', true);
 
             const formattedRaids = raids?.map(r => ({
-                id: r.id, name: r.name, description: r.description, difficulty: r.difficulty, img: r.image_url, color: r.color_theme, yields: r.yield_config,
-                boss: r.game_bosses?.name, bossImg: r.game_bosses?.image_url, bossDesc: r.game_bosses?.description,
+                id: r.id,
+                name: r.name,
+                description: r.description,
+                difficulty: r.difficulty,
+                img: r.image_url,
+                color: r.color_theme,
+                yields: r.yield_config,
+                base_xp: r.base_xp, // <--- 🚨 ESTO ES LO QUE FALTABA
+                boss: r.game_bosses?.name,
+                bossImg: r.game_bosses?.image_url,
+                bossDesc: r.game_bosses?.description,
                 bossLoot: r.loot_table.map((lootItem: any) => {
                     const itemInfo = itemsMap[lootItem.item_id];
                     return { ...itemInfo, dropRate: lootItem.rate + "%", id: lootItem.item_id };
@@ -332,17 +341,19 @@ export default function RaidsPage() {
             // 🧮 Usar Motor para Squad Bonus
             // sBossChance += GameMath.getSquadBonus(session.squad.length);
 
+            // --- DETECCIÓN DE HORAS CORREGIDA (Soporta DEV MODE) ---
             const durationSec = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 1000;
             let hoursKey = "1";
-            if (durationSec > 30000) hoursKey = "12";
-            if (durationSec > 70000) hoursKey = "24";
+
+            // Si estamos en Dev Mode (misiones de segundos) o en Tiempo Real (misiones de horas)
+            if (durationSec > (IS_DEV_MODE ? 4 : 30000)) hoursKey = "12";
+            if (durationSec > (IS_DEV_MODE ? 7 : 70000)) hoursKey = "24";
 
             const yieldConfig = typeof raidConfig.yield_config === 'string' ? JSON.parse(raidConfig.yield_config) : raidConfig.yield_config;
             const range = yieldConfig?.[hoursKey] || { min: 100, max: 200 };
             const baseAmount = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
             // 🧮 Usar Motor para Tequila
-            // ✅ ACTUALIZAR ESTA LÍNEA:
             const totalTequila = GameMath.getFinalTequila(baseAmount, globalMultiplier, sYieldBonus);
 
             const roll = Math.random() * 100;
@@ -352,9 +363,9 @@ export default function RaidsPage() {
                 p_wallet: address, p_amount: totalTequila, p_is_win: bossDefeated
             });
 
-            // 🧮 8. Usar Motor para XP (AHORA CON HORAS)
-            let earnedXp = raidConfig.base_xp || 50;
-            // Pasamos hoursKey convertido a número (1, 12 o 24) a la fórmula de Memo
+            // 🧮 8. Usar Motor para XP (AHORA SÍ LEE EL ADMIN PANEL)
+            // Cambiamos el 50 por un 1 como medida de seguridad extra
+            let earnedXp = raidConfig.base_xp || 1;
             earnedXp = GameMath.getFinalXp(earnedXp, sXpBonus, parseInt(hoursKey));
 
             await supabase.rpc('add_mingles_xp', { p_mingle_ids: session.squad, p_xp_amount: earnedXp });
