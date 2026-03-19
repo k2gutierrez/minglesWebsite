@@ -158,12 +158,25 @@ export default function RaidsPage() {
     // ==========================================
     // 3. HELPERS
     // ==========================================
-    const getWormStats = (type?: string): any => {
-        if (!type || !dbTraits) return { passive_type: 'yield', passive_value: 0 };
-        const normalizedType = type.toLowerCase();
+    // Le pasamos el objeto 'mingle' completo en lugar de solo el texto
+    const getWormStats = (mingle?: any): any => {
+        if (!mingle || !dbTraits) return { passive_type: 'yield', passive_value: 0 };
 
+        // 🌟 1. MODO LEYENDA: Buscamos si Memo registró su ID exacto (Ej: "id_7")
+        const legendaryKey = `id_${mingle.id}`;
+        
+        // Si existe en la base de datos con ese formato, le damos sus poderes supremos
+        if (dbTraits[legendaryKey]) {
+            return dbTraits[legendaryKey];
+        }
+
+        // 🐛 2. MODO NORMAL: Si no es leyenda, buscamos su raza (type) como siempre
+        if (!mingle.type) return { passive_type: 'yield', passive_value: 0 };
+        const normalizedType = mingle.type.toLowerCase();
+        
         const foundKey = Object.keys(dbTraits).find(k => normalizedType.includes(k.toLowerCase()));
         if (foundKey && dbTraits[foundKey]) return dbTraits[foundKey];
+        
         return { passive_type: 'yield', passive_value: 0 };
     };
 
@@ -196,7 +209,7 @@ export default function RaidsPage() {
 
         selectedMingles.forEach(id => {
             const m = mingles.find(u => u.id === id);
-            const data = getWormStats(m?.type);
+            const data = getWormStats(m);
             const mingleLevel = minglesStats[id]?.level || 0;
 
             // 🧮 2. Usar Motor para Pasivos con Nivel
@@ -315,7 +328,7 @@ export default function RaidsPage() {
 
             session.squad.forEach((id: string) => {
                 const m = currentMingles.find((u: any) => u.id === id);
-                const d = getWormStats(m?.type);
+                const d = getWormStats(m);
                 const mingleLevel = minglesStats[id]?.level || 0;
 
                 // 🧮 Usar Motor para pasivos de los Mingles
@@ -406,7 +419,7 @@ export default function RaidsPage() {
             if (bossDefeated) {
                 for (const mId of session.squad) {
                     const mingleNFT = currentMingles.find((u: any) => u.id === mId);
-                    const traits = getWormStats(mingleNFT?.type);
+                    const traits = getWormStats(mingleNFT);
                     const mingleLevel = minglesStats[mId]?.level || 0;
 
                     // 🧮 Usar Motor para Drop Exclusivo
