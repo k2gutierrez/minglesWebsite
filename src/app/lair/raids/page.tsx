@@ -7,14 +7,14 @@ import { useAccount } from 'wagmi';
 import {
     Sword, Skull, Clock, Backpack,
     CheckCircle2, Loader2, TrendingUp, XCircle, Play,
-    Briefcase, ChevronRight, ArrowLeft, Lock, Info, Filter, Zap, LayoutGrid
+    Briefcase, ChevronRight, ArrowLeft, Lock, Info, Filter, Zap, LayoutGrid, Wine
 } from 'lucide-react';
 
 import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms';
 import { supabase } from '@/components/engine/supabase';
 import { ConnectWalletView } from '@/components/ConnectWalletView';
 import { fetchUserMingles } from '@/components/engine/indexer';
-import { GameMath } from '@/lib/gameMath'; // 🧮 IMPORTAMOS EL MOTOR MATEMÁTICO DE MEMO
+import { GameMath } from '@/lib/gameMath'; 
 
 // CONFIGURACIÓN DE TIEMPO
 const IS_DEV_MODE = true;
@@ -25,6 +25,8 @@ const DURATION_CONFIG: any = {
 };
 
 export default function RaidsPage() {
+    // 🌟 LA LISTA OFICIAL DE LOS 10 GODLIKES (1 of 1)
+    const GODLIKE_IDS = ["4245", "4163", "5453", "4175", "4355", "4927", "3154", "698", "1172", "4288"];
     const { address, isConnected } = useAccount();
     const mingles = useAtomValue(minglesAtom);
 
@@ -40,7 +42,8 @@ export default function RaidsPage() {
     const [selectedDurationKey, setSelectedDurationKey] = useState<1 | 12 | 24>(1);
     const [selectedMingles, setSelectedMingles] = useState<string[]>([]);
     const [selectedItemInstances, setSelectedItemInstances] = useState<{ itemId: string, uid: string }[]>([]);
-    const [squadFilter, setSquadFilter] = useState<'all' | 'yield' | 'boss' | 'loot'>('all');
+    // 🌟 AÑADIDO: 'godlike' al estado del filtro
+    const [squadFilter, setSquadFilter] = useState<'all' | 'yield' | 'boss' | 'loot' | 'godlike'>('all');
     const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
     // --- ESTADOS DE USUARIO ---
@@ -82,7 +85,7 @@ export default function RaidsPage() {
                 img: r.image_url,
                 color: r.color_theme,
                 yields: r.yield_config,
-                base_xp: r.base_xp, // <--- 🚨 ESTO ES LO QUE FALTABA
+                base_xp: r.base_xp, 
                 boss: r.game_bosses?.name,
                 bossImg: r.game_bosses?.image_url,
                 bossDesc: r.game_bosses?.description,
@@ -138,7 +141,6 @@ export default function RaidsPage() {
             setMinglesStats(statsMap);
         }
 
-        // --- CARGAR AMIGOS PARA EL MULTIPLICADOR ---
         const { count: fCount } = await supabase
             .from('friends')
             .select('*', { count: 'exact', head: true })
@@ -158,30 +160,26 @@ export default function RaidsPage() {
     // ==========================================
     // 3. HELPERS
     // ==========================================
-    // Le pasamos el objeto 'mingle' completo en lugar de solo el texto
     const getWormStats = (mingle?: any): any => {
         if (!mingle || !dbTraits) return { passive_type: 'yield', passive_value: 0 };
 
-        // 🌟 1. MODO LEYENDA: Buscamos si Memo registró su ID exacto (Ej: "id_7")
         const legendaryKey = `id_${mingle.id}`;
-        
-        // Si existe en la base de datos con ese formato, le damos sus poderes supremos
+
         if (dbTraits[legendaryKey]) {
             return dbTraits[legendaryKey];
         }
 
-        // 🐛 2. MODO NORMAL: Si no es leyenda, buscamos su raza (type) como siempre
         if (!mingle.type) return { passive_type: 'yield', passive_value: 0 };
         const normalizedType = mingle.type.toLowerCase();
-        
+
         const foundKey = Object.keys(dbTraits).find(k => normalizedType.includes(k.toLowerCase()));
         if (foundKey && dbTraits[foundKey]) return dbTraits[foundKey];
-        
+
         return { passive_type: 'yield', passive_value: 0 };
     };
 
     // ==========================================
-    // 4. CALCULATORS (AHORA USANDO EL MOTOR MATEMÁTICO)
+    // 4. CALCULATORS
     // ==========================================
     const userStats = useMemo(() => {
         return {
@@ -192,11 +190,8 @@ export default function RaidsPage() {
         }
     }, [userPoints, inventory, lockedMingles, mingles]);
 
-    // 🌍 MULTIPLICADOR GLOBAL DE LA CUENTA (Fórmula oficial de Carlos)
     const globalMultiplier = useMemo(() => {
-        if (mingles.length === 0) return 0; // Si no hay mingles, no hay multiplicador
-
-        // Llamamos al motor matemático enviándole los Mingles y los Amigos
+        if (mingles.length === 0) return 0; 
         return GameMath.getGlobalMultiplier(mingles.length, friendsCount);
     }, [mingles.length, friendsCount]);
 
@@ -204,15 +199,11 @@ export default function RaidsPage() {
         let bossChance = 0; let yieldBonus = 0; let lootBonus = 0;
         const breakdown = { items: [] as string[] };
 
-        // 🧮 1. Usar Motor para Bono de Escuadrón
-        // bossChance += GameMath.getSquadBonus(selectedMingles.length);
-
         selectedMingles.forEach(id => {
             const m = mingles.find(u => u.id === id);
             const data = getWormStats(m);
             const mingleLevel = minglesStats[id]?.level || 0;
 
-            // 🧮 2. Usar Motor para Pasivos con Nivel
             const effectiveStat = GameMath.getMinglePassive(data.passive_value || 0, mingleLevel);
 
             if (data.passive_type === 'boss' || data.passive_type === 'omni') bossChance += effectiveStat;
@@ -240,16 +231,13 @@ export default function RaidsPage() {
     const estimatedTequila = useMemo(() => {
         if (!selectedLocation) return "0";
 
-        // 1. Traducimos el texto a Objeto JSON de forma segura
         const yieldsObj = typeof selectedLocation.yields === 'string'
             ? JSON.parse(selectedLocation.yields)
             : selectedLocation.yields;
 
-        // 2. Buscamos la llave usando texto (ej: "1", "12", "24")
         const baseRange = yieldsObj?.[selectedDurationKey.toString()];
         if (!baseRange) return "0";
 
-        // 🧮 Usar Motor para Predicción de Tequila (ACTUALIZADO)
         const minTeq = GameMath.getFinalTequila(baseRange.min, globalMultiplier, setupStats.yieldBonus);
         const maxTeq = GameMath.getFinalTequila(baseRange.max, globalMultiplier, setupStats.yieldBonus);
 
@@ -272,7 +260,6 @@ export default function RaidsPage() {
             if (info && info.type === 'time') sTimeReduction += info.value;
         });
 
-        // 🧮 4. Usar Motor para Reducción de Tiempo
         const finalDurationSeconds = GameMath.getReducedDurationSeconds(durationConfig.seconds, sTimeReduction);
 
         const now = new Date();
@@ -331,7 +318,6 @@ export default function RaidsPage() {
                 const d = getWormStats(m);
                 const mingleLevel = minglesStats[id]?.level || 0;
 
-                // 🧮 Usar Motor para pasivos de los Mingles
                 const effectiveStat = GameMath.getMinglePassive(d.passive_value || 0, mingleLevel);
 
                 if (d.passive_type === 'yield' || d.passive_type === 'omni') sYieldBonus += effectiveStat;
@@ -351,14 +337,9 @@ export default function RaidsPage() {
                 });
             }
 
-            // 🧮 Usar Motor para Squad Bonus
-            // sBossChance += GameMath.getSquadBonus(session.squad.length);
-
-            // --- DETECCIÓN DE HORAS CORREGIDA (Soporta DEV MODE) ---
             const durationSec = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 1000;
             let hoursKey = "1";
 
-            // Si estamos en Dev Mode (misiones de segundos) o en Tiempo Real (misiones de horas)
             if (durationSec > (IS_DEV_MODE ? 4 : 30000)) hoursKey = "12";
             if (durationSec > (IS_DEV_MODE ? 7 : 70000)) hoursKey = "24";
 
@@ -366,7 +347,6 @@ export default function RaidsPage() {
             const range = yieldConfig?.[hoursKey] || { min: 100, max: 200 };
             const baseAmount = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
-            // 🧮 Usar Motor para Tequila
             const totalTequila = GameMath.getFinalTequila(baseAmount, globalMultiplier, sYieldBonus);
 
             const roll = Math.random() * 100;
@@ -376,27 +356,19 @@ export default function RaidsPage() {
                 p_wallet: address, p_amount: totalTequila, p_is_win: bossDefeated
             });
 
-            // 🧮 8. Usar Motor para XP (AHORA SÍ LEE EL ADMIN PANEL)
-            // Cambiamos el 50 por un 1 como medida de seguridad extra
             let earnedXp = raidConfig.base_xp || 1;
             earnedXp = GameMath.getFinalXp(earnedXp, sXpBonus, parseInt(hoursKey));
 
             await supabase.rpc('add_mingles_xp', { p_mingle_ids: session.squad, p_xp_amount: earnedXp });
 
-            // ==========================================
-            // 🎁 LOOT DEL BOSS (TIRADAS INDEPENDIENTES MULTIPLES)
-            // ==========================================
-            let bossLoot: any[] = []; // AHORA ES UN ARREGLO PARA GUARDAR VARIOS ITEMS
+            let bossLoot: any[] = []; 
 
             if (bossDefeated && raidConfig.bossLoot && raidConfig.bossLoot.length > 0) {
-
-                // Iteramos por CADA item que el boss tiene en su configuración
                 for (const droppedLoot of raidConfig.bossLoot) {
                     const baseDropRate = parseInt(droppedLoot.dropRate) || 0;
                     const lootRoll = Math.random() * 100;
                     const lootChance = GameMath.getBossLootChance(baseDropRate, sLootBonus);
 
-                    // Si ganas la tirada de este item en específico, te lo da
                     if (lootRoll <= lootChance) {
                         const itemIdToSave = droppedLoot.id;
 
@@ -407,7 +379,6 @@ export default function RaidsPage() {
                             image_url: droppedLoot.image_url || ""
                         });
 
-                        // Guarda este item en tu inventario
                         const { data: exist } = await supabase.from('player_inventory').select('*').match({ wallet_address: address, item_id: itemIdToSave }).single();
                         await supabase.from('player_inventory').upsert({
                             wallet_address: address, item_id: itemIdToSave, quantity: (exist?.quantity || 0) + 1
@@ -422,7 +393,6 @@ export default function RaidsPage() {
                     const traits = getWormStats(mingleNFT);
                     const mingleLevel = minglesStats[mId]?.level || 0;
 
-                    // 🧮 Usar Motor para Drop Exclusivo
                     const exclusiveChance = GameMath.getExclusiveDropChance(mingleLevel);
 
                     if (traits.exclusive_item_id) {
@@ -447,7 +417,15 @@ export default function RaidsPage() {
             await supabase.from('active_raids').delete().eq('id', session.id);
 
             setResultModal({
-                bossDefeated, rewards: { tequila: totalTequila, xpEarned: earnedXp, bossLoot, mingleLoot }
+                show: true,
+                bossDefeated,
+                rewards: {
+                    tequila: totalTequila,
+                    baseTequila: baseAmount,      
+                    multiplier: globalMultiplier, 
+                    bossLoot: bossLoot,
+                    mingleLoot: mingleLoot
+                }
             });
 
             await loadUserData();
@@ -488,14 +466,25 @@ export default function RaidsPage() {
         }
     };
 
+    // 🌟 ARREGLO PRINCIPAL: Filtro de Mingles actualizado para soportar Godlike y pasar 'm' completo
     const sortedMingles = useMemo(() => {
         let filtered = [...mingles];
+        
         if (squadFilter !== 'all') {
             filtered = filtered.filter(m => {
-                const data = getWormStats(m.type);
+                const data = getWormStats(m); // IMPORTANTE: Aquí pasamos 'm', no 'm.type'
+                
+                // Si el usuario da clic en la pestaña de Godlike
+                if (squadFilter === 'godlike') {
+                    return GODLIKE_IDS.includes(m.id!.toString()) || data.passive_type === 'omni';
+                }
+
+                // Para las demás pestañas (yield, boss, loot)
                 return data.passive_type === squadFilter || data.passive_type === 'omni';
             });
         }
+
+        // Ordenamos para mandar los "Ocupados" al final
         return filtered.sort((a, b) => {
             const aLocked = lockedMingles.includes(a.id!);
             const bLocked = lockedMingles.includes(b.id!);
@@ -516,11 +505,24 @@ export default function RaidsPage() {
                 <div className="bg-white rounded-[2rem] max-w-lg w-full text-center border-4 border-[#1D1D1D] shadow-[0_0_20px_rgba(225,81,98,0.3)] overflow-hidden animate-in zoom-in duration-300">
                     <div className="bg-[#1D1D1D] p-6 text-white"><h2 className="text-3xl font-black uppercase tracking-widest">Raid Report</h2></div>
                     <div className="p-6 space-y-6">
-                        <div>
-                            <p className="text-xs font-black uppercase opacity-50 mb-1">Total Harvest</p>
-                            <div className="bg-[#EDEDD9] border-2 border-[#1D1D1D] p-4 rounded-2xl flex items-center justify-center gap-3">
-                                <TrendingUp className="text-[#E15162]" size={32} /><span className="text-5xl font-black text-[#1D1D1D] tracking-tighter">+{resultModal.rewards.tequila}</span>
-                            </div>
+                        
+                        {/* 💰 CAJA DE TEQUILA ROBADO */}
+                        <div className="flex flex-col items-center justify-center p-4 bg-[#EDEDD9] rounded-2xl border-2 border-[#1D1D1D] relative overflow-hidden">
+                            <Wine className="absolute -right-4 -bottom-4 text-[#1D1D1D]/5" size={80} />
+
+                            <p className="text-xs font-black uppercase text-[#1D1D1D]/50 mb-1 relative z-10">Tequila Stolen</p>
+                            <p className="text-4xl font-black text-[#E15162] relative z-10">{resultModal.rewards.tequila}</p>
+
+                            {/* 🧮 DESGLOSE DEL MULTIPLICADOR */}
+                            {resultModal.rewards.multiplier > 1 && (
+                                <div className="mt-3 bg-white/60 px-3 py-1.5 rounded-lg border border-[#1D1D1D]/10 flex items-center gap-2 relative z-10">
+                                    <span className="text-[10px] font-bold text-[#1D1D1D]/60">Base: {resultModal.rewards.baseTequila}</span>
+                                    <span className="text-[10px] text-[#1D1D1D]/30">•</span>
+                                    <span className="text-[10px] font-black text-[#1D1D1D] flex items-center gap-1">
+                                        Mult: <span className="text-[#E15162]">x{resultModal.rewards.multiplier.toFixed(2)}</span>
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         <div className={`p-4 rounded-2xl border-2 ${resultModal.bossDefeated ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
@@ -549,7 +551,7 @@ export default function RaidsPage() {
 
                         <div className="text-left">
                             <p className="text-xs font-black uppercase opacity-50 mb-2 border-b border-[#1D1D1D]/10 pb-1">Mingles Unique Loot</p>
-                            {resultModal.rewards.mingleLoot.length > 0 ? (
+                            {resultModal.rewards.mingleLoot && resultModal.rewards.mingleLoot.length > 0 ? (
                                 <div className="space-y-2">
                                     {resultModal.rewards.mingleLoot.map((item: any, i: number) => (
                                         <div key={i} className="flex items-center gap-3 p-2 bg-white border-2 border-[#1D1D1D]/10 rounded-xl">
@@ -591,18 +593,31 @@ export default function RaidsPage() {
                         <div className="bg-[#EDEDD9] p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                                 <h3 className="text-xl font-black uppercase flex items-center gap-2"><Sword /> 2. Squad <span className="bg-[#1D1D1D] text-white px-2 py-0.5 rounded text-xs ml-2">{selectedMingles.length}/10</span></h3>
+                                
+                                {/* 🌟 BOTONES DE FILTRO ACTUALIZADOS CON GODLIKE */}
                                 <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-1">
-                                    {(['all', 'yield', 'boss', 'loot'] as const).map(f => (
-                                        <button key={f} onClick={() => setSquadFilter(f)} className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 ${squadFilter === f ? 'bg-[#1D1D1D] text-white border-[#1D1D1D]' : 'bg-white border-[#1D1D1D] text-[#1D1D1D]'}`}>{f}</button>
+                                    {(['all', 'yield', 'boss', 'loot', 'godlike'] as const).map(f => (
+                                        <button 
+                                            key={f} 
+                                            onClick={() => setSquadFilter(f)} 
+                                            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 transition-colors
+                                                ${squadFilter === f ? 'bg-[#1D1D1D] text-white border-[#1D1D1D]' : 'bg-white border-[#1D1D1D] text-[#1D1D1D]'}
+                                                ${f === 'godlike' ? 'border-[#E15162] text-[#E15162]' : ''}
+                                                ${squadFilter === 'godlike' && f === 'godlike' ? 'bg-[#E15162] text-white' : ''}
+                                            `}
+                                        >
+                                            {f === 'godlike' ? '✨ Godlike' : f}
+                                        </button>
                                     ))}
                                 </div>
+
                             </div>
 
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-[400px] overflow-y-auto pr-2 custom-scrollbar content-start">
                                 {sortedMingles.map(mingle => {
                                     const isLocked = lockedMingles.includes(mingle.id!);
                                     const isSelected = selectedMingles.includes(mingle.id!);
-                                    const stats = getWormStats(mingle.type);
+                                    const stats = getWormStats(mingle); // Pasa 'mingle' completo
 
                                     return (
                                         <div key={mingle.id} onClick={() => !isLocked && toggleMingle(mingle.id!)}
