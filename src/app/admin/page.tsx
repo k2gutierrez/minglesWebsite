@@ -111,10 +111,34 @@ export default function AdminPage() {
         }
     };
 
-    // 4. GUARDAR (UPSERT)
+    // 4. GUARDAR (UPSERT) INTELIGENTE Y LIMPIO
     const handleSave = async () => {
         let payload = { ...editForm };
 
+        // LIMPIEZA DE DATOS: Quitamos la "basura" inyectada por defecto dependiendo de la tabla
+        if (activeTab === 'mingle_traits') {
+            // A los traits no les importan las cosas de las raids o de los items
+            delete payload.difficulty;
+            delete payload.yield_config;
+            delete payload.type;
+
+            // Y aseguramos que el Type Key esté en minúsculas para evitar errores
+            if (payload.type_key) payload.type_key = payload.type_key.toLowerCase();
+            if (payload.passive_type) payload.passive_type = payload.passive_type.toLowerCase();
+        }
+
+        if (activeTab === 'game_items' || activeTab === 'game_bosses') {
+            delete payload.difficulty;
+            delete payload.yield_config;
+            delete payload.passive_type;
+        }
+
+        if (activeTab === 'game_raids') {
+            delete payload.passive_type;
+            delete payload.type;
+        }
+
+        // Ahora sí, guardamos el payload limpio
         const { error } = await supabase.from(activeTab).upsert(payload);
 
         if (error) {
