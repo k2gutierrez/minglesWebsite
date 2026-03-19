@@ -112,6 +112,46 @@ export default function AdminPage() {
         }
     };
 
+    // --- NUEVAS FUNCIONES PARA LA GALERÍA ---
+    const uploadGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `gallery_${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `uploads/${fileName}`;
+
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from('game-assets')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage.from('game-assets').getPublicUrl(filePath);
+
+            // Agregamos la nueva URL al arreglo existente de la galería
+            const currentGallery = editForm.gallery_images || [];
+            setEditForm({ ...editForm, gallery_images: [...currentGallery, data.publicUrl] });
+        } catch (error: any) {
+            alert('Error subiendo imagen a la galería: ' + error.message);
+        } finally {
+            setIsUploading(false);
+            // Limpiamos el input para poder subir otra foto seguida
+            e.target.value = '';
+        }
+    };
+
+    const removeGalleryImage = (indexToRemove: number) => {
+        const currentGallery = editForm.gallery_images || [];
+        setEditForm({
+            ...editForm,
+            gallery_images: currentGallery.filter((_: any, idx: number) => idx !== indexToRemove)
+        });
+    };
+
     // 4. GUARDAR (UPSERT) INTELIGENTE Y LIMPIO
     const handleSave = async () => {
         let payload = { ...editForm };
@@ -424,23 +464,53 @@ export default function AdminPage() {
                         <div className="bg-gray-50 p-4 rounded-xl border">
                             <label className="text-xs font-bold text-red-500 uppercase flex items-center gap-2 mb-2">🎥 YouTube Links</label>
                             <p className="text-[10px] text-gray-500 mb-2">Pega los links de YouTube separando cada uno con un <b>ENTER</b>.</p>
-                            <textarea 
-                                className="w-full border p-2 rounded font-bold h-20 text-xs" 
-                                value={(editForm.youtube_links || []).join('\n')} 
-                                onChange={e => setEditForm({ ...editForm, youtube_links: e.target.value.split('\n').filter((l: string) => l.trim() !== '') })} 
-                                placeholder="https://youtube.com/watch?v=...\nhttps://youtu.be/..." 
+                            <textarea
+                                className="w-full border p-2 rounded font-bold h-20 text-xs"
+                                value={(editForm.youtube_links || []).join('\n')}
+                                onChange={e => setEditForm({ ...editForm, youtube_links: e.target.value.split('\n').filter((l: string) => l.trim() !== '') })}
+                                placeholder="https://youtube.com/watch?v=...\nhttps://youtu.be/..."
                             />
                         </div>
 
                         <div className="bg-gray-50 p-4 rounded-xl border">
                             <label className="text-xs font-bold text-blue-500 uppercase flex items-center gap-2 mb-2">📸 Galería de Imágenes</label>
-                            <p className="text-[10px] text-gray-500 mb-2">Pega las URLs de las fotos separando cada una con un <b>ENTER</b>.</p>
-                            <textarea 
-                                className="w-full border p-2 rounded font-bold h-20 text-xs" 
-                                value={(editForm.gallery_images || []).join('\n')} 
-                                onChange={e => setEditForm({ ...editForm, gallery_images: e.target.value.split('\n').filter((l: string) => l.trim() !== '') })} 
-                                placeholder="https://.../foto1.jpg\nhttps://.../foto2.jpg" 
-                            />
+                            <p className="text-[10px] text-gray-500 mb-4">Sube fotos directamente a Supabase para la galería del evento. Puedes agregar todas las que necesites.</p>
+
+                            {/* Grid visual de las imágenes ya subidas */}
+                            {(editForm.gallery_images && editForm.gallery_images.length > 0) && (
+                                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-4">
+                                    {editForm.gallery_images.map((img: string, idx: number) => (
+                                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-300 group bg-white shadow-sm">
+                                            <img src={img} className="w-full h-full object-cover" alt="Gallery preview" />
+                                            {/* Botón para borrar la foto */}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeGalleryImage(idx)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                                                title="Eliminar foto"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Botón para subir nueva foto */}
+                            <div className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-200">
+                                {isUploading ? (
+                                    <div className="text-xs font-bold text-blue-500 flex items-center gap-2">
+                                        <Loader2 size={16} className="animate-spin" /> Subiendo imagen a Supabase...
+                                    </div>
+                                ) : (
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={uploadGalleryImage}
+                                        className="text-xs block w-full text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:uppercase file:bg-[#1D1D1D] file:text-white hover:file:bg-blue-600 hover:file:cursor-pointer transition-colors"
+                                    />
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-6 bg-yellow-50 p-4 rounded-xl border border-yellow-200 mt-4">
@@ -448,7 +518,7 @@ export default function AdminPage() {
                                 <input type="checkbox" className="w-5 h-5 rounded accent-[#E15162]" checked={editForm.is_published || false} onChange={e => setEditForm({ ...editForm, is_published: e.target.checked })} />
                                 <span className="font-black uppercase text-sm text-[#1D1D1D]">Publicar Evento</span>
                             </label>
-                            
+
                             <div className="flex-1 flex items-center justify-end gap-2">
                                 <label className="text-xs font-bold text-gray-500">Orden (Prioridad)</label>
                                 <input type="number" className="w-20 border p-2 rounded font-bold text-center" value={editForm.sort_order || 0} onChange={e => setEditForm({ ...editForm, sort_order: parseInt(e.target.value) || 0 })} />
