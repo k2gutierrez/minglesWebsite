@@ -14,7 +14,7 @@ const DASHBOARD_CARDS = [
   { title: "Onboarding", path: "/lair/onboarding", icon: <Youtube />, color: "bg-yellow-300", desc: "Start here, new blood" },
   { title: "News", path: "/lair/news", icon: <Newspaper />, color: "bg-pink-300", desc: "Latest updates" },
   { title: "Games", path: "/lair/games", icon: <Gamepad2 />, color: "bg-purple-300", desc: "Play Prison Break" },
-  { title: "Raffles", path: "/raffle", icon: <Ticket />, color: "bg-[#E15162]", desc: "Win the Koda", text: "text-white" },
+  { title: "Raffles", path: "/lair/raffle", icon: <Ticket />, color: "bg-[#E15162]", desc: "Win the Koda", text: "text-white" },
   { title: "Lore", path: "/lair/lore", icon: <BookOpen />, color: "bg-orange-300", desc: "The Mingles History" },
   { title: "Tequila", path: "/lair/tequila", icon: <Wine />, color: "bg-green-300", desc: "Production updates" },
   { title: "Prize Pools", path: "/lair/prizepools", icon: <Trophy />, color: "bg-cyan-300", desc: "Spend $TEQUILA points" },
