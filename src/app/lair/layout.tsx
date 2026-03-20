@@ -16,7 +16,7 @@ const MENU_ITEMS = [
   { name: 'Onboarding', path: '/lair/onboarding', icon: <Youtube /> },
   { name: 'News', path: '/lair/news', icon: <Youtube /> },
   { name: 'Games', path: '/lair/games', icon: <Gamepad2 /> },
-  { name: 'Raffles', path: '/koda', icon: <Ticket /> }, // Link a la rifa existente
+  { name: 'Raffles', path: '/raffle', icon: <Ticket /> }, // Link a la rifa existente
   { name: 'Lore', path: '/lair/lore', icon: <BookOpen /> },
   { name: 'Tequila', path: '/lair/tequila', icon: <Wine /> },
   { name: 'Prize Pools', path: '/lair/prizepools', icon: <Trophy /> }, // Placeholder

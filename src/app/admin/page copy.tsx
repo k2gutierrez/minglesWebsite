@@ -7,7 +7,8 @@ import { supabase } from '@/components/engine/supabase';
 import { ConnectWalletView } from '@/components/ConnectWalletView';
 import { Loader2, Trash2, Plus, Save, Lock, Edit } from 'lucide-react';
 
-const TABLES = ['game_items', 'game_bosses', 'game_raids', 'mingle_traits', 'danger_zone'] as const;
+// 🌟 Añadimos 'events' a la lista de tablas oficiales
+const TABLES = ['game_items', 'game_bosses', 'game_raids', 'mingle_traits', 'events', 'danger_zone'] as const;
 type TableName = typeof TABLES[number];
 
 export default function AdminPage() {
@@ -57,7 +58,7 @@ export default function AdminPage() {
 
     // 2. CARGAR DATOS DE LA TABLA Y CATÁLOGOS
     const fetchData = async (table: TableName) => {
-        // --- NUEVO: Si es la Danger Zone, no busques en la base de datos ---
+        // --- Si es la Danger Zone, no busques en la base de datos ---
         if (table === 'danger_zone') {
             setData([]);
             return;
@@ -111,18 +112,55 @@ export default function AdminPage() {
         }
     };
 
+    // --- NUEVAS FUNCIONES PARA LA GALERÍA ---
+    const uploadGalleryImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `gallery_${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `uploads/${fileName}`;
+
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from('game-assets')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage.from('game-assets').getPublicUrl(filePath);
+
+            // Agregamos la nueva URL al arreglo existente de la galería
+            const currentGallery = editForm.gallery_images || [];
+            setEditForm({ ...editForm, gallery_images: [...currentGallery, data.publicUrl] });
+        } catch (error: any) {
+            alert('Error subiendo imagen a la galería: ' + error.message);
+        } finally {
+            setIsUploading(false);
+            // Limpiamos el input para poder subir otra foto seguida
+            e.target.value = '';
+        }
+    };
+
+    const removeGalleryImage = (indexToRemove: number) => {
+        const currentGallery = editForm.gallery_images || [];
+        setEditForm({
+            ...editForm,
+            gallery_images: currentGallery.filter((_: any, idx: number) => idx !== indexToRemove)
+        });
+    };
+
     // 4. GUARDAR (UPSERT) INTELIGENTE Y LIMPIO
     const handleSave = async () => {
         let payload = { ...editForm };
 
         // LIMPIEZA DE DATOS: Quitamos la "basura" inyectada por defecto dependiendo de la tabla
         if (activeTab === 'mingle_traits') {
-            // A los traits no les importan las cosas de las raids o de los items
             delete payload.difficulty;
             delete payload.yield_config;
             delete payload.type;
-
-            // Y aseguramos que el Type Key esté en minúsculas para evitar errores
             if (payload.type_key) payload.type_key = payload.type_key.toLowerCase();
             if (payload.passive_type) payload.passive_type = payload.passive_type.toLowerCase();
         }
@@ -136,6 +174,16 @@ export default function AdminPage() {
         if (activeTab === 'game_raids') {
             delete payload.passive_type;
             delete payload.type;
+        }
+
+        // 🌟 NUEVA LIMPIEZA PARA EVENTOS
+        if (activeTab === 'events') {
+            delete payload.difficulty;
+            delete payload.yield_config;
+            delete payload.passive_type;
+            delete payload.type;
+            if (!payload.youtube_links) payload.youtube_links = [];
+            if (!payload.gallery_images) payload.gallery_images = [];
         }
 
         // Ahora sí, guardamos el payload limpio
@@ -167,13 +215,9 @@ export default function AdminPage() {
         const confirm2 = window.prompt("Escribe 'BORRAR' para confirmar el reseteo global de Tequila:");
         if (confirm2 !== 'BORRAR') return;
 
-        // Si pasó los filtros, ejecutamos el borrado
         const { error } = await supabase.rpc('reset_all_tequila');
-        if (error) {
-            alert("Error al resetear: " + error.message);
-        } else {
-            alert("✅ TEQUILA GLOBAL RESETEADO A 0.");
-        }
+        if (error) alert("Error al resetear: " + error.message);
+        else alert("✅ TEQUILA GLOBAL RESETEADO A 0.");
     };
 
     const handleResetXP = async () => {
@@ -182,13 +226,9 @@ export default function AdminPage() {
         const confirm2 = window.prompt("Escribe 'BORRAR' para confirmar el reseteo global de XP:");
         if (confirm2 !== 'BORRAR') return;
 
-        // Si pasó los filtros, ejecutamos el borrado
         const { error } = await supabase.rpc('reset_all_mingles_xp');
-        if (error) {
-            alert("Error al resetear: " + error.message);
-        } else {
-            alert("✅ XP Y NIVELES RESETEADOS A 0 PARA TODOS.");
-        }
+        if (error) alert("Error al resetear: " + error.message);
+        else alert("✅ XP Y NIVELES RESETEADOS A 0 PARA TODOS.");
     };
 
     const handleResetInventory = async () => {
@@ -197,13 +237,9 @@ export default function AdminPage() {
         const confirm2 = window.prompt("Escribe 'BORRAR' para confirmar el reseteo global de Items:");
         if (confirm2 !== 'BORRAR') return;
 
-        // Ejecutamos el vaciado de inventarios
         const { error } = await supabase.rpc('reset_all_inventory');
-        if (error) {
-            alert("Error al resetear el inventario: " + error.message);
-        } else {
-            alert("✅ INVENTARIOS VACIADOS PARA TODOS.");
-        }
+        if (error) alert("Error al resetear el inventario: " + error.message);
+        else alert("✅ INVENTARIOS VACIADOS PARA TODOS.");
     };
 
     // --- COMPONENTES UI ---
@@ -258,7 +294,6 @@ export default function AdminPage() {
                             <option value="yield">Yield Bonus (Tequila)</option>
                             <option value="boss">Boss Damage</option>
                             <option value="loot">Loot Chance</option>
-                            {/* NUEVAS OPCIONES */}
                             <option value="time">Reducir Tiempo (Raid)</option>
                             <option value="xp">Bono de Experiencia (XP)</option>
                         </select>
@@ -295,7 +330,6 @@ export default function AdminPage() {
                                 <option value="">-- Ningún Item --</option>
                                 {allItems.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                             </select>
-                            {/* Eliminamos el input de Drop Rate que causaba el error. Ahora es automático. */}
                             <p className="text-[10px] text-blue-600 mt-1">Probabilidad automática: 5% base + 1% por nivel del Mingle.</p>
                         </div>
                     </>
@@ -328,7 +362,6 @@ export default function AdminPage() {
                                     <option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option>
                                 </select>
                             </div>
-                            {/* NUEVO CAMPO DE XP AQUÍ */}
                             <div>
                                 <label className="text-xs font-bold text-gray-500">XP por Misión</label>
                                 <input
@@ -382,42 +415,114 @@ export default function AdminPage() {
                         </div>
                     </div>
                 );
-            case 'danger_zone':
+            // 🌟 NUEVA PESTAÑA DE EVENTOS EN EL ADMIN
+            case 'events':
                 return (
-                    <div className="bg-white p-8 rounded-[2rem] border-4 border-red-500 shadow-[8px_8px_0_0_#ef4444]">
-                        <h2 className="text-3xl font-black uppercase text-red-500 mb-2">Danger Zone (Server Wipes)</h2>
-                        <p className="font-bold text-gray-500 mb-8">Úsalas únicamente para reiniciar la economía antes de lanzamientos oficiales o para pruebas desde cero. Estas acciones NO se pueden deshacer.</p>
-
-                        {/* Cambiamos a grid-cols-3 para acomodar el nuevo botón */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                            {/* RESET TEQUILA */}
-                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
-                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de Tequila</h3>
-                                <p className="text-xs font-bold text-red-600/70 mb-6">Regresa el balance de $TEQ de todas las wallets registradas exactamente a cero (0).</p>
-                                <button onClick={handleResetTequila} className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all">
-                                    Ejecutar Reset de Tequila
-                                </button>
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-xs font-bold text-gray-500">Título del Evento</label>
+                                <input type="text" className="w-full border p-2 rounded font-bold" value={editForm.title || ''} onChange={e => setEditForm({ ...editForm, title: e.target.value })} placeholder="Ej: NFT NYC 2025" />
                             </div>
-
-                            {/* RESET XP */}
-                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
-                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de XP/Niveles</h3>
-                                <p className="text-xs font-bold text-red-600/70 mb-6">Regresa la experiencia y el nivel de todos los Mingles de todas las wallets a Nivel 0.</p>
-                                <button onClick={handleResetXP} className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all">
-                                    Ejecutar Reset de XP
-                                </button>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500">Estado (Status)</label>
+                                <select className="w-full border p-2 rounded font-bold" value={editForm.status || 'past'} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
+                                    <option value="past">Past Event (Pasado)</option>
+                                    <option value="coming_soon">Coming Soon (Futuro)</option>
+                                </select>
                             </div>
+                        </div>
 
-                            {/* RESET INVENTARIO (NUEVO) */}
-                            <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
-                                <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de Items</h3>
-                                <p className="text-xs font-bold text-red-600/70 mb-6">Elimina todos los items, reliquias y loot de los inventarios de TODAS las wallets.</p>
-                                <button onClick={handleResetInventory} className="w-full bg-red-600 text-white font-black uppercase py-4 rounded-xl hover:bg-red-700 active:scale-95 transition-all">
-                                    Ejecutar Reset de Items
-                                </button>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="text-xs font-bold text-gray-500">Fecha (Opcional)</label>
+                                <input type="date" className="w-full border p-2 rounded font-bold" value={editForm.event_date_optional || ''} onChange={e => setEditForm({ ...editForm, event_date_optional: e.target.value })} />
                             </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500">Ciudad (Opcional)</label>
+                                <input type="text" className="w-full border p-2 rounded font-bold" value={editForm.city_optional || ''} onChange={e => setEditForm({ ...editForm, city_optional: e.target.value })} placeholder="Ej: New York" />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500">Lugar/Sede (Opcional)</label>
+                                <input type="text" className="w-full border p-2 rounded font-bold" value={editForm.venue_optional || ''} onChange={e => setEditForm({ ...editForm, venue_optional: e.target.value })} placeholder="Ej: Javits Center" />
+                            </div>
+                        </div>
 
+                        <div>
+                            <label className="text-xs font-bold text-gray-500">Descripción Corta</label>
+                            <textarea className="w-full border p-2 rounded font-bold h-16" value={editForm.short_description || ''} onChange={e => setEditForm({ ...editForm, short_description: e.target.value })} placeholder="Resumen breve para la tarjeta..." />
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-gray-500">Descripción Larga (Modal)</label>
+                            <textarea className="w-full border p-2 rounded font-bold h-24" value={editForm.long_description || ''} onChange={e => setEditForm({ ...editForm, long_description: e.target.value })} placeholder="Toda la historia del evento..." />
+                        </div>
+
+                        {/* Reutilizamos tu sistema de subida de imágenes para el Cover */}
+                        {renderImageUploader('cover_image', 'Cover Image (Portada)')}
+
+                        <div className="bg-gray-50 p-4 rounded-xl border">
+                            <label className="text-xs font-bold text-red-500 uppercase flex items-center gap-2 mb-2">🎥 YouTube Links</label>
+                            <p className="text-[10px] text-gray-500 mb-2">Pega los links de YouTube separando cada uno con un <b>ENTER</b>.</p>
+                            <textarea
+                                className="w-full border p-2 rounded font-bold h-20 text-xs"
+                                value={(editForm.youtube_links || []).join('\n')}
+                                onChange={e => setEditForm({ ...editForm, youtube_links: e.target.value.split('\n').filter((l: string) => l.trim() !== '') })}
+                                placeholder="https://youtube.com/watch?v=...\nhttps://youtu.be/..."
+                            />
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-xl border">
+                            <label className="text-xs font-bold text-blue-500 uppercase flex items-center gap-2 mb-2">📸 Galería de Imágenes</label>
+                            <p className="text-[10px] text-gray-500 mb-4">Sube fotos directamente a Supabase para la galería del evento. Puedes agregar todas las que necesites.</p>
+
+                            {/* Grid visual de las imágenes ya subidas */}
+                            {(editForm.gallery_images && editForm.gallery_images.length > 0) && (
+                                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-4">
+                                    {editForm.gallery_images.map((img: string, idx: number) => (
+                                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-300 group bg-white shadow-sm">
+                                            <img src={img} className="w-full h-full object-cover" alt="Gallery preview" />
+                                            {/* Botón para borrar la foto */}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeGalleryImage(idx)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                                                title="Eliminar foto"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Botón para subir nueva foto */}
+                            <div className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-200">
+                                {isUploading ? (
+                                    <div className="text-xs font-bold text-blue-500 flex items-center gap-2">
+                                        <Loader2 size={16} className="animate-spin" /> Subiendo imagen a Supabase...
+                                    </div>
+                                ) : (
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={uploadGalleryImage}
+                                        className="text-xs block w-full text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:uppercase file:bg-[#1D1D1D] file:text-white hover:file:bg-blue-600 hover:file:cursor-pointer transition-colors"
+                                    />
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-6 bg-yellow-50 p-4 rounded-xl border border-yellow-200 mt-4">
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" className="w-5 h-5 rounded accent-[#E15162]" checked={editForm.is_published || false} onChange={e => setEditForm({ ...editForm, is_published: e.target.checked })} />
+                                <span className="font-black uppercase text-sm text-[#1D1D1D]">Publicar Evento</span>
+                            </label>
+
+                            <div className="flex-1 flex items-center justify-end gap-2">
+                                <label className="text-xs font-bold text-gray-500">Orden (Prioridad)</label>
+                                <input type="number" className="w-20 border p-2 rounded font-bold text-center" value={editForm.sort_order || 0} onChange={e => setEditForm({ ...editForm, sort_order: parseInt(e.target.value) || 0 })} />
+                            </div>
                         </div>
                     </div>
                 );
@@ -482,7 +587,7 @@ export default function AdminPage() {
                                 </button>
                             </div>
 
-                            {/* RESET INVENTARIO (NUEVO) */}
+                            {/* RESET INVENTARIO */}
                             <div className="bg-red-50 border-2 border-red-200 p-6 rounded-2xl">
                                 <h3 className="text-xl font-black uppercase text-red-700 mb-2">Reset Global de Items</h3>
                                 <p className="text-xs font-bold text-red-600/70 mb-6">Elimina todos los items, reliquias y loot de los inventarios de TODAS las wallets.</p>
@@ -501,12 +606,19 @@ export default function AdminPage() {
                             <button
                                 onClick={() => {
                                     setEditingId('new');
-                                    setEditForm({
-                                        type: 'yield',
-                                        passive_type: 'yield',
-                                        difficulty: 'Easy',
-                                        yield_config: { "1": { min: 0, max: 0 }, "12": { min: 0, max: 0 }, "24": { min: 0, max: 0 } }
-                                    });
+                                    // 🌟 NUEVA LÓGICA DE VALORES POR DEFECTO PARA EL BOTÓN "AGREGAR NUEVO"
+                                    if (activeTab === 'events') {
+                                        setEditForm({ status: 'past', is_published: false, sort_order: 0, youtube_links: [], gallery_images: [] });
+                                    } else if (activeTab === 'mingle_traits') {
+                                        setEditForm({ type: 'yield', passive_type: 'yield' });
+                                    } else {
+                                        setEditForm({
+                                            type: 'yield',
+                                            passive_type: 'yield',
+                                            difficulty: 'Easy',
+                                            yield_config: { "1": { min: 0, max: 0 }, "12": { min: 0, max: 0 }, "24": { min: 0, max: 0 } }
+                                        });
+                                    }
                                 }}
                                 className="bg-[#1D1D1D] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-md"
                             >
@@ -528,12 +640,13 @@ export default function AdminPage() {
                                         {data.map((item) => (
                                             <tr key={item.id || item.type_key} className="hover:bg-blue-50/50 transition-colors">
                                                 <td className="p-4">
-                                                    <p className="font-bold text-gray-900">{item.name || item.type_key}</p>
+                                                    {/* Mostrar 'title' si es un evento, o 'name'/'type_key' para los demás */}
+                                                    <p className="font-bold text-gray-900">{item.title || item.name || item.type_key}</p>
                                                     <p className="text-xs font-mono text-gray-400">{item.id}</p>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-3">
-                                                        {item.image_url && <img src={item.image_url} className="w-8 h-8 rounded object-cover border" />}
+                                                        {(item.image_url || item.cover_image) && <img src={item.image_url || item.cover_image} className="w-8 h-8 rounded object-cover border" />}
                                                         <p className="text-xs text-gray-500 max-w-md truncate">
                                                             {JSON.stringify(item).replace(/["{}]/g, '').slice(0, 80)}...
                                                         </p>
@@ -558,8 +671,8 @@ export default function AdminPage() {
 
             {/* MODAL EDICIÓN */}
             {editingId && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm overflow-y-auto">
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white p-8 rounded-3xl w-full max-w-2xl shadow-2xl my-8 relative">
                         <div className="flex justify-between items-center mb-6 border-b pb-4">
                             <h3 className="text-2xl font-black uppercase text-[#1D1D1D]">{editingId === 'new' ? 'Crear Registro' : 'Editar Registro'}</h3>
                             <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-black">✕</button>
