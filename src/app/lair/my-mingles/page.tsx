@@ -12,7 +12,7 @@ import {
    Maximize2, Plus, Twitter
 } from 'lucide-react';
 import { ConnectWalletView } from '@/components/ConnectWalletView';
-import { fetchUserMingles } from '@/components/engine/indexer';
+import { fetchUserMingles2 } from '@/components/engine/indexer';
 import Link from 'next/link';
 import { GameMath } from '@/lib/gameMath';
 
@@ -45,8 +45,13 @@ export default function MyMinglesPage() {
       if (!address) return;
       setIsRefreshing(true);
       try {
-         const nfts = await fetchUserMingles(address);
-         setMingles(nfts); // Actualizamos el estado global
+         const nfts = await fetchUserMingles2(address);
+         if (nfts == undefined || nfts.length == 0) {
+            setMingles([]);
+         } else {
+             setMingles(nfts); // Actualizamos el estado global
+         }
+        
       } catch (e) {
          console.error("Manual refresh failed", e);
       } finally {
@@ -59,9 +64,15 @@ export default function MyMinglesPage() {
       const loadData = async () => {
          if (isConnected && address) {
             setIsLoading(true);
-            const nfts = await fetchUserMingles(address);
-            setMingles(nfts);
-            setIsLoading(false);
+            const nfts = await fetchUserMingles2(address);
+            if (nfts == undefined || nfts.length == 0) {
+               setMingles([]);
+               setIsLoading(false);
+            } else {
+               setMingles(nfts);
+               setIsLoading(false);
+            }
+            
          } else {
             setMingles([]); // Limpiar si se desconecta
          }

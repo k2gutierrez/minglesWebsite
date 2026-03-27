@@ -32,10 +32,10 @@ const Navbar = () => {
 
         {/* Right: CTA & Web3 */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/lair" className="font-bold hover:underline">Member Login</Link>
+          <Link href="/lair" className="font-bold hover:underline">Join Mingles</Link>
           {/* Usamos un wrapper custom para el botón de RainbowKit si quieres, o el default */}
           <div className="scale-90 origin-right">
-             <ConnectButton label="Join Mingles" showBalance={false} accountStatus="avatar" />
+             <ConnectButton label="Member Login" showBalance={false} accountStatus="avatar" />
           </div>
         </div>
 
@@ -51,8 +51,8 @@ const Navbar = () => {
              <Link href="#how-it-works" className="font-bold">How It Works</Link>
              <Link href="#story" className="font-bold">Story</Link>
              <hr className="border-mingles-dark/20"/>
-             <Link href="/lair" className="font-bold">Member Login</Link>
-             <ConnectButton label="Join Mingles" showBalance={false} />
+             <Link href="/lair" className="font-bold">Join Mingles</Link>
+             <ConnectButton label="Member Login" showBalance={false} />
         </div>
       )}
     </nav>

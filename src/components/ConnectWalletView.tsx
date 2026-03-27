@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Wallet, Gift, Mail, ArrowDown, ExternalLink } from 'lucide-react';
 import { LairConnectButton } from '@/components/LairConnectButton';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Link from 'next/link';
 
 export const ConnectWalletView = () => {
@@ -59,7 +60,7 @@ export const ConnectWalletView = () => {
            <div className="w-full text-center space-y-4 relative z-20">
               <div className="scale-110 inline-block">
                  {/* Este botón abre el modal de Rainbowkit/Glyph */}
-                 <LairConnectButton isMobile={false} />
+                 <ConnectButton label='Connect Wallet' />
               </div>
               
               <p className="text-xs font-black uppercase text-[#1D1D1D]/40">
