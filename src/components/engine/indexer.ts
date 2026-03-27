@@ -50,7 +50,7 @@ const fetchIpfsData = async (id: string) => {
         }
       ],
     }
-
+    console.log(nft);
     return nft;
     
   } catch (error) {
@@ -189,3 +189,15 @@ export const fetchUserMingles = async (address: string) => {
 //     return [];
 //   }
 // };
+
+
+
+/**
+ * 1. id 1901     type: Water-Lightning         fine
+ * 2. id 2589     type: Classic White           fine
+ * 3. id 3018     type: Prehispanic White       fine
+ * 4. id 3324     type: Pink Axolotl            fine
+ * 5. id 3343     type: Xoloescuincle           none
+ * 6. id 3505     type: Ice                     none
+ * 7. id 3512     type: Robot Gen 2             none
+ */
