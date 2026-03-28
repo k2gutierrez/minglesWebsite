@@ -22,12 +22,14 @@ const fetchIpfsData = async (id: string) => {
       console.error("Could not fetch data!");
       return;
     }
-    const nftImage: string = "https://ipfs.io/ipfs/" + response?.data?.image?.split("/")[2] + "/" + id + ".png";
+    let nftImage: string = "";
     let nft_type;
     if (response?.data?.attributes?.length == 1) {
       nft_type = response?.data?.attributes[0]?.value
+      nftImage = `https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${id}.jpg`;
     } else {
       nft_type = response?.data?.attributes[4]?.value
+      nftImage = `https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${id}.png`;
     }
     let nft: MingleNFT = {
       id: id, // Token ID
