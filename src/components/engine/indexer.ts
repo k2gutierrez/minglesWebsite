@@ -18,10 +18,15 @@ const fetchIpfsData = async (id: string) => {
     // Remove trailing slash for direct file content
     const url = 'https://ipfs.io/ipfs/QmcoeRsFYeHzPD9Gx84aKD3tjLUKjvPEMSmoPs2GQmHR1t/' + id;
     const response = await axios.get(url);
+    if (response.data == undefined) {
+      console.error("Could not fetch data!");
+      return;
+    }
+    const nftImage: string = "https://ipfs.io/ipfs/" + response.data.image.split("/")[2] + "/" + id + ".png";
     let nft: MingleNFT = {
       id: id, // Token ID
       name: response.data.name,
-      image: "https://ipfs.io/ipfs/" + response.data.image.split("/")[2] + "/" + id + ".png", // URL de la imagen
+      image: nftImage, // URL de la imagen
       type: response.data.attributes[4].value,
       attributes: [
         {
