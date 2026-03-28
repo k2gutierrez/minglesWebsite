@@ -23,37 +23,44 @@ const fetchIpfsData = async (id: string) => {
       return;
     }
     const nftImage: string = "https://ipfs.io/ipfs/" + response.data.image.split("/")[2] + "/" + id + ".png";
+    let nft_type;
+    if (response.data.attributes.length == 1) {
+      nft_type = response.data.attributes[0].value
+    } else {
+      nft_type = response.data.attributes[4].value
+    }
     let nft: MingleNFT = {
       id: id, // Token ID
       name: response.data.name,
       image: nftImage, // URL de la imagen
-      type: response.data.attributes[4].value,
-      attributes: [
-        {
-          trait_type: response.data.attributes[0].trait_type,
-          value: response.data.attributes[0].value,
-        },
-        {
-          trait_type: response.data.attributes[1].trait_type,
-          value: response.data.attributes[1].value,
-        },
-        {
-          trait_type: response.data.attributes[2].trait_type,
-          value: response.data.attributes[2].value,
-        },
-        {
-          trait_type: response.data.attributes[3].trait_type,
-          value: response.data.attributes[3].value,
-        },
-        {
-          trait_type: response.data.attributes[4].trait_type,
-          value: response.data.attributes[4].value,
-        },
-        {
-          trait_type: response.data.attributes[5].trait_type,
-          value: response.data.attributes[5].value,
-        }
-      ],
+      type: nft_type,
+      attributes: response.data.attributes,
+      // [
+      //   {
+      //     trait_type: response.data.attributes[0].trait_type,
+      //     value: response.data.attributes[0].value,
+      //   },
+      //   {
+      //     trait_type: response.data.attributes[1].trait_type,
+      //     value: response.data.attributes[1].value,
+      //   },
+      //   {
+      //     trait_type: response.data.attributes[2].trait_type,
+      //     value: response.data.attributes[2].value,
+      //   },
+      //   {
+      //     trait_type: response.data.attributes[3].trait_type,
+      //     value: response.data.attributes[3].value,
+      //   },
+      //   {
+      //     trait_type: response.data.attributes[4].trait_type,
+      //     value: response.data.attributes[4].value,
+      //   },
+      //   {
+      //     trait_type: response.data.attributes[5].trait_type,
+      //     value: response.data.attributes[5].value,
+      //   }
+      // ],
     }
     console.log(nft);
     return nft;
