@@ -3,6 +3,7 @@ import { SequenceIndexer } from '@0xsequence/indexer';
 import { MinglesAddress } from './CONSTANTS';
 import axios from 'axios';
 import { MingleNFT, Trait } from './atoms';
+import { MinglesMetadata } from './mingles-metadata';
 
 // Tu contrato de Mingles (Pon aquí la dirección real cuando la tengas)
 const MINGLES_CONTRACT_ADDRESS = MinglesAddress; 
@@ -16,27 +17,29 @@ const baseURL = "https://ipfs.io/ipfs/QmcoeRsFYeHzPD9Gx84aKD3tjLUKjvPEMSmoPs2GQm
 const fetchIpfsData = async (id: string) => {
   try {
     // Remove trailing slash for direct file content
-    const url = 'https://ipfs.io/ipfs/QmcoeRsFYeHzPD9Gx84aKD3tjLUKjvPEMSmoPs2GQmHR1t/' + id;
-    const response = await axios.get(url);
-    if (response.data == undefined) {
-      console.error("Could not fetch data!");
-      return;
-    }
+    // const url = 'https://ipfs.io/ipfs/QmcoeRsFYeHzPD9Gx84aKD3tjLUKjvPEMSmoPs2GQmHR1t/' + id;
+    // const response = await axios.get(url);
+    // if (response.data == undefined) {
+    //   console.error("Could not fetch data!");
+    //   return;
+    // }
+    let response = Object(MinglesMetadata)[id]
+    console.log(response)
     let nftImage: string = "";
     let nft_type;
-    if (response?.data?.attributes?.length == 1) {
-      nft_type = response?.data?.attributes[0]?.value
+    if (response["attributes"].length == 1) {
+      nft_type = response["attributes"][0]?.value
       nftImage = `https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${id}.jpg`;
     } else {
-      nft_type = response?.data?.attributes[4]?.value
+      nft_type = response["attributes"][4]?.value
       nftImage = `https://ipfs.io/ipfs/QmY3DR3EKhLsZx1Dx1vM8HRc2xXvwjCJ6shdHV6pavc7eL/${id}.png`;
     }
     let nft: MingleNFT = {
       id: id, // Token ID
-      name: response?.data?.name,
+      name: response["name"],
       image: nftImage, // URL de la imagen
       type: nft_type,
-      attributes: response?.data?.attributes,
+      attributes: response["attributes"],
       // [
       //   {
       //     trait_type: response.data.attributes[0].trait_type,
