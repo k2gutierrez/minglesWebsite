@@ -119,8 +119,8 @@ export default function LairLayout({ children }: { children: React.ReactNode }) 
          <footer className="bg-[#1D1D1D] text-[#EDEDD9] p-8 border-t-4 border-[#E15162]">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                <div className="flex gap-4">
-                  {['Twitter', 'Discord', 'Magic Eden', 'OpenSea'].map((link) => (
-                     <Link key={link} href="#" className="text-xs font-bold uppercase hover:text-[#E15162] transition-colors">{link}</Link>
+                  {[{name: 'Twitter', link: "https://x.com/MinglesNFT"}, {name: 'Discord', link: "https://discord.gg/5ubwCpDZFa"}, {name: 'OpenSea', link: "https://opensea.io/collection/mingles"}].map((link) => (
+                     <Link key={link.name} href={link.link} className="text-xs font-bold uppercase hover:text-[#E15162] transition-colors">{link.name}</Link>
                   ))}
                </div>
                <p className="text-[10px] opacity-50">© 2026 Mingles DAO. All rights reserved.</p>

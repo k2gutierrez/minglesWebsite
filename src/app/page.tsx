@@ -338,6 +338,7 @@ const Footer = () => (
                     <li><Link href="⁠https://giphy.com/minglestequila" className="hover:text-mingles-red">Giphy</Link></li>
                     <li><Link href="⁠https://discord.gg/5ubwCpDZFa" className="hover:text-mingles-red">Discord</Link></li>
                     <li><Link href="mailto:mingles@mingles.com" className="hover:text-mingles-red">Contact Us</Link></li>
+                    <li><Link href="https://opensea.io/collection/mingles" className="hover:text-mingles-red">OpenSea</Link></li>
                 </ul>
             </div>
         </div>
