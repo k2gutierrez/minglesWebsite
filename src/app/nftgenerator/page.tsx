@@ -42,9 +42,7 @@ export default function NFTGeneratorAdmin() {
   const [newNamesMapping, setNewNamesMapping] = useState<Record<string, Record<string, string>>>({});
   
   // @Carlos: Este estado se debe llenar consultando tu base de datos (Storage)
-  const [uploadedTraits, setUploadedTraits] = useState<Record<string, Set<string>>>({
-    'Cap': new Set(['Sombrero']), 'Face': new Set(['Happy']) // Mocks para que no se vea vacío
-  });
+  const [uploadedTraits, setUploadedTraits] = useState<Record<string, Set<string>>>({});
 
   // Estados de Vista de Resultados
   const [visibleCount, setVisibleCount] = useState(50);
@@ -55,6 +53,35 @@ export default function NFTGeneratorAdmin() {
   // --- NUEVO ESTADO: MULTI-FILTROS ESTILO OPENSEA ---
   // Guardamos qué traits están seleccionados por familia: { 'Cap': ['Sombrero', 'Beanie'], 'Fur': ['Brown'] }
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+
+  // --- NUEVO: Leer qué archivos existen en Supabase al cargar la página ---
+  useEffect(() => {
+    const fetchUploadedTraits = async () => {
+      // Familias exactas que tienes en tu JSON
+      const families = ['BG', 'Fur', 'Face', 'Tequila Worm', 'Bottle', 'Cap'];
+      const hydratedTraits: Record<string, Set<string>> = {};
+
+      for (const family of families) {
+        // Le pedimos a Supabase la lista de archivos dentro de la carpeta de cada familia
+        const { data, error } = await supabase.storage.from('traits').list(family);
+        
+        if (data && !error) {
+          // Extraemos los nombres de los archivos quitando el ".png"
+          // Ej: "ApeChain Blue.png" -> "ApeChain Blue"
+          const uploadedNames = data
+            .filter(file => file.name.endsWith('.png'))
+            .map(file => file.name.replace('.png', ''));
+          
+          hydratedTraits[family] = new Set(uploadedNames);
+        }
+      }
+      
+      // Actualizamos la memoria de React con lo que realmente hay en la base de datos
+      setUploadedTraits(hydratedTraits);
+    };
+
+    fetchUploadedTraits();
+  }, []); // El array vacío [] hace que esto corra SOLO UNA VEZ al cargar la página
 
   // 1. Extraer Traits Únicos automáticamente
   const uniqueTraitsByFamily = useMemo(() => {
@@ -156,7 +183,7 @@ export default function NFTGeneratorAdmin() {
         <img 
           key={attr.trait_type} 
           src={imageUrl} 
-          crossOrigin="anonymous" 
+          // crossOrigin="anonymous" 
           style={{ zIndex: zIndexMap[attr.trait_type] }} 
           className="absolute inset-0 w-full h-full object-cover" 
           alt={attr.value}
