@@ -109,10 +109,13 @@ export default function NFTGeneratorAdmin() {
   const handleAutoConnectUpload = async (family: string, originalValue: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
+    console.log(file)
     const targetStoragePath = `${family}/${originalValue}.png`;
+    console.log(targetStoragePath)
     // @Carlos: 
     try {
-        await supabase.storage.from('traits').upload(targetStoragePath, file, {upsert: true})
+        const uploadFile = await supabase.storage.from('traits').upload(targetStoragePath, file, {upsert: true})
+        console.log(uploadFile)
     } catch (e) {
         console.log(e)
     }
