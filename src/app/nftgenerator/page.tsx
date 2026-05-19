@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 
 // @Carlos: IMPORTA TU JSON LIMPIO AQUÍ
 import realMetadata from '@/components/engine/mingles-metadata-clean.json';
+import { supabase } from '@/components/engine/supabase';
 
 // ==========================================
 // 🔴 CARLOS: LLENA ESTA VARIABLE CON TU URL
@@ -109,7 +110,13 @@ export default function NFTGeneratorAdmin() {
     if (!files || files.length === 0) return;
     const file = files[0];
     const targetStoragePath = `${family}/${originalValue}.png`;
-    // @Carlos: await supabase.storage.from('traits').upload(targetStoragePath, file, { upsert: true });
+    // @Carlos: 
+    try {
+        await supabase.storage.from('traits').upload(targetStoragePath, file, {upsert: true})
+    } catch (e) {
+        console.log(e)
+    }
+        
     setUploadedTraits(prev => {
       const updated = { ...prev };
       if (!updated[family]) updated[family] = new Set();
