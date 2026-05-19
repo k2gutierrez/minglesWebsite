@@ -26,7 +26,7 @@ interface NFTMetadata {
 
 // Orden estricto de capas (Z-Index)
 const zIndexMap: Record<string, number> = {
-  'BG': 0, 'Fur': 10, 'Face': 20, 'Tequila Worm': 30, 'Bottle': 40, 'Cap': 50
+  'BG': 0, 'Fur': 20, 'Face': 30, 'Tequila Worm': 10, 'Bottle': 40, 'Cap': 50
 };
 
 // Quitamos los legendarios desde el principio
