@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { UploadCloud, CheckCircle2, Download, Loader2, X, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import realMetadata from '@/components/engine/mingles-metadata-clean.json';
 
 // --- CONFIGURACIÓN Y TIPOS ---
 type TraitFamily = 'BG' | 'Fur' | 'Face' | 'Tequila Worm' | 'Bottle' | 'Cap';
@@ -18,6 +19,7 @@ const zIndexMap: Record<string, number> = {
 };
 
 // @Carlos: Reemplazar por la lectura real de tu JSON de la colección.
+/**
 const mockMetadata: NFTMetadata[] = Array.from({ length: 5555 }).map((_, i) => ({
   edition: i + 1,
   attributes: [
@@ -29,6 +31,9 @@ const mockMetadata: NFTMetadata[] = Array.from({ length: 5555 }).map((_, i) => (
     { trait_type: 'Cap', value: i % 2 === 0 ? 'Sombrero' : 'Beanie' },
   ],
 }));
+ */
+
+const mockMetadata: NFTMetadata[] = realMetadata as NFTMetadata[];
 
 export default function NFTGeneratorAdmin() {
   const [activeTab, setActiveTab] = useState<'mapper' | 'preview'>('mapper');
