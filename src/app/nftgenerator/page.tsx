@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { UploadCloud, CheckCircle2, Download, Loader2, X, ChevronLeft, ChevronRight, CheckSquare, Square } from 'lucide-react';
-import html2canvas from 'html2canvas';
+// import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 // @Carlos: IMPORTA TU JSON LIMPIO AQUÍ
 import realMetadata from '@/components/engine/mingles-metadata-clean.json';
@@ -160,13 +161,23 @@ export default function NFTGeneratorAdmin() {
     try {
       const element = document.getElementById(elementId);
       if (!element) return;
-      const canvas = await html2canvas(element, { useCORS: true, allowTaint: false, backgroundColor: null, scale: 2 });
+      
+      // toPng delega el renderizado al navegador, por lo que CSS moderno no falla
+      const dataUrl = await toPng(element, { 
+        cacheBust: false,
+        pixelRatio: 2 // Exporta al doble de resolución (Retina Display)
+      });
+
       const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
       link.download = `mingle-${editionId}.png`;
+      link.href = dataUrl;
       link.click();
-    } catch (error) { console.error("Error snapshot:", error); } 
-    finally { setDownloadingId(null); }
+    } catch (error) {
+      console.error("❌ Error al generar snapshot:", error);
+      alert("Error al descargar la imagen. Revisa la consola.");
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   // --- MOTOR DE COMPOSICIÓN (IMÁGENES REALES) ---
