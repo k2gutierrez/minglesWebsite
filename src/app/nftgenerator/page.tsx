@@ -35,13 +35,15 @@ const baseMetadata: NFTMetadata[] = (realMetadata as NFTMetadata[]).filter(
   nft => !EXCLUDED_1_OF_1_IDS.has(nft.edition)
 );
 
+export const dynamic = 'force-dynamic';
+
 export default function NFTGeneratorAdmin() {
   const [activeTab, setActiveTab] = useState<'mapper' | 'preview'>('preview');
-  
+
   // Estados Generales
   const [selectedFamily, setSelectedFamily] = useState<string>('Cap');
   const [newNamesMapping, setNewNamesMapping] = useState<Record<string, Record<string, string>>>({});
-  
+
   // @Carlos: Este estado se debe llenar consultando tu base de datos (Storage)
   const [uploadedTraits, setUploadedTraits] = useState<Record<string, Set<string>>>({});
 
@@ -50,6 +52,8 @@ export default function NFTGeneratorAdmin() {
   const [inspectIndex, setInspectIndex] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [draggingOver, setDraggingOver] = useState<string | null>(null);
+
+  const [imageRefreshKey, setImageRefreshKey] = useState(Date.now());
 
   // --- NUEVO ESTADO: MULTI-FILTROS ESTILO OPENSEA ---
   // Guardamos qué traits están seleccionados por familia: { 'Cap': ['Sombrero', 'Beanie'], 'Fur': ['Brown'] }
@@ -65,23 +69,24 @@ export default function NFTGeneratorAdmin() {
       for (const family of families) {
         // Le pedimos a Supabase la lista de archivos dentro de la carpeta de cada familia
         const { data, error } = await supabase.storage.from('traits').list(family);
-        
+
         if (data && !error) {
           // Extraemos los nombres de los archivos quitando el ".png"
           // Ej: "ApeChain Blue.png" -> "ApeChain Blue"
           const uploadedNames = data
             .filter(file => file.name.endsWith('.png'))
             .map(file => file.name.replace('.png', ''));
-          
+
           hydratedTraits[family] = new Set(uploadedNames);
         }
       }
-      
+
       // Actualizamos la memoria de React con lo que realmente hay en la base de datos
       setUploadedTraits(hydratedTraits);
     };
 
     fetchUploadedTraits();
+
   }, []); // El array vacío [] hace que esto corra SOLO UNA VEZ al cargar la página
 
   // 1. Extraer Traits Únicos automáticamente
@@ -96,10 +101,10 @@ export default function NFTGeneratorAdmin() {
     setActiveFilters(prev => {
       const familyFilters = prev[family] || [];
       const isSelected = familyFilters.includes(traitValue);
-      
+
       return {
         ...prev,
-        [family]: isSelected 
+        [family]: isSelected
           ? familyFilters.filter(t => t !== traitValue) // Lo quitamos
           : [...familyFilters, traitValue] // Lo agregamos
       };
@@ -137,17 +142,25 @@ export default function NFTGeneratorAdmin() {
   const handleAutoConnectUpload = async (family: string, originalValue: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
-    console.log(file)
     const targetStoragePath = `${family}/${originalValue}.png`;
-    console.log(targetStoragePath)
     // @Carlos: 
     try {
-        const uploadFile = await supabase.storage.from('traits').upload(targetStoragePath, file, {upsert: true})
-        console.log(uploadFile)
+      const uploadFile = await supabase.storage.from('traits').upload(targetStoragePath, file, { cacheControl: '1', upsert: true })
+      if (uploadFile.error == null) {
+        setUploadedTraits(prev => {
+          const updated = { ...prev };
+          if (!updated[family]) updated[family] = new Set();
+          updated[family].add(originalValue);
+          return updated;
+        });
+
+        // NUEVO: Cambiamos la llave para obligar al navegador a recargar la imagen
+        setImageRefreshKey(Date.now());
+      }
     } catch (e) {
-        console.log(e)
+      console.log(e)
     }
-        
+
     setUploadedTraits(prev => {
       const updated = { ...prev };
       if (!updated[family]) updated[family] = new Set();
@@ -161,9 +174,9 @@ export default function NFTGeneratorAdmin() {
     try {
       const element = document.getElementById(elementId);
       if (!element) return;
-      
+
       // toPng delega el renderizado al navegador, por lo que CSS moderno no falla
-      const dataUrl = await toPng(element, { 
+      const dataUrl = await toPng(element, {
         cacheBust: false,
         pixelRatio: 2 // Exporta al doble de resolución (Retina Display)
       });
@@ -185,22 +198,22 @@ export default function NFTGeneratorAdmin() {
     return nft.attributes.map(attr => {
       // @Carlos: Si false, el trait no se dibuja (fallo silencioso)
       const isUploaded = uploadedTraits[attr.trait_type]?.has(attr.value);
-      if (!isUploaded) return null; 
+      if (!isUploaded) return null;
 
       // 🔴 AQUÍ YA ESTÁ LA IMAGEN REAL DE SUPABASE. No más cuadros verdes.
-      const imageUrl = `${SUPABASE_PROJECT_URL}/storage/v1/object/public/traits/${attr.trait_type}/${encodeURIComponent(attr.value)}.png`;
+      const imageUrl = `${SUPABASE_PROJECT_URL}/storage/v1/object/public/traits/${attr.trait_type}/${encodeURIComponent(attr.value)}.png?v=${imageRefreshKey}`;
 
       return (
-        <img 
-          key={attr.trait_type} 
-          src={imageUrl} 
+        <img
+          key={attr.trait_type}
+          src={imageUrl}
           // crossOrigin="anonymous" 
-          style={{ zIndex: zIndexMap[attr.trait_type] }} 
-          className="absolute inset-0 w-full h-full object-cover" 
+          style={{ zIndex: zIndexMap[attr.trait_type] }}
+          className="absolute inset-0 w-full h-full object-cover"
           alt={attr.value}
           onError={(e) => {
-             // Si la imagen falla en cargar (URL rota o no existe), la oculta para no mostrar icono roto.
-             (e.target as HTMLImageElement).style.display = 'none';
+            // Si la imagen falla en cargar (URL rota o no existe), la oculta para no mostrar icono roto.
+            (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
       );
@@ -209,7 +222,7 @@ export default function NFTGeneratorAdmin() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-gray-100 font-sans pb-20 antialiased selection:bg-lime-400 selection:text-black">
-      
+
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-[#0A0A0A]/85 backdrop-blur-md border-b border-white/5 px-6 py-4 flex justify-between items-center">
         <div>
@@ -224,46 +237,46 @@ export default function NFTGeneratorAdmin() {
 
       {/* --- PESTAÑA 1: TRAIT STUDIO (Mantenida exactamente igual) --- */}
       {activeTab === 'mapper' && (
-         <main className="max-w-7xl mx-auto px-4 sm:px-6 mt-8 sm:mt-10 animate-in fade-in duration-300">
-           {/* ... (Todo el código del Mapper Studio que ya tenías) ... */}
-           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
-              <div><h2 className="text-xl font-bold text-white">Vinculación Automática</h2></div>
-              <select value={selectedFamily} onChange={(e) => setSelectedFamily(e.target.value)} className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-lime-400 focus:outline-none focus:border-lime-400 w-full sm:w-56">
-                {Object.keys(uniqueTraitsByFamily).map(f => <option key={f} value={f}>FAMILIA: {f}</option>)}
-              </select>
-            </div>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 mt-8 sm:mt-10 animate-in fade-in duration-300">
+          {/* ... (Todo el código del Mapper Studio que ya tenías) ... */}
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+            <div><h2 className="text-xl font-bold text-white">Vinculación Automática</h2></div>
+            <select value={selectedFamily} onChange={(e) => setSelectedFamily(e.target.value)} className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-lime-400 focus:outline-none focus:border-lime-400 w-full sm:w-56">
+              {Object.keys(uniqueTraitsByFamily).map(f => <option key={f} value={f}>FAMILIA: {f}</option>)}
+            </select>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {uniqueTraitsByFamily[selectedFamily].map((originalValue) => {
-                const isUploaded = uploadedTraits[selectedFamily]?.has(originalValue);
-                const isDragging = draggingOver === originalValue;
-                const customName = newNamesMapping[selectedFamily]?.[originalValue] || '';
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {uniqueTraitsByFamily[selectedFamily].map((originalValue) => {
+              const isUploaded = uploadedTraits[selectedFamily]?.has(originalValue);
+              const isDragging = draggingOver === originalValue;
+              const customName = newNamesMapping[selectedFamily]?.[originalValue] || '';
 
-                return (
-                  <div key={originalValue} className={`relative bg-zinc-900/60 border rounded-2xl p-5 transition-all duration-300 flex flex-col gap-4 ${isDragging ? 'border-lime-400 bg-lime-400/5' : 'border-white/5'}`} onDragOver={(e) => { e.preventDefault(); setDraggingOver(originalValue); }} onDragLeave={() => setDraggingOver(null)} onDrop={(e) => { e.preventDefault(); setDraggingOver(null); handleAutoConnectUpload(selectedFamily, originalValue, e.dataTransfer.files); }}>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-mono text-gray-400">Original: <strong className="text-white font-sans text-sm">{originalValue}</strong></span>
-                      {isUploaded && <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20"><CheckCircle2 size={10} /> LISTO</div>}
-                    </div>
-                    <div className="space-y-1">
-                      <input type="text" value={customName} placeholder="Nuevo Nombre en UI (Opcional)" onChange={(e) => setNewNamesMapping(prev => ({ ...prev, [selectedFamily]: { ...prev[selectedFamily], [originalValue]: e.target.value } }))} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-lime-400 focus:outline-none focus:border-lime-400" />
-                    </div>
-                    <label className="relative cursor-pointer group flex flex-col items-center justify-center border border-dashed border-zinc-700 hover:border-lime-400/50 rounded-xl py-6 transition-all bg-black/20 hover:bg-black/40">
-                      <input type="file" accept="image/png" className="hidden" onChange={(e) => handleAutoConnectUpload(selectedFamily, originalValue, e.target.files)} />
-                      <UploadCloud size={20} className="text-zinc-500 group-hover:text-lime-400 transition-all" />
-                      <span className="text-[11px] font-medium text-zinc-400 mt-2">{isUploaded ? 'Reemplazar PNG' : 'Subir PNG'}</span>
-                    </label>
+              return (
+                <div key={originalValue} className={`relative bg-zinc-900/60 border rounded-2xl p-5 transition-all duration-300 flex flex-col gap-4 ${isDragging ? 'border-lime-400 bg-lime-400/5' : 'border-white/5'}`} onDragOver={(e) => { e.preventDefault(); setDraggingOver(originalValue); }} onDragLeave={() => setDraggingOver(null)} onDrop={(e) => { e.preventDefault(); setDraggingOver(null); handleAutoConnectUpload(selectedFamily, originalValue, e.dataTransfer.files); }}>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-mono text-gray-400">Original: <strong className="text-white font-sans text-sm">{originalValue}</strong></span>
+                    {isUploaded && <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20"><CheckCircle2 size={10} /> LISTO</div>}
                   </div>
-                );
-              })}
-            </div>
-         </main>
+                  <div className="space-y-1">
+                    <input type="text" value={customName} placeholder="Nuevo Nombre en UI (Opcional)" onChange={(e) => setNewNamesMapping(prev => ({ ...prev, [selectedFamily]: { ...prev[selectedFamily], [originalValue]: e.target.value } }))} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-lime-400 focus:outline-none focus:border-lime-400" />
+                  </div>
+                  <label className="relative cursor-pointer group flex flex-col items-center justify-center border border-dashed border-zinc-700 hover:border-lime-400/50 rounded-xl py-6 transition-all bg-black/20 hover:bg-black/40">
+                    <input type="file" accept="image/png" className="hidden" onChange={(e) => handleAutoConnectUpload(selectedFamily, originalValue, e.target.files)} />
+                    <UploadCloud size={20} className="text-zinc-500 group-hover:text-lime-400 transition-all" />
+                    <span className="text-[11px] font-medium text-zinc-400 mt-2">{isUploaded ? 'Reemplazar PNG' : 'Subir PNG'}</span>
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        </main>
       )}
 
       {/* --- PESTAÑA 2: ASSEMBLE LAB (CON SIDEBAR DE FILTROS TIPO OPENSEA) --- */}
       {activeTab === 'preview' && (
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 mt-8 flex flex-col md:flex-row gap-6 animate-in fade-in duration-300">
-          
+
           {/* SIDEBAR DE FILTROS (Izquierda) */}
           <aside className="w-full md:w-72 flex-shrink-0 space-y-6">
             <div className="bg-zinc-900/80 border border-white/5 rounded-2xl p-5 sticky top-24">
@@ -280,8 +293,8 @@ export default function NFTGeneratorAdmin() {
                       {traits.map(trait => {
                         const isSelected = activeFilters[family]?.includes(trait);
                         return (
-                          <button 
-                            key={trait} 
+                          <button
+                            key={trait}
                             onClick={() => toggleFilter(family, trait)}
                             className="w-full flex items-center gap-3 text-left group"
                           >
@@ -305,8 +318,8 @@ export default function NFTGeneratorAdmin() {
           <main className="flex-1">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredAndSortedNFTs.slice(0, visibleCount).map((nft, index) => (
-                <div 
-                  key={nft.edition} 
+                <div
+                  key={nft.edition}
                   onClick={() => setInspectIndex(index)}
                   className="group relative aspect-square bg-zinc-950 border border-white/5 rounded-2xl overflow-hidden cursor-pointer hover:border-lime-400/50 transition-all duration-300 hover:-translate-y-1 shadow-lg"
                 >
@@ -350,26 +363,26 @@ export default function NFTGeneratorAdmin() {
             </div>
             {/* ... Panel Lateral (Igual) ... */}
             <div className="w-full lg:w-96 bg-zinc-950 border-l border-white/5 p-6 overflow-y-auto">
-               <button onClick={() => handleDownloadSnapshot(filteredAndSortedNFTs[inspectIndex].edition, `mingle-modal-render-${filteredAndSortedNFTs[inspectIndex].edition}`)} disabled={downloadingId === filteredAndSortedNFTs[inspectIndex].edition} className="w-full mb-8 bg-lime-400 hover:bg-lime-300 disabled:bg-lime-400/50 text-black py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+              <button onClick={() => handleDownloadSnapshot(filteredAndSortedNFTs[inspectIndex].edition, `mingle-modal-render-${filteredAndSortedNFTs[inspectIndex].edition}`)} disabled={downloadingId === filteredAndSortedNFTs[inspectIndex].edition} className="w-full mb-8 bg-lime-400 hover:bg-lime-300 disabled:bg-lime-400/50 text-black py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                 {downloadingId === filteredAndSortedNFTs[inspectIndex].edition ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />} Descargar High-Res
               </button>
-               {/* Resumen de traits para el modal */}
-               <h4 className="text-xs uppercase text-gray-500 font-bold mb-4">Anatomía</h4>
-               <div className="space-y-3">
-                 {filteredAndSortedNFTs[inspectIndex].attributes.map((attr, idx) => {
-                    const originalVal = attr.value;
-                    const isUploaded = uploadedTraits[attr.trait_type]?.has(originalVal);
-                    return (
-                      <div key={idx} className="bg-zinc-900/50 border border-white/5 p-3 rounded-xl">
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="text-[10px] text-zinc-500 uppercase font-mono tracking-wider">{attr.trait_type}</span>
-                          {!isUploaded && <span className="text-[9px] text-red-400 font-medium px-2 py-0.5 rounded border border-red-400/20 bg-red-400/5">FALTA PNG</span>}
-                        </div>
-                        <span className={isUploaded ? 'text-sm text-zinc-200' : 'text-sm text-zinc-600 line-through'}>{originalVal}</span>
+              {/* Resumen de traits para el modal */}
+              <h4 className="text-xs uppercase text-gray-500 font-bold mb-4">Anatomía</h4>
+              <div className="space-y-3">
+                {filteredAndSortedNFTs[inspectIndex].attributes.map((attr, idx) => {
+                  const originalVal = attr.value;
+                  const isUploaded = uploadedTraits[attr.trait_type]?.has(originalVal);
+                  return (
+                    <div key={idx} className="bg-zinc-900/50 border border-white/5 p-3 rounded-xl">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-[10px] text-zinc-500 uppercase font-mono tracking-wider">{attr.trait_type}</span>
+                        {!isUploaded && <span className="text-[9px] text-red-400 font-medium px-2 py-0.5 rounded border border-red-400/20 bg-red-400/5">FALTA PNG</span>}
                       </div>
-                    );
-                 })}
-               </div>
+                      <span className={isUploaded ? 'text-sm text-zinc-200' : 'text-sm text-zinc-600 line-through'}>{originalVal}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
