@@ -13,6 +13,10 @@ import { supabase } from '@/components/engine/supabase';
 // 🔴 CARLOS: LLENA ESTA VARIABLE CON TU URL
 // Ejemplo: "https://abcdefghijk.supabase.co"
 const SUPABASE_PROJECT_URL = "https://zifpnidxmvofiqqbekhe.supabase.co";
+
+const sanitizeForStorage = (name: string) => {
+  return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
 // ==========================================
 
 // LOS 10 LEGENDARIOS QUE DEBEN SER IGNORADOS
@@ -142,7 +146,9 @@ export default function NFTGeneratorAdmin() {
   const handleAutoConnectUpload = async (family: string, originalValue: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
-    const targetStoragePath = `${family}/${originalValue}.png`;
+    const safeName = sanitizeForStorage(originalValue);
+    const targetStoragePath = `${family}/${safeName}.png`;
+    console.log(`⏳ Subiendo ${file.name} hacia Supabase en ${targetStoragePath}...`);
     // @Carlos: 
     try {
       const uploadFile = await supabase.storage.from('traits').upload(targetStoragePath, file, { cacheControl: '1', upsert: true })
@@ -197,11 +203,12 @@ export default function NFTGeneratorAdmin() {
   const renderLayers = (nft: NFTMetadata) => {
     return nft.attributes.map(attr => {
       // @Carlos: Si false, el trait no se dibuja (fallo silencioso)
-      const isUploaded = uploadedTraits[attr.trait_type]?.has(attr.value);
+      const safeName = sanitizeForStorage(attr.value);
+      const isUploaded = uploadedTraits[attr.trait_type]?.has(safeName);
       if (!isUploaded) return null;
 
       // 🔴 AQUÍ YA ESTÁ LA IMAGEN REAL DE SUPABASE. No más cuadros verdes.
-      const imageUrl = `${SUPABASE_PROJECT_URL}/storage/v1/object/public/traits/${attr.trait_type}/${encodeURIComponent(attr.value)}.png?v=${imageRefreshKey}`;
+      const imageUrl = `${SUPABASE_PROJECT_URL}/storage/v1/object/public/traits/${attr.trait_type}/${encodeURIComponent(safeName)}.png?v=${imageRefreshKey}`;
 
       return (
         <img
@@ -248,7 +255,7 @@ export default function NFTGeneratorAdmin() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {uniqueTraitsByFamily[selectedFamily].map((originalValue) => {
-              const isUploaded = uploadedTraits[selectedFamily]?.has(originalValue);
+              const isUploaded = uploadedTraits[selectedFamily]?.has(sanitizeForStorage(originalValue));
               const isDragging = draggingOver === originalValue;
               const customName = newNamesMapping[selectedFamily]?.[originalValue] || '';
 
@@ -371,7 +378,8 @@ export default function NFTGeneratorAdmin() {
               <div className="space-y-3">
                 {filteredAndSortedNFTs[inspectIndex].attributes.map((attr, idx) => {
                   const originalVal = attr.value;
-                  const isUploaded = uploadedTraits[attr.trait_type]?.has(originalVal);
+                  const safeName = sanitizeForStorage(originalVal);
+                  const isUploaded = uploadedTraits[attr.trait_type]?.has(safeName);
                   return (
                     <div key={idx} className="bg-zinc-900/50 border border-white/5 p-3 rounded-xl">
                       <div className="flex justify-between items-start mb-1">
