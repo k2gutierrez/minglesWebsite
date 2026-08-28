@@ -14,7 +14,7 @@ import { minglesAtom, isLoadingMinglesAtom } from '@/components/engine/atoms';
 import { supabase } from '@/components/engine/supabase';
 import { ConnectWalletView } from '@/components/ConnectWalletView';
 import { fetchUserMingles } from '@/components/engine/indexer';
-import { GameMath } from '@/lib/gameMath'; 
+import { GameMath } from '@/lib/gameMath';
 
 // CONFIGURACIÓN DE TIEMPO
 const IS_DEV_MODE = true;
@@ -85,7 +85,7 @@ export default function RaidsPage() {
                 img: r.image_url,
                 color: r.color_theme,
                 yields: r.yield_config,
-                base_xp: r.base_xp, 
+                base_xp: r.base_xp,
                 boss: r.game_bosses?.name,
                 bossImg: r.game_bosses?.image_url,
                 bossDesc: r.game_bosses?.description,
@@ -160,20 +160,22 @@ export default function RaidsPage() {
     // ==========================================
     // 3. HELPERS
     // ==========================================
-    const getWormStats = (mingle?: any): any => {
-        if (!mingle || !dbTraits) return { passive_type: 'yield', passive_value: 0 };
-
-        const legendaryKey = `id_${mingle.id}`;
-
-        if (dbTraits[legendaryKey]) {
-            return dbTraits[legendaryKey];
+    const getWormStats = (type?: string): any => {
+        // 1. Validamos que tengamos tipo y datos, sin exigir que sea un Arreglo
+        if (!type || !dbTraits || Object.keys(dbTraits).length === 0) {
+            return { passive_type: 'yield', passive_value: 0 };
         }
 
-        if (!mingle.type) return { passive_type: 'yield', passive_value: 0 };
-        const normalizedType = mingle.type.toLowerCase();
+        const normalizedType = type.toLowerCase();
 
-        const foundKey = Object.keys(dbTraits).find(k => normalizedType.includes(k.toLowerCase()));
-        if (foundKey && dbTraits[foundKey]) return dbTraits[foundKey];
+        // 2. Buscamos si la llave de la DB (ej: 'jimador') está en el nombre del NFT
+        const key = Object.keys(dbTraits).find(k =>
+            normalizedType.includes(k.toLowerCase())
+        );
+
+        if (key && dbTraits[key]) {
+            return dbTraits[key];
+        }
 
         return { passive_type: 'yield', passive_value: 0 };
     };
@@ -191,7 +193,7 @@ export default function RaidsPage() {
     }, [userPoints, inventory, lockedMingles, mingles]);
 
     const globalMultiplier = useMemo(() => {
-        if (mingles.length === 0) return 0; 
+        if (mingles.length === 0) return 0;
         return GameMath.getGlobalMultiplier(mingles.length, friendsCount);
     }, [mingles.length, friendsCount]);
 
@@ -199,31 +201,25 @@ export default function RaidsPage() {
         let bossChance = 0; let yieldBonus = 0; let lootBonus = 0;
         const breakdown = { items: [] as string[] };
 
-        selectedMingles.forEach(id => {
-            const m = mingles.find(u => u.id === id);
-            const data = getWormStats(m);
-            const mingleLevel = minglesStats[id]?.level || 0;
-
-            const effectiveStat = GameMath.getMinglePassive(data.passive_value || 0, mingleLevel);
-
-            if (data.passive_type === 'boss' || data.passive_type === 'omni') bossChance += effectiveStat;
-            if (data.passive_type === 'yield' || data.passive_type === 'omni') yieldBonus += effectiveStat;
-            if (data.passive_type === 'loot' || data.passive_type === 'omni') lootBonus += effectiveStat;
-        });
-
         const groupedItems: Record<string, number> = {};
-        selectedItemInstances.forEach(inst => { groupedItems[inst.itemId] = (groupedItems[inst.itemId] || 0) + 1; });
+        selectedItemInstances.forEach(inst => {
+            groupedItems[inst.itemId] = (groupedItems[inst.itemId] || 0) + 1;
+        });
 
         for (const [id, count] of Object.entries(groupedItems)) {
             const info = dbItems[id];
-            if (info && info.type && typeof info.value !== 'undefined') {
+            // BLINDAJE: Solo sumamos si 'info' existe, tiene 'type' y tiene 'value'
+            if (info && info.type && typeof info.value === 'number') {
                 const totalVal = info.value * count;
                 if (info.type === 'boss') bossChance += totalVal;
                 if (info.type === 'yield') yieldBonus += totalVal;
                 if (info.type === 'loot') lootBonus += totalVal;
-                breakdown.items.push(`${count}x ${info.name} (+${totalVal}% ${info.type.toUpperCase()})`);
+
+                breakdown.items.push(`${count}x ${info.name || 'Item'} (+${totalVal}% ${info.type.toUpperCase()})`);
             }
         }
+
+
 
         return { bossChance: Math.min(bossChance, 100), yieldBonus, lootBonus, breakdown };
     }, [selectedMingles, selectedItemInstances, mingles, dbItems, dbTraits, minglesStats]);
@@ -315,7 +311,7 @@ export default function RaidsPage() {
 
             session.squad.forEach((id: string) => {
                 const m = currentMingles.find((u: any) => u.id === id);
-                const d = getWormStats(m);
+                const d = getWormStats(m?.type);
                 const mingleLevel = minglesStats[id]?.level || 0;
 
                 const effectiveStat = GameMath.getMinglePassive(d.passive_value || 0, mingleLevel);
@@ -361,7 +357,7 @@ export default function RaidsPage() {
 
             await supabase.rpc('add_mingles_xp', { p_mingle_ids: session.squad, p_xp_amount: earnedXp });
 
-            let bossLoot: any[] = []; 
+            let bossLoot: any[] = [];
 
             if (bossDefeated && raidConfig.bossLoot && raidConfig.bossLoot.length > 0) {
                 for (const droppedLoot of raidConfig.bossLoot) {
@@ -390,7 +386,7 @@ export default function RaidsPage() {
             if (bossDefeated) {
                 for (const mId of session.squad) {
                     const mingleNFT = currentMingles.find((u: any) => u.id === mId);
-                    const traits = getWormStats(mingleNFT);
+                    const traits = getWormStats(mingleNFT?.type);
                     const mingleLevel = minglesStats[mId]?.level || 0;
 
                     const exclusiveChance = GameMath.getExclusiveDropChance(mingleLevel);
@@ -421,8 +417,8 @@ export default function RaidsPage() {
                 bossDefeated,
                 rewards: {
                     tequila: totalTequila,
-                    baseTequila: baseAmount,      
-                    multiplier: globalMultiplier, 
+                    baseTequila: baseAmount,
+                    multiplier: globalMultiplier,
                     bossLoot: bossLoot,
                     mingleLoot: mingleLoot
                 }
@@ -469,11 +465,11 @@ export default function RaidsPage() {
     // 🌟 ARREGLO PRINCIPAL: Filtro de Mingles actualizado para soportar Godlike y pasar 'm' completo
     const sortedMingles = useMemo(() => {
         let filtered = [...mingles];
-        
+
         if (squadFilter !== 'all') {
             filtered = filtered.filter(m => {
-                const data = getWormStats(m); // IMPORTANTE: Aquí pasamos 'm', no 'm.type'
-                
+                const data = getWormStats(m.type); // IMPORTANTE: Aquí pasamos 'm', no 'm.type'
+
                 // Si el usuario da clic en la pestaña de Godlike
                 if (squadFilter === 'godlike') {
                     return GODLIKE_IDS.includes(m.id!.toString()) || data.passive_type === 'omni';
@@ -505,7 +501,7 @@ export default function RaidsPage() {
                 <div className="bg-white rounded-[2rem] max-w-lg w-full text-center border-4 border-[#1D1D1D] shadow-[0_0_20px_rgba(225,81,98,0.3)] overflow-hidden animate-in zoom-in duration-300">
                     <div className="bg-[#1D1D1D] p-6 text-white"><h2 className="text-3xl font-black uppercase tracking-widest">Raid Report</h2></div>
                     <div className="p-6 space-y-6">
-                        
+
                         {/* 💰 CAJA DE TEQUILA ROBADO */}
                         <div className="flex flex-col items-center justify-center p-4 bg-[#EDEDD9] rounded-2xl border-2 border-[#1D1D1D] relative overflow-hidden">
                             <Wine className="absolute -right-4 -bottom-4 text-[#1D1D1D]/5" size={80} />
@@ -593,13 +589,13 @@ export default function RaidsPage() {
                         <div className="bg-[#EDEDD9] p-6 rounded-[2rem] border-4 border-[#1D1D1D]">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                                 <h3 className="text-xl font-black uppercase flex items-center gap-2"><Sword /> 2. Squad <span className="bg-[#1D1D1D] text-white px-2 py-0.5 rounded text-xs ml-2">{selectedMingles.length}/10</span></h3>
-                                
+
                                 {/* 🌟 BOTONES DE FILTRO ACTUALIZADOS CON GODLIKE */}
                                 <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-1">
                                     {(['all', 'yield', 'boss', 'loot', 'godlike'] as const).map(f => (
-                                        <button 
-                                            key={f} 
-                                            onClick={() => setSquadFilter(f)} 
+                                        <button
+                                            key={f}
+                                            onClick={() => setSquadFilter(f)}
                                             className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 transition-colors
                                                 ${squadFilter === f ? 'bg-[#1D1D1D] text-white border-[#1D1D1D]' : 'bg-white border-[#1D1D1D] text-[#1D1D1D]'}
                                                 ${f === 'godlike' ? 'border-[#E15162] text-[#E15162]' : ''}
@@ -617,7 +613,7 @@ export default function RaidsPage() {
                                 {sortedMingles.map(mingle => {
                                     const isLocked = lockedMingles.includes(mingle.id!);
                                     const isSelected = selectedMingles.includes(mingle.id!);
-                                    const stats = getWormStats(mingle); // Pasa 'mingle' completo
+                                    const stats = getWormStats(mingle?.type); // Pasa 'mingle' completo
 
                                     return (
                                         <div key={mingle.id} onClick={() => !isLocked && toggleMingle(mingle.id!)}

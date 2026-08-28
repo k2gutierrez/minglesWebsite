@@ -11,6 +11,7 @@ import { Transport, Chain, http } from "viem";
 import { apeChain, curtis, anvil } from "wagmi/chains";
 import { useEffect, useState, type ReactNode } from "react";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
+// @ts-expect-error - RainbowKit CSS import false positive in TypeScript
 import "@rainbow-me/rainbowkit/styles.css";
 
 const queryClient = new QueryClient();
@@ -18,6 +19,40 @@ const queryClient = new QueryClient();
 const projectId = glyphConnectorDetails.id || process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!;
 
 const chains: [Chain, ...Chain[]] = [apeChain, curtis]; // anvil
+
+// 3. Define connectors inside the effect so they are fresh
+const connectors = connectorsForWallets(
+    [
+        {
+            groupName: glyphConnectorDetails.name || "Glyph",
+            wallets: [glyphWalletRK],
+        },
+        {
+            groupName: 'Popular',
+            wallets: [metaMaskWallet, rainbowWallet, walletConnectWallet, glyphWalletRK, injectedWallet],
+        },
+    ],
+    {
+        appName: "Mingles Dapp",
+        projectId: projectId,
+    },
+);
+
+// 4. Create the config
+const config = createConfig({
+    chains,
+    transports: chains.reduce((acc, chain) => {
+        acc[chain.id] = http();
+        return acc;
+    }, {} as Record<number, Transport>),
+    connectors,
+    storage: createStorage({
+        storage: cookieStorage,
+    }),
+    ssr: true,
+});
+
+
 
 // const connectors = connectorsForWallets(
 //     [
@@ -58,38 +93,6 @@ export function Providers(props: { children: ReactNode }) {
     useEffect(() => {
         // 2. Prevent double-initialization: Only run if we have chains AND haven't created the config yet
         if (chains.length === 0 || wagmiConfig) return;
-
-        // 3. Define connectors inside the effect so they are fresh
-        const connectors = connectorsForWallets(
-            [
-                {
-                    groupName: glyphConnectorDetails.name || "Glyph",
-                    wallets: [glyphWalletRK],
-                },
-                {
-                    groupName: 'Popular',
-                    wallets: [metaMaskWallet, rainbowWallet, walletConnectWallet, glyphWalletRK, injectedWallet],
-                },
-            ],
-            {
-                appName: "Mingles Dapp",
-                projectId: projectId,
-            },
-        );
-
-        // 4. Create the config
-        const config = createConfig({
-            chains,
-            transports: chains.reduce((acc, chain) => {
-                acc[chain.id] = http();
-                return acc;
-            }, {} as Record<number, Transport>),
-            connectors,
-            storage: createStorage({
-                storage: cookieStorage,
-            }),
-            ssr: true,
-        });
 
         // 5. Save to state to trigger the re-render
         setWagmiConfig(config);
