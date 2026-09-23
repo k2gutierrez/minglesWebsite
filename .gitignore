@@ -7,3 +7,8 @@ tmp/
 test-results/
 playwright-report/
 .DS_Store
+
+# Documentos internos: viven en docs/mingles del workspace, NO en un repo publico
+*.pdf
+output/
+reference-briefs/
