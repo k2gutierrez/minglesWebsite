@@ -6,6 +6,18 @@ A runnable Next.js 16 frontend based on the three September 2026 Mingles briefs 
 
 Empieza con [EMPIEZA_AQUI.md](EMPIEZA_AQUI.md). El contrato de Mingles en ApeChain ya está configurado; incluye backend de firma, wallets, ownership y metadata. Consulta [Backend API](docs/07-BACKEND-API.md) para el estado actualizado.
 
+## Added after handoff (September 2026)
+
+Two features and a change to the wallet stack, all verified against ApeChain and in the browser.
+
+**CAVA recovery — `/recover-mingles`** · There are **636 Mingles inside the CAVA staking contract**, and the contract only offers an all-at-once emergency unstake. This page reports how many a wallet has staked and recovers them in one transaction. It deliberately **does not ask for an account or email**: whoever has Mingles locked should not depend on an email link. The count is read server-side (`/api/staking`), and ApeScan is offered as a manual fallback. Contract and selectors were verified in the deployed bytecode, and the unstake was simulated from a real staker before shipping.
+
+**Three views per Mingle** · Opening a card in My Mingles shows the three views the previous site had: Bottled (from `tokenURI`), Unbottled and PFP. The art host was verified across the whole token range. There is **no download proxy**: the old one allowed SSRF, so images open full size in a new tab instead.
+
+**Wallets: wagmi + RainbowKit** · The hand-rolled EIP-6963 connection only reached injected desktop wallets. RainbowKit adds the connect modal and **WalletConnect QR for mobile**, and finally uses `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. Providers mount **only** on `/portal` and `/recover-mingles`; the public site still loads no wallet code. The signature flow is unchanged — RainbowKit connects, our challenge/verify backend still authorises.
+
+Pinned on purpose: `wagmi@2.19.5` (wagmi 3 breaks RainbowKit), `@rainbow-me/rainbowkit@2.2.11`, and `@x402/*@2.24.0` as direct dependencies — without the latter the build fails with RainbowKit on Next 16.
+
 ## Open in Visual Studio Code
 
 Open this folder with **File → Open Folder**, then use **Terminal → New Terminal**. Install Node.js 22.18+ or Node.js 24 LTS.
