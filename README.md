@@ -18,6 +18,12 @@ Two features and a change to the wallet stack, all verified against ApeChain and
 
 Pinned on purpose: `wagmi@2.19.5` (wagmi 3 breaks RainbowKit), `@rainbow-me/rainbowkit@2.2.11`, and `@x402/*@2.24.0` as direct dependencies — without the latter the build fails with RainbowKit on Next 16.
 
+**Mingle lab — admin → «Mingle lab»** · The old site's NFT generator, ported into the content studio: every Mingle is six stacked layers (BG → Tequila Worm → Fur → Face → Bottle → Cap) served from the public `traits` bucket, browsable 50 at a time, filterable by layer or edition, composable by swapping any layer, and downloadable as a 2× PNG (`html-to-image`, `mingle-{edition}.png`). It never writes to the art bucket.
+
+The layer registry is a compact copy (`public/mingles-traits.json`, 486 KB, 5540 Mingles, 125 layer values, the ten 1-of-1 tokens excluded). Regenerate it from the old site's metadata with `npm run build:traits`; it is fetched only when the tab is opened, so the public site carries nothing.
+
+One known data issue in the bucket, inherited from the old generator and not worked around: `traits/Bottle/Standard Bottle Silver.png` is a **1×1 fully transparent placeholder** (485 Mingles, so those composites show no bottle). Layer art also comes in two resolutions (1296×1312 and 2592×2624) that share the same aspect ratio, so `object-fit: cover` keeps the stack aligned. Replacing or uploading layer art is **not implemented**: it would write to the production art bucket and needs its own Storage policies and art review.
+
 ## Open in Visual Studio Code
 
 Open this folder with **File → Open Folder**, then use **Terminal → New Terminal**. Install Node.js 22.18+ or Node.js 24 LTS.

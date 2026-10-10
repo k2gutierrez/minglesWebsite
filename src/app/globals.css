@@ -3079,3 +3079,224 @@ footer {
   gap: 10px;
   flex-wrap: wrap;
 }
+
+/* ---------------------------------------------------------------------------
+   Laboratorio de capas de Mingles — admin → pestaña «Mingle lab».
+   Portado del generador viejo, que estaba en Tailwind: aquí no hay Tailwind, se
+   reutilizan `.nft-grid`, `.nft-card`, `.nft-placeholder`, `.field`, `.button`,
+   `.editor-card` y `.status`, y solo se añade lo imprescindible.
+   Las 6 capas se apilan con `position: absolute` y el `z-index` del generador
+   viejo (BG 0 → Cap 50) dentro de un contenedor cuadrado (`aspect-ratio: 1`).
+   --------------------------------------------------------------------------- */
+.lab-summary {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 20px 0 0;
+}
+.lab-summary .muted {
+  font-size: 10px;
+  max-width: 620px;
+}
+.lab-layout {
+  display: grid;
+  grid-template-columns: minmax(190px, 240px) minmax(0, 1fr) minmax(
+      260px,
+      340px
+    );
+  gap: 24px;
+  align-items: start;
+  margin-top: 24px;
+}
+.lab-filters,
+.lab-inspector,
+.lab-grid-wrap {
+  min-width: 0;
+}
+.lab-filters .field {
+  margin-bottom: 16px;
+}
+.lab-clear {
+  width: 100%;
+  justify-content: center;
+  gap: 10px;
+}
+.lab-count {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  margin: 0 0 15px;
+}
+.lab-card {
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s;
+}
+.lab-card:hover {
+  border-color: rgba(237, 237, 217, 0.42);
+}
+.lab-card.is-selected {
+  border-color: var(--coral);
+}
+/* Contenedor cuadrado: las capas se apilan dentro con z-index. */
+.lab-compose {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  overflow: hidden;
+  background: #141415;
+}
+.lab-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lab-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+}
+.lab-card-meta h3 {
+  margin: 0;
+}
+.lab-card-button {
+  width: 100%;
+  justify-content: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 9px 12px;
+  font-size: 9px;
+}
+.lab-empty {
+  aspect-ratio: auto;
+  min-height: 220px;
+  border: 1px dashed var(--line);
+}
+.lab-more {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 30px auto 0;
+}
+.lab-more .muted {
+  font-size: 9px;
+}
+/* El elemento que captura html-to-image tiene que existir y verse. */
+.lab-preview {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  overflow: hidden;
+  background: #141415;
+  border: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+.lab-missing {
+  border: 1px solid var(--coral);
+  color: var(--coral);
+  font-size: 10px;
+  padding: 10px 12px;
+  margin: 0 0 18px;
+}
+.lab-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0;
+}
+.lab-actions .button {
+  width: 100%;
+  justify-content: center;
+  gap: 10px;
+}
+.lab-layers {
+  display: grid;
+  gap: 12px;
+}
+.lab-layer-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.lab-layer-field .field {
+  flex: 1;
+  min-width: 0;
+}
+.lab-layer-field .icon-button {
+  color: var(--coral);
+}
+.lab-original {
+  font-size: 10px;
+  margin: 18px 0 0;
+}
+.lab-loading {
+  margin-top: 24px;
+}
+.lab-error {
+  border: 1px solid var(--coral);
+  padding: 15px 20px;
+  color: var(--coral);
+}
+.lab-message {
+  min-height: 20px;
+}
+@keyframes lab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.lab-spin {
+  animation: lab-spin 1s linear infinite;
+}
+/* Tres columnas → filtros arriba → una sola columna. */
+@media (max-width: 1240px) {
+  .lab-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  }
+  .lab-filters {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: end;
+  }
+  .lab-filters h3 {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+  .lab-filters .field {
+    margin-bottom: 0;
+  }
+  .lab-clear {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 900px) {
+  .lab-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lab-filters,
+  .lab-inspector {
+    grid-column: auto;
+  }
+  .lab-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .lab-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-spin {
+    animation: none;
+  }
+  .lab-card {
+    transition: none;
+  }
+}

@@ -20,6 +20,7 @@ import {
 } from "@/lib/content";
 import { getSupabase } from "@/lib/supabase";
 import { Status } from "./ui";
+import { MingleLab } from "./nft-lab";
 type Revision = { at: string; content: SiteContent };
 function Field({
   label,
@@ -382,6 +383,7 @@ export function Admin() {
           "Updates",
           "Story",
           "Media",
+          "Mingle lab",
           "Revisions",
         ].map((t) => (
           <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>
@@ -757,6 +759,7 @@ export function Admin() {
           </div>
         </>
       )}
+      {tab === "Mingle lab" && <MingleLab />}
       {tab === "Revisions" && (
         <>
           <p className="editor-help">
