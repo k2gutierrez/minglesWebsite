@@ -1,4 +1,4 @@
-// Genera public/mingles-traits.json, la copia compacta que carga el
+// Genera public/data/mingles-traits.json, la copia compacta que carga el
 // laboratorio de capas del admin (pestaña «Mingle lab»).
 //
 // La fuente vive en el sitio viejo y NO está en este repo:
@@ -14,7 +14,7 @@
 // Los valores se guardan tal cual vienen en la metadata (con acentos en NFD, como
 // «Añejo»). La normalización a ASCII del nombre del PNG la hace el cliente en
 // `sanitizeTraitName`, porque en Storage los archivos son `Anejo.png`.
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -57,9 +57,18 @@ const traits = Object.fromEntries(
 );
 const document = { layers: LAYERS, traits, mingles };
 const json = JSON.stringify(document);
-writeFileSync(join("public", "mingles-traits.json"), json);
+// OJO con la ruta: va en una SUBcarpeta a propósito. La ruta dinámica
+// `[section]` del sitio captura cualquier ruta de un solo segmento, así que un
+// /mingles-traits.json en la raíz de public/ NO se sirve en producción: la ruta
+// responde con la página 404 en su lugar (status 200, content-type text/html).
+// Con dos segmentos sí se sirve como archivo estático. Comprobado en producción:
+// /brand/*.png responde image/png, /mingles-traits.json respondía text/html.
+const outDir = join("public", "data");
+mkdirSync(outDir, { recursive: true });
+const outFile = join(outDir, "mingles-traits.json");
+writeFileSync(outFile, json);
 
 const traitCount = LAYERS.reduce((sum, layer) => sum + traits[layer].length, 0);
 console.log(
-  `public/mingles-traits.json: ${mingles.length} Mingles, ${traitCount} layer values, ${(json.length / 1024).toFixed(1)} KB (from ${source})`,
+  `${outFile}: ${mingles.length} Mingles, ${traitCount} layer values, ${(json.length / 1024).toFixed(1)} KB (from ${source})`,
 );

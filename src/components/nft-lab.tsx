@@ -74,7 +74,7 @@ export function MingleLab() {
         const response = await fetch(TRAIT_REGISTRY_URL);
         if (!response.ok) {
           throw new Error(
-            `The trait registry responded ${response.status}. Regenerate public/mingles-traits.json.`,
+            `The trait registry responded ${response.status}. Regenerate public/data/mingles-traits.json.`,
           );
         }
         const parsed = parseMingleRegistry(await response.json());

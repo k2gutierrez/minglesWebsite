@@ -3,7 +3,7 @@
  *
  * La metadata real vive en el sitio viejo
  * (`mingles-metadata-clean.json`, 2.8 MB, 5550 entradas `{edition, attributes}`).
- * Aquí se sirve una versión compacta generada en `public/mingles-traits.json`
+ * Aquí se sirve una versión compacta generada en `public/data/mingles-traits.json`
  * (~486 KB) con lo mínimo: la edición y los 6 valores de capa, y los 10 tokens
  * 1-of-1 fuera (698, 4245, 4927, 4163, 3154, 4355, 4288, 1172, 4175, 5453, que
  * son los únicos que traen capas especiales tipo `Cat` o `Galaxy`).
@@ -51,7 +51,11 @@ export const LAYER_Z_INDEX: Record<MingleLayer, number> = {
 export const TRAITS_BUCKET = "traits";
 
 /** Copia local y compacta del registro. Se carga solo al abrir la sección. */
-export const TRAIT_REGISTRY_URL = "/mingles-traits.json";
+// Subcarpeta a propósito: la ruta dinámica `[section]` captura las rutas de un
+// solo segmento, así que en la raíz de public/ el archivo NO se sirve en
+// producción (devuelve la página 404 con content-type text/html). Con dos
+// segmentos se sirve como archivo estático.
+export const TRAIT_REGISTRY_URL = "/data/mingles-traits.json";
 
 /** Cuántos Mingles añade cada pulsación de «cargar más», como el sitio viejo. */
 export const TRAITS_PAGE_SIZE = 50;
