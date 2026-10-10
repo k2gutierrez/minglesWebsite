@@ -2911,3 +2911,77 @@ footer {
     font-size: 8px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Recuperación de Mingles staked (CAVA).
+   Una sola acción libera TODO lo staked, así que el aviso va en coral y el
+   conteo en tipografía display: lo primero que debe leerse es cuántos hay.
+   --------------------------------------------------------------------------- */
+.recover-warning {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid #e1516277;
+  margin: 0 0 22px;
+}
+.recover-warning svg {
+  color: var(--coral);
+  flex: none;
+  margin-top: 2px;
+}
+.recover-warning strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  margin-bottom: 5px;
+}
+.recover-warning span {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #c3c3b7;
+}
+.recover-count {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 0 4px;
+}
+.recover-count strong {
+  font-family: var(--display);
+  font-size: 62px;
+  line-height: 1;
+  color: var(--ivory);
+}
+.recover-count small {
+  font-size: 11px;
+  color: #c3c3b7;
+}
+.recover-done {
+  padding: 15px;
+  border: 1px solid #7fd6a677;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.recover-done a {
+  font-size: 11px;
+  color: var(--coral);
+}
+
+/* Enlace de recuperación en el portal: mismo peso visual que una pestaña,
+   pero es un enlace porque no requiere cuenta. */
+.portal-sidebar nav a.portal-recover {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  font-size: 11px;
+  color: var(--coral);
+  border-top: 1px solid var(--line);
+  margin-top: 5px;
+}
+.portal-sidebar nav a.portal-recover span {
+  margin-left: auto;
+}

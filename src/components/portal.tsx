@@ -9,6 +9,7 @@ import {
   Settings,
   ArrowUpRight,
   Mail,
+  Unlock,
 } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
 import { useSite } from "./provider";
@@ -88,6 +89,13 @@ export function Portal() {
                 <span>↗</span>
               </button>
             ))}
+            {/* Utilidad aparte: recuperar Mingles staked no requiere cuenta, así
+                que es un enlace normal y no una pestaña del portal. */}
+            <a className="portal-recover" href="/recover-mingles">
+              <Unlock size={17} />
+              Recover staked
+              <span>↗</span>
+            </a>
           </nav>
           <small>
             ACTIVATION SYSTEM
