@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RecoverMingles } from "@/components/recover-mingles";
+import { WalletProviders } from "@/components/wallet-providers";
 import { CAVA_STAKING_ADDRESS } from "@/lib/web3/staking";
 
 export const metadata: Metadata = {
@@ -28,7 +29,9 @@ export default function RecoverMinglesPage() {
       </div>
 
       <div className="portal-content">
-        <RecoverMingles />
+        <WalletProviders>
+          <RecoverMingles />
+        </WalletProviders>
 
         <section className="wallet-panel">
           <span className="eyebrow">WHAT THIS DOES NOT DO</span>

@@ -7,7 +7,10 @@ import {
   ExternalLink,
   Unlink,
 } from "lucide-react";
-import { stringToHex, isAddress, getAddress } from "viem";
+import { getAddress } from "viem";
+import { apeChain } from "viem/chains";
+import { useAccount, useSignMessage, useSwitchChain } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   COLLECTION,
   type HolderData,
@@ -16,17 +19,6 @@ import {
 import { getSupabase } from "@/lib/supabase";
 import { Status } from "./ui";
 import { MingleDetail } from "./mingle-detail";
-type Provider = {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on?: (event: string, listener: (value: unknown) => void) => void;
-  removeListener?: (event: string, listener: (value: unknown) => void) => void;
-};
-type WalletOption = { id: string; name: string; provider: Provider };
-declare global {
-  interface Window {
-    ethereum?: Provider;
-  }
-}
 export async function api<T>(path: string, input?: unknown): Promise<T> {
   const db = getSupabase();
   const session = await db?.auth.getSession();
@@ -56,11 +48,13 @@ export function useHolder(user: string | null) {
   const [data, setData] = useState<HolderData>({ wallets: [], holdings: [] });
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [options, setOptions] = useState<WalletOption[]>([]);
-  const [selected, setSelected] = useState("");
   const [connected, setConnected] = useState<string | null>(null);
   const [pendingUnlink, setPendingUnlink] = useState<string | null>(null);
   const generation = useRef(0);
+  // La conexión la maneja RainbowKit/wagmi. Aquí solo se lee la cuenta.
+  const { address, chainId } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+  const { switchChainAsync } = useSwitchChain();
   useEffect(() => {
     let alive = true;
     fetch("/api/web3/config")
@@ -76,55 +70,14 @@ export function useHolder(user: string | null) {
     };
   }, []);
   useEffect(() => {
-    const discovered: WalletOption[] = [];
-    const announce = (event: Event) => {
-      const detail = (
-        event as CustomEvent<{
-          info: { uuid: string; name: string };
-          provider: Provider;
-        }>
-      ).detail;
-      if (!detail?.provider?.request || !detail.info?.uuid) return;
-      if (!discovered.some((o) => o.id === detail.info.uuid)) {
-        discovered.push({
-          id: detail.info.uuid,
-          name: String(detail.info.name).slice(0, 60),
-          provider: detail.provider,
-        });
-        setOptions([...discovered]);
-        setSelected((v) => v || detail.info.uuid);
-      }
-    };
-    window.addEventListener("eip6963:announceProvider", announce);
-    window.dispatchEvent(new Event("eip6963:requestProvider"));
-    if (!discovered.length && window.ethereum) {
-      discovered.push({
-        id: "injected",
-        name: "Browser wallet",
-        provider: window.ethereum,
-      });
-      setOptions([...discovered]);
-      setSelected("injected");
-    }
-    return () =>
-      window.removeEventListener("eip6963:announceProvider", announce);
-  }, []);
-  const provider = options.find((o) => o.id === selected)?.provider;
-  useEffect(() => {
-    if (!provider?.on) return;
-    const changed = () => {
-      setConnected(null);
-      setMessage(
-        "Wallet account or network changed. Connect again to verify the selected account.",
-      );
-    };
-    provider.on("accountsChanged", changed);
-    provider.on("chainChanged", changed);
-    return () => {
-      provider.removeListener?.("accountsChanged", changed);
-      provider.removeListener?.("chainChanged", changed);
-    };
-  }, [provider]);
+    // Si la cuenta o la red cambian en la wallet, el vínculo verificado deja de
+    // ser válido para esa cuenta: se pide firmar otra vez.
+    setConnected(null);
+    setMessage(
+      "Wallet account or network changed. Link again to verify the selected account.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, chainId]);
   const load = useCallback(async () => {
     if (!user || !config?.walletConfigured) return;
     const version = generation.current;
@@ -151,81 +104,39 @@ export function useHolder(user: string | null) {
       setMessage("Sign in with email, then link your wallet to that account.");
       return;
     }
-    if (!provider) {
-      setMessage(
-        "Open this website in a wallet browser or install an EVM browser wallet.",
-      );
-      return;
-    }
     if (!config?.walletConfigured) {
       setMessage(
         "The administrator must configure Supabase and the wallet backend first.",
       );
       return;
     }
+    if (!address) {
+      setMessage("Choose a wallet with the Connect button first.");
+      return;
+    }
     const version = generation.current;
     setBusy(true);
-    setMessage("Choose a wallet account.");
+    setMessage("Confirm the account and the network in your wallet.");
     try {
-      const accounts = await provider.request({
-        method: "eth_requestAccounts",
-      });
-      if (
-        !Array.isArray(accounts) ||
-        typeof accounts[0] !== "string" ||
-        !isAddress(accounts[0])
-      )
-        throw Error("No wallet account was selected.");
-      const address = getAddress(accounts[0]);
-      const chain = await provider.request({ method: "eth_chainId" });
-      if (chain !== `0x${COLLECTION.chain.id.toString(16)}`) {
-        try {
-          await provider.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: `0x${COLLECTION.chain.id.toString(16)}` }],
-          });
-        } catch (e) {
-          if ((e as { code?: number }).code !== 4902) throw e;
-          await provider.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainId: `0x${COLLECTION.chain.id.toString(16)}`,
-                chainName: COLLECTION.chain.name,
-                nativeCurrency: COLLECTION.chain.nativeCurrency,
-                rpcUrls: [...COLLECTION.chain.rpcUrls.default.http],
-                blockExplorerUrls: [
-                  COLLECTION.chain.blockExplorers.default.url,
-                ],
-              },
-            ],
-          });
-          await provider.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: `0x${COLLECTION.chain.id.toString(16)}` }],
-          });
-        }
+      if (chainId !== COLLECTION.chain.id) {
+        setMessage("Switching the wallet to ApeChain…");
+        await switchChainAsync({ chainId: COLLECTION.chain.id });
       }
-      if (
-        (await provider.request({ method: "eth_chainId" })) !==
-        `0x${COLLECTION.chain.id.toString(16)}`
-      )
-        throw Error("Switch the wallet to ApeChain to continue.");
+      const owner = getAddress(address);
       const challenge = await api<{ id: string; message: string }>(
         "/api/wallet/challenge",
-        { address },
+        { address: owner },
       );
       setMessage(
         "Review and sign the account-link message. No gas or token approval.",
       );
-      const signature = await provider.request({
-        method: "personal_sign",
-        params: [stringToHex(challenge.message), address],
-      });
+      // RainbowKit conecta; la firma sigue siendo nuestra y se verifica en el
+      // servidor contra el mensaje exacto que emitió el challenge.
+      const signature = await signMessageAsync({ message: challenge.message });
       if (version !== generation.current) return;
       await api("/api/wallet/verify", { id: challenge.id, signature });
       if (version !== generation.current) return;
-      setConnected(address);
+      setConnected(owner);
       setMessage(
         "Wallet verified. Select Verify NFTs to read your collection.",
       );
@@ -284,9 +195,6 @@ export function useHolder(user: string | null) {
     data,
     message,
     busy,
-    options,
-    selected,
-    setSelected,
     connected,
     pendingUnlink,
     setPendingUnlink,
@@ -333,41 +241,29 @@ export function WalletPanel({
         </p>
       )}
       <div className="wallet-actions">
-        {holder.options.length > 1 && (
-          <label>
-            Wallet
-            <select
-              aria-label="Select wallet provider"
-              value={holder.selected}
-              onChange={(e) => holder.setSelected(e.target.value)}
-            >
-              {holder.options.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+        {/* RainbowKit: modal de conexión, con QR de WalletConnect para móvil. */}
+        <ConnectButton
+          showBalance={false}
+          chainStatus="icon"
+          accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
+        />
         <button
           className="button button-coral"
           onClick={holder.connect}
           disabled={busy || !user || !config?.walletConfigured}
         >
-          <Wallet size={17} />
+          <ShieldCheck size={17} />
           {busy
             ? "Working…"
             : !user
               ? "Sign in before linking"
-              : "Connect & verify wallet"}
+              : "Verify & link wallet"}
         </button>
-        {!holder.options.length && (
-          <small>
-            Use MetaMask, Rabby, or an EVM wallet browser. QR connection is not
-            included.
-          </small>
-        )}
       </div>
+      <p className="muted">
+        Connecting only opens the wallet. Linking requires a free signature: no
+        gas, no token approval, and your NFTs never move.
+      </p>
       <p className="wallet-message" role="status" aria-live="polite">
         {message}
       </p>

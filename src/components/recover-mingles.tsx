@@ -1,22 +1,19 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, ExternalLink, RefreshCw, Unlock, Wallet } from "lucide-react";
-import { getAddress, isAddress } from "viem";
-import { COLLECTION } from "@/lib/web3/collection";
 import {
-  CAVA_STAKING_ADDRESS,
-  unstakeEmergencyData,
-} from "@/lib/web3/staking";
+  AlertTriangle,
+  ExternalLink,
+  RefreshCw,
+  ShieldCheck,
+  Unlock,
+} from "lucide-react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useSwitchChain, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { COLLECTION } from "@/lib/web3/collection";
+import { CAVA_STAKING_ADDRESS, cavaStakingAbi } from "@/lib/web3/staking";
 import { Status } from "./ui";
 
-type Provider = {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on?: (event: string, listener: (value: unknown) => void) => void;
-  removeListener?: (event: string, listener: (value: unknown) => void) => void;
-};
-
 const EXPLORER = COLLECTION.chain.blockExplorers.default.url;
-const CHAIN_HEX = `0x${COLLECTION.chain.id.toString(16)}`;
 
 /**
  * Recuperación de Mingles atrapados en el contrato de staking de CAVA.
@@ -25,40 +22,31 @@ const CHAIN_HEX = `0x${COLLECTION.chain.id.toString(16)}`;
  *  - **No exige cuenta ni correo.** La acción la firma el usuario con su propia
  *    wallet, así que nadie queda bloqueado esperando un enlace de acceso.
  *  - Una sola transacción recupera **TODOS** los Mingles staked de esa wallet.
- *    La interfaz lo dice tres veces porque es contraintuitivo.
+ *    La interfaz lo dice dos veces porque es contraintuitivo.
  *  - El contrato se lee en el servidor; aquí solo se firma y se muestra el
  *    resultado. Si la lectura falla, se dice — nunca se inventa un número.
+ *  - El enlace a ApeScan queda como salida de emergencia: si esta página
+ *    fallara, el usuario puede llamar la función a mano.
  */
 export function RecoverMingles() {
-  const [provider, setProvider] = useState<Provider | null>(null);
-  const [walletName, setWalletName] = useState("");
-  const [address, setAddress] = useState<string | null>(null);
   const [staked, setStaked] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [readError, setReadError] = useState("");
 
-  // Descubrimiento EIP-6963, con respaldo a la wallet inyectada clásica.
-  useEffect(() => {
-    const announce = (event: Event) => {
-      const detail = (
-        event as CustomEvent<{ info: { name: string }; provider: Provider }>
-      ).detail;
-      if (!detail?.provider?.request) return;
-      setProvider((current) => current ?? detail.provider);
-      setWalletName((current) => current || String(detail.info?.name ?? "Wallet"));
-    };
-    window.addEventListener("eip6963:announceProvider", announce);
-    window.dispatchEvent(new Event("eip6963:requestProvider"));
-    if (window.ethereum) {
-      setProvider((current) => current ?? window.ethereum!);
-      setWalletName((current) => current || "Browser wallet");
-    }
-    return () => window.removeEventListener("eip6963:announceProvider", announce);
-  }, []);
+  const { address, chainId, isConnected } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
+  const {
+    writeContractAsync,
+    data: hash,
+    isPending,
+    error: writeError,
+    reset,
+  } = useWriteContract();
+  const { isLoading: confirming, isSuccess: confirmed } =
+    useWaitForTransactionReceipt({ hash });
 
   const readStaked = useCallback(async (owner: string) => {
+    setReadError("");
     try {
       const response = await fetch(`/api/staking?address=${owner}`, {
         cache: "no-store",
@@ -68,127 +56,60 @@ export function RecoverMingles() {
       setStaked(data.staked as string);
     } catch (e) {
       setStaked(null);
-      setMessage(e instanceof Error ? e.message : "The chain could not be read.");
+      setReadError(
+        e instanceof Error ? e.message : "The chain could not be read.",
+      );
     }
   }, []);
 
-  async function switchNetwork() {
-    if (!provider) return;
-    if ((await provider.request({ method: "eth_chainId" })) === CHAIN_HEX) return;
-    try {
-      await provider.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: CHAIN_HEX }],
-      });
-    } catch (e) {
-      if ((e as { code?: number }).code !== 4902) throw e;
-      await provider.request({
-        method: "wallet_addEthereumChain",
-        params: [
-          {
-            chainId: CHAIN_HEX,
-            chainName: COLLECTION.chain.name,
-            nativeCurrency: COLLECTION.chain.nativeCurrency,
-            rpcUrls: [...COLLECTION.chain.rpcUrls.default.http],
-            blockExplorerUrls: [EXPLORER],
-          },
-        ],
-      });
-      await provider.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: CHAIN_HEX }],
-      });
-    }
-  }
+  useEffect(() => {
+    if (address) void readStaked(address);
+    else setStaked(null);
+  }, [address, readStaked]);
 
-  async function connect() {
-    if (!provider) {
-      setMessage(
-        "No EVM wallet found. Open this page in a wallet browser or install MetaMask.",
-      );
-      return;
+  useEffect(() => {
+    if (confirmed && address) {
+      void readStaked(address);
+      setMessage("Recovered. Your Mingles are back in your wallet.");
     }
-    setBusy(true);
-    setMessage("Confirm the wallet account and network.");
-    try {
-      const accounts = await provider.request({ method: "eth_requestAccounts" });
-      if (!Array.isArray(accounts) || !isAddress(String(accounts[0])))
-        throw Error("No wallet account was selected.");
-      await switchNetwork();
-      const owner = getAddress(String(accounts[0]));
-      setAddress(owner);
-      setTxHash(null);
-      setDone(false);
-      await readStaked(owner);
-      setMessage("");
-    } catch (e) {
+  }, [confirmed, address, readStaked]);
+
+  useEffect(() => {
+    if (writeError)
       setMessage(
-        (e as { code?: number }).code === 4001
-          ? "Request cancelled. Nothing was signed."
-          : e instanceof Error
-            ? e.message
-            : "Wallet connection failed.",
+        (writeError as { code?: number }).code === 4001
+          ? "Request cancelled. No transaction was sent."
+          : writeError.message.slice(0, 160),
       );
-    } finally {
-      setBusy(false);
-    }
-  }
+  }, [writeError]);
 
   async function recover() {
-    if (!provider || !address) return;
-    setBusy(true);
-    setTxHash(null);
-    setDone(false);
-    setMessage(
-      "Review the transaction in your wallet. It recovers every staked Mingle at once.",
-    );
+    if (!address) return;
+    reset();
+    setMessage("Confirm the transaction in your wallet.");
     try {
-      await switchNetwork();
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: address,
-            to: CAVA_STAKING_ADDRESS,
-            data: unstakeEmergencyData(),
-          },
-        ],
+      if (chainId !== COLLECTION.chain.id)
+        await switchChainAsync({ chainId: COLLECTION.chain.id });
+      await writeContractAsync({
+        address: CAVA_STAKING_ADDRESS,
+        abi: cavaStakingAbi,
+        functionName: "unstakeNftsEmergency",
       });
-      if (typeof hash !== "string") throw Error("The wallet did not return a transaction.");
-      setTxHash(hash);
       setMessage("Transaction sent. Waiting for confirmation on ApeChain…");
-
-      for (let attempt = 0; attempt < 40; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        const receipt = (await provider.request({
-          method: "eth_getTransactionReceipt",
-          params: [hash],
-        })) as { status?: string } | null;
-        if (!receipt) continue;
-        if (receipt.status === "0x1") {
-          setDone(true);
-          setMessage("Recovered. Your Mingles are back in your wallet.");
-          await readStaked(address);
-        } else {
-          setMessage("The transaction failed onchain. Nothing was recovered.");
-        }
-        break;
-      }
     } catch (e) {
       setMessage(
         (e as { code?: number }).code === 4001
           ? "Request cancelled. No transaction was sent."
           : e instanceof Error
-            ? e.message
+            ? e.message.slice(0, 160)
             : "The recovery could not be sent.",
       );
-    } finally {
-      setBusy(false);
     }
   }
 
   const stakedNumber = staked === null ? null : Number(staked);
   const hasStaked = stakedNumber !== null && stakedNumber > 0;
+  const busy = isPending || confirming;
 
   return (
     <section className="wallet-panel">
@@ -228,19 +149,15 @@ export function RecoverMingles() {
       </div>
 
       <div className="wallet-actions">
-        <button
-          className="button button-coral"
-          onClick={connect}
-          disabled={busy}
-        >
-          <Wallet size={17} />
-          {address ? "Reconnect wallet" : "Connect wallet"}
-        </button>
-
-        {address && (
+        <ConnectButton
+          showBalance={false}
+          chainStatus="icon"
+          accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
+        />
+        {isConnected && (
           <button
             className="button"
-            onClick={() => readStaked(address)}
+            onClick={() => address && readStaked(address)}
             disabled={busy}
           >
             <RefreshCw size={14} />
@@ -249,7 +166,7 @@ export function RecoverMingles() {
         )}
       </div>
 
-      {address && (
+      {isConnected && address && (
         <div className="linked-wallet">
           <div className="wallet-row">
             <div>
@@ -258,18 +175,20 @@ export function RecoverMingles() {
                 {address.slice(0, 8)}…{address.slice(-6)}
               </code>
             </div>
-            {walletName && <Status>{walletName}</Status>}
+            <Status>Read-only</Status>
           </div>
 
           <div className="recover-count">
             <span className="eyebrow">STAKED IN CAVA</span>
             <strong>{staked === null ? "—" : staked}</strong>
             <small>
-              {staked === null
-                ? "Reading the contract…"
-                : hasStaked
-                  ? "These are inside the staking contract, not in your wallet."
-                  : "Nothing staked for this wallet. Nothing to recover."}
+              {readError
+                ? readError
+                : staked === null
+                  ? "Reading the contract…"
+                  : hasStaked
+                    ? "These are inside the staking contract, not in your wallet."
+                    : "Nothing staked for this wallet. Nothing to recover."}
             </small>
           </div>
 
@@ -295,11 +214,13 @@ export function RecoverMingles() {
         {message}
       </p>
 
-      {txHash && (
-        <div className={done ? "recover-done" : "wallet-notice"}>
-          <strong>{done ? "Recovered." : "Transaction sent."}</strong>
+      {hash && (
+        <div className={confirmed ? "recover-done" : "wallet-notice"}>
+          <strong>
+            {confirmed ? "Recovered." : "Transaction sent."}
+          </strong>
           <a
-            href={`${EXPLORER}/tx/${txHash}`}
+            href={`${EXPLORER}/tx/${hash}`}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -309,7 +230,9 @@ export function RecoverMingles() {
       )}
 
       <p className="muted">
-        If this page cannot reach the contract, you can still recover directly:{" "}
+        <ShieldCheck size={13} /> We never ask for your seed phrase or private
+        key. If this page cannot reach the contract, you can still recover
+        directly:{" "}
         <a
           href={`${EXPLORER}/address/${CAVA_STAKING_ADDRESS}#writeContract`}
           target="_blank"
