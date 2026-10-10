@@ -15,6 +15,7 @@ import {
 } from "@/lib/web3/collection";
 import { getSupabase } from "@/lib/supabase";
 import { Status } from "./ui";
+import { MingleDetail } from "./mingle-detail";
 type Provider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
   on?: (event: string, listener: (value: unknown) => void) => void;
@@ -26,7 +27,7 @@ declare global {
     ethereum?: Provider;
   }
 }
-async function api<T>(path: string, input?: unknown): Promise<T> {
+export async function api<T>(path: string, input?: unknown): Promise<T> {
   const db = getSupabase();
   const session = await db?.auth.getSession();
   const token = session?.data.session?.access_token;
@@ -452,14 +453,31 @@ function TokenGrid({
   user: string | null;
 }) {
   const [page, setPage] = useState(0);
+  const [open, setOpen] = useState<{
+    tokenId: string;
+    name: string;
+    image: string | null;
+  } | null>(null);
   useEffect(() => setPage(0), [tokenIds]);
   return (
     <>
       <div className="nft-grid">
         {tokenIds.slice(page * 12, page * 12 + 12).map((id) => (
-          <TokenCard key={`${user}-${id}`} tokenId={id} />
+          <TokenCard
+            key={`${user}-${id}`}
+            tokenId={id}
+            onOpen={(data) => setOpen({ tokenId: id, ...data })}
+          />
         ))}
       </div>
+      {open && (
+        <MingleDetail
+          tokenId={open.tokenId}
+          name={open.name}
+          officialImage={open.image}
+          onClose={() => setOpen(null)}
+        />
+      )}
       {tokenIds.length > 12 && (
         <div className="wallet-actions">
           <button
@@ -484,7 +502,13 @@ function TokenGrid({
     </>
   );
 }
-function TokenCard({ tokenId }: { tokenId: string }) {
+function TokenCard({
+  tokenId,
+  onOpen,
+}: {
+  tokenId: string;
+  onOpen: (data: { name: string; image: string | null }) => void;
+}) {
   const [token, setToken] = useState<{
     name: string;
     image: string | null;
@@ -505,26 +529,35 @@ function TokenCard({ tokenId }: { tokenId: string }) {
   }, [tokenId]);
   return (
     <article className="nft-card">
-      {token?.image ? (
-        <img
-          src={token.image}
-          alt={token.name}
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          onError={() => setToken((t) => (t ? { ...t, image: null } : t))}
-        />
-      ) : (
-        <div className="nft-placeholder">
-          <Wallet size={28} />
-          <span>
-            {error
-              ? "Verification unavailable"
-              : token
-                ? "Official media unavailable"
-                : "Loading official token…"}
-          </span>
-        </div>
-      )}
+      <button
+        type="button"
+        className="nft-open"
+        onClick={() =>
+          onOpen({ name: token?.name || `Mingle #${tokenId}`, image: token?.image ?? null })
+        }
+        aria-label={`Open the three views of ${token?.name || `Mingle #${tokenId}`}`}
+      >
+        {token?.image ? (
+          <img
+            src={token.image}
+            alt={token.name}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={() => setToken((t) => (t ? { ...t, image: null } : t))}
+          />
+        ) : (
+          <div className="nft-placeholder">
+            <Wallet size={28} />
+            <span>
+              {error
+                ? "Verification unavailable"
+                : token
+                  ? "Official media unavailable"
+                  : "Loading official token…"}
+            </span>
+          </div>
+        )}
+      </button>
       <div>
         <span className="eyebrow">APECHAIN / #{tokenId}</span>
         <h3>{token?.name || `Mingle #${tokenId}`}</h3>
