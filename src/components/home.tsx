@@ -13,12 +13,43 @@ import {
 import { useSite } from "./provider";
 import { BrandArt, Button, Status, Reveal, ArrowLink, EmptyMedia } from "./ui";
 import { TiltSurface } from "./effects";
-import { safeHref, type Item } from "@/lib/content";
-export function ProjectCard({ item, index }: { item: Item; index: number }) {
-  const Icon = [Fingerprint, Sprout, Orbit, Layers][index % 4];
+import { safeHref, isHttpsUrl, normalizeSymbol, type Item } from "@/lib/content";
+import { SymbolIcon, symbolIcons } from "./mingle-symbols";
+export function ProjectCard({
+  item,
+  index,
+  background,
+}: {
+  item: Item;
+  index: number;
+  /** Fondo de la tarjeta elegido en el admin; si falta, se queda como estaba. */
+  background?: string;
+}) {
+  // El símbolo lo elige el admin. Si no hay, se mantiene el comportamiento de
+  // siempre (rotación por índice) para no cambiar el aspecto actual.
+  const chosen = normalizeSymbol(item.symbol);
+  const Icon = chosen
+    ? symbolIcons[chosen]
+    : [Fingerprint, Sprout, Orbit, Layers][index % 4];
+  const cardBackground = isHttpsUrl(background) ? background : undefined;
   return (
     <TiltSurface className={`build-tile build-tile-${index}`}>
-      <Link className="project-card" href={safeHref(item.href)}>
+      <Link
+        className={`project-card ${cardBackground ? "project-card-photo" : ""}`}
+        href={safeHref(item.href)}
+        style={
+          cardBackground
+            ? {
+                backgroundImage: `url(${cardBackground})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      >
+        {cardBackground ? (
+          <span className="project-card-shade" aria-hidden="true" />
+        ) : null}
         <div className="project-top">
           <span>M / 00{index + 1}</span>
           <ArrowUpRight size={19} />
@@ -26,7 +57,7 @@ export function ProjectCard({ item, index }: { item: Item; index: number }) {
         <div className="project-graphic" aria-hidden="true">
           <span className="graphic-orbit" />
           <span className="graphic-orbit graphic-orbit-two" />
-          <Icon size={82} strokeWidth={0.9} />
+          {Icon ? <Icon size={82} strokeWidth={0.9} /> : null}
           <span className="graphic-coordinate">
             {["IDENTITY", "REAL WORLD", "ONCHAIN", "EVOLUTION"][index % 4]}
           </span>
@@ -96,7 +127,7 @@ export function Experiments() {
 }
 export function Home() {
   const { content: c } = useSite();
-  const copy = (key: string) => c.copy[key];
+  const copy = (key: string, fallback = "") => c.copy[key] ?? fallback;
   return (
     <main id="main">
       <section className="hero">
@@ -118,13 +149,27 @@ export function Home() {
             <ArrowLink href="/story">{c.hero.secondary}</ArrowLink>
           </div>
           <div className="hero-foot">
-            <span>THE WORLD OF MINGLES</span>
+            <span>{copy("hero.foot", "THE WORLD OF MINGLES")}</span>
             <a href="#building" aria-label="Scroll to building now">
               <ArrowDown size={18} />
             </a>
           </div>
         </div>
-        <BrandArt />
+        <BrandArt
+          image={c.visuals?.heroArt}
+          background={c.visuals?.bottleBackground}
+        />
+        {/* Preview del arte (Mike Lombard). Va en capa absoluta a propósito:
+            así no altera la rejilla del héroe. Solo si el admin sube una. */}
+        {isHttpsUrl(c.visuals?.heroShot) ? (
+          <img
+            className="hero-shot"
+            src={c.visuals!.heroShot}
+            alt="Artwork preview"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+          />
+        ) : null}
       </section>
       <div className="ticker" aria-hidden="true">
         <div>
@@ -169,12 +214,17 @@ export function Home() {
                             ].includes(p.id) && p.enabled,
                         )
                         .map((p, i) => (
-                          <ProjectCard item={p} index={i} key={p.id} />
+                          <ProjectCard
+                            item={p}
+                            index={i}
+                            key={p.id}
+                            background={c.visuals?.cardBackgrounds?.[p.id]}
+                          />
                         ))}
                     </div>
                     <div className="small-note">
                       STATUS BASIS: SEPTEMBER 2026 PRODUCT BRIEF{" "}
-                      <span>PROGRESS, NOT PROMISES.</span>
+                      <span>{copy("home.progress.kicker", "PROGRESS, NOT PROMISES.")}</span>
                     </div>
                   </Reveal>
                 </section>
@@ -198,7 +248,7 @@ export function Home() {
                           />
                         ) : (
                           <>
-                            <Sprout strokeWidth={0.65} aria-hidden="true" />
+                            <SymbolIcon symbol="agave" size={72} strokeWidth={0.65} />
                             <span className="vertical-type">
                               ROOTED IN SOMETHING REAL
                             </span>
@@ -226,11 +276,11 @@ export function Home() {
                             "Building"}
                         </Status>
                         <div className="feature-details">
-                          <span>THE BOTTLE</span>
+                          <span>{copy("tequila.bottle.label", "THE BOTTLE")}</span>
                           <Plus size={14} />
-                          <span>THE CAP</span>
+                          <span>{copy("tequila.cap.label", "THE CAP")}</span>
                           <Plus size={14} />
-                          <span>THE EXPERIENCE</span>
+                          <span>{copy("tequila.experience.label", "THE EXPERIENCE")}</span>
                         </div>
                         <Button href="/tequila" dark>
                           {copy("tequila.cta")}
@@ -314,7 +364,17 @@ export function Home() {
                   <Reveal>
                     <div className="protocol-layout">
                       <div className="protocol-icon">
-                        <Fingerprint size={125} strokeWidth={0.65} />
+                        {isHttpsUrl(c.visuals?.bigSilhouette) ? (
+                          <img
+                            className="protocol-silhouette"
+                            src={c.visuals!.bigSilhouette}
+                            alt=""
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <Fingerprint size={125} strokeWidth={0.65} />
+                        )}
                       </div>
                       <div>
                         <Status>
@@ -339,7 +399,7 @@ export function Home() {
                 <section className="section" key={m.id}>
                   <div className="section-heading">
                     <div>
-                      <span className="eyebrow">BUILT THROUGH PEOPLE</span>
+                      <span className="eyebrow">{copy("story.kicker", "BUILT THROUGH PEOPLE")}</span>
                       <h2>{copy("story.title")}</h2>
                     </div>
                     <div>
@@ -354,8 +414,8 @@ export function Home() {
                 <section className="section updates-home" key={m.id}>
                   <div className="section-heading">
                     <div>
-                      <span className="eyebrow">FROM THE BUILD LOG</span>
-                      <h2>LATEST MOVES.</h2>
+                      <span className="eyebrow">{copy("updates.kicker", "FROM THE BUILD LOG")}</span>
+                      <h2>{copy("updates.heading", "LATEST MOVES.")}</h2>
                     </div>
                     <ArrowLink href="/updates">All updates</ArrowLink>
                   </div>

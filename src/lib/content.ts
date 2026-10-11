@@ -17,7 +17,15 @@ export type Item = {
   enabled: boolean;
   media?: string;
   alt?: string;
+  /** Símbolo elegido para la tarjeta; si falta, el sitio usa el de siempre. */
+  symbol?: string;
 };
+export type EventStatus = "upcoming" | "past";
+/**
+ * Entrada de Updates o Story. Los campos de la Capa 1 (portada, galería, vídeo,
+ * datos de evento) son **opcionales** a propósito: el documento ya publicado en
+ * producción no los trae y debe seguir validando tal cual.
+ */
 export type Entry = {
   id: string;
   title: string;
@@ -26,8 +34,41 @@ export type Entry = {
   summary: string;
   proof: string;
   published: boolean;
+  /** Imagen de portada (la card del sitio la usa de fondo). */
+  media?: string;
+  /** Texto alternativo de la portada. */
+  alt?: string;
+  /** Segmento de URL para la página de detalle; si falta se deriva del título. */
+  slug?: string;
+  location?: string;
+  venue?: string;
+  /** Imágenes adicionales de la entrada (galería del detalle). */
+  gallery?: string[];
+  /** Enlace HTTPS a un vídeo (YouTube, Vimeo, MP4 público…). */
+  video?: string;
+  /** Fecha de fin de un evento; opcional. */
+  endsAt?: string;
+  eventStatus?: EventStatus;
 };
 export type Module = { id: string; label: string; enabled: boolean };
+/**
+ * Recuadros visuales del sitio. Todo opcional: si un campo está vacío, el sitio
+ * mantiene el aspecto actual (nunca deja un hueco roto).
+ */
+export type Visuals = {
+  /** Imagen del recuadro grande del héroe, conservando el efecto hover. */
+  heroArt?: string;
+  /** Imagen preview del arte de la derecha del héroe. */
+  heroShot?: string;
+  /** Imagen con la tipografía del logo, en lugar del texto del footer. */
+  footerLogo?: string;
+  /** Silueta grande (hoy la huella). */
+  bigSilhouette?: string;
+  /** Foto de la botella de fondo. */
+  bottleBackground?: string;
+  /** Fondo por tarjeta de proyecto, con el `id` del proyecto como clave. */
+  cardBackgrounds?: Record<string, string>;
+};
 export type SiteContent = {
   hero: {
     eyebrow: string;
@@ -42,7 +83,25 @@ export type SiteContent = {
   modules: Module[];
   updates: Entry[];
   stories: Entry[];
+  visuals?: Visuals;
 };
+/**
+ * Catálogo de símbolos que el admin puede elegir por tarjeta de proyecto.
+ * `agave` es la planta que pidió el cliente (1 AGAVE) y `chisel` sustituye a la
+ * huella para Art Rework. La Capa 2 (sitio público) traduce estos ids a iconos.
+ */
+export const cardSymbols = [
+  { id: "agave", label: "Agave (1 agave plant)" },
+  { id: "chisel", label: "Chisel (art rework)" },
+  { id: "bottle", label: "Bottle (tequila)" },
+  { id: "fingerprint", label: "Fingerprint" },
+  { id: "orbit", label: "Orbit" },
+  { id: "layers", label: "Layers" },
+  { id: "flask", label: "Lab flask (experiments)" },
+  { id: "gem", label: "Gem (collectible)" },
+] as const;
+export type CardSymbol = (typeof cardSymbols)[number]["id"];
+export const eventStatuses: EventStatus[] = ["upcoming", "past"];
 export const initialContent: SiteContent = {
   hero: {
     eyebrow: "ROOTED IN AGAVE. BUILT TO EVOLVE.",
@@ -192,6 +251,108 @@ export function safeHref(value: string, fallback = "/updates") {
     /* invalid URL */
   }
   return fallback;
+}
+/**
+ * true solo para URLs https absolutas y limpias; los enlaces de vídeo lo exigen.
+ * Acepta `undefined` para poder usarse directamente sobre campos opcionales.
+ */
+export function isHttpsUrl(value: string | undefined | null) {
+  return (
+    typeof value === "string" &&
+    value.startsWith("https://") &&
+    safeHref(value, "") === value
+  );
+}
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  !!v && typeof v === "object" && !Array.isArray(v);
+/** Texto opcional: lo que no sea una cadena con contenido queda sin definir. */
+function optionalText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+/** Galería: solo URLs/cadenas con contenido; cualquier otra cosa se descarta. */
+function stringList(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((v): v is string => typeof v === "string" && !!v.trim())
+    : [];
+}
+/** Convierte un título en un segmento de URL seguro (sin acentos ni símbolos). */
+export function slugify(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+function normalizeSlug(value: unknown) {
+  return typeof value === "string" ? slugify(value) || undefined : undefined;
+}
+/** Solo se aceptan símbolos del catálogo; si no, la tarjeta usa el de siempre. */
+export function normalizeSymbol(value: unknown) {
+  return cardSymbols.some((s) => s.id === value)
+    ? (value as CardSymbol)
+    : undefined;
+}
+function normalizeEntry(entry: Entry): Entry {
+  return {
+    ...entry,
+    media: optionalText(entry.media),
+    alt: optionalText(entry.alt),
+    slug: normalizeSlug(entry.slug),
+    location: optionalText(entry.location),
+    venue: optionalText(entry.venue),
+    gallery: stringList(entry.gallery),
+    video: optionalText(entry.video),
+    endsAt: optionalText(entry.endsAt),
+    eventStatus:
+      entry.eventStatus === "upcoming" || entry.eventStatus === "past"
+        ? entry.eventStatus
+        : undefined,
+  };
+}
+function normalizeVisuals(value: unknown): Visuals {
+  const record = isRecord(value) ? value : {};
+  const cardBackgrounds: Record<string, string> = {};
+  if (isRecord(record.cardBackgrounds))
+    for (const [id, url] of Object.entries(record.cardBackgrounds))
+      if (typeof url === "string" && url.trim()) cardBackgrounds[id] = url;
+  return {
+    heroArt: optionalText(record.heroArt),
+    heroShot: optionalText(record.heroShot),
+    footerLogo: optionalText(record.footerLogo),
+    bigSilhouette: optionalText(record.bigSilhouette),
+    bottleBackground: optionalText(record.bottleBackground),
+    cardBackgrounds,
+  };
+}
+/**
+ * Normaliza cualquier documento válido al modelo actual. Es la red de seguridad
+ * de la compatibilidad hacia atrás: el documento publicado hoy no tiene los
+ * campos de la Capa 1 y, aun así, se lee sin exigirle nada nuevo.
+ */
+export function withContentDefaults(raw: SiteContent): SiteContent {
+  return {
+    ...raw,
+    visuals: normalizeVisuals(raw.visuals),
+    projects: (raw.projects ?? []).map((p) => ({
+      ...p,
+      symbol: normalizeSymbol(p.symbol),
+    })),
+    updates: (raw.updates ?? []).map(normalizeEntry),
+    stories: (raw.stories ?? []).map(normalizeEntry),
+  };
+}
+/**
+ * Slug estable de una entrada para su página de detalle. La Capa 2 lo usa como
+ * respaldo cuando el admin no escribió uno: `entrySlug(entry)`.
+ */
+export function entrySlug(entry: Entry) {
+  return (
+    normalizeSlug(entry.slug) ||
+    slugify(entry.title) ||
+    `entry-${entry.id.slice(0, 8)}`
+  );
 }
 export function isSiteContent(value: unknown): value is SiteContent {
   const record = (v: unknown): v is Record<string, unknown> =>

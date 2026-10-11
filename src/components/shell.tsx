@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X, ArrowUpRight, ArrowUp } from "lucide-react";
 import { useSite } from "./provider";
-import { safeHref } from "@/lib/content";
+import { safeHref, isHttpsUrl } from "@/lib/content";
 export function Header() {
   const { content, mode } = useSite();
   const path = usePathname();
@@ -88,7 +88,21 @@ export function Footer() {
       <div className="footer-top">
         <div>
           <Link href="/" className="footer-name">
-            MINGLES<span>®</span>
+            {/* Si el admin sube la tipografía del logo, se usa la imagen; si no,
+                se queda el texto de siempre. */}
+            {isHttpsUrl(content.visuals?.footerLogo) ? (
+              <img
+                className="footer-logo"
+                src={content.visuals!.footerLogo}
+                alt="Mingles"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <>
+                MINGLES<span>®</span>
+              </>
+            )}
           </Link>
           <p>{content.copy["footer.note"]}</p>
         </div>

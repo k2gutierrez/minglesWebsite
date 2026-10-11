@@ -4,7 +4,7 @@ import { ArrowUpRight, ArrowRight, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { AgaveField } from "./effects";
-import { safeHref } from "@/lib/content";
+import { safeHref, isHttpsUrl } from "@/lib/content";
 export function Button({
   children,
   href,
@@ -57,12 +57,33 @@ export function Reveal({
     </motion.div>
   );
 }
-export function BrandArt({ small = false }: { small?: boolean }) {
+export function BrandArt({
+  small = false,
+  image,
+  background,
+}: {
+  small?: boolean;
+  /** Imagen propia del recuadro (la sube el admin). Conserva el efecto hover. */
+  image?: string;
+  /** Foto de fondo del recuadro; si falta, se queda el fondo actual. */
+  background?: string;
+}) {
   const reduced = useReducedMotion();
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
+  const artImage = isHttpsUrl(image) ? image : undefined;
+  const artBackground = isHttpsUrl(background) ? background : undefined;
   return (
     <div
       className={`brand-art ${small ? "brand-art-small" : ""}`}
+      style={
+        artBackground
+          ? {
+              backgroundImage: `url(${artBackground})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
       onPointerMove={(e) => {
         if (e.pointerType === "mouse" && !reduced) {
           const r = e.currentTarget.getBoundingClientRect();
@@ -93,8 +114,8 @@ export function BrandArt({ small = false }: { small?: boolean }) {
         transition={{ type: "spring", stiffness: 110, damping: 22 }}
       >
         <img
-          src="/brand/mingles-black.png"
-          alt="Official Mingles logo"
+          src={artImage ?? "/brand/mingles-black.png"}
+          alt={artImage ? "Mingles artwork" : "Official Mingles logo"}
           width="450"
           height="450"
         />

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -11,7 +12,7 @@ import {
 import { useSite } from "./provider";
 import { Button, Status, EmptyMedia, ArrowLink, Reveal } from "./ui";
 import { Experiments } from "./home";
-import { safeHref } from "@/lib/content";
+import { safeHref, entrySlug } from "@/lib/content";
 const eras = ["Legacy PFP", "ApeChain", "Lombard era"];
 export function ArtLineage() {
   const [era, setEra] = useState(0);
@@ -315,25 +316,41 @@ export function SectionPage({ section }: { section: string }) {
             </label>
           </div>
           {filtered.length ? (
-            filtered.map((e) => (
-              <article className="archive-entry" id={e.id} key={e.id}>
-                <span className="eyebrow">
-                  {e.date} / {e.category}
-                </span>
-                <h2>{e.title}</h2>
-                <p>{e.summary}</p>
-                {e.proof && (
-                  <a
-                    className="text-link"
-                    href={safeHref(e.proof)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View proof <ArrowUpRight size={17} />
-                  </a>
-                )}
-              </article>
-            ))
+            <div className="entry-cards">
+              {filtered.map((e) => (
+                <Link
+                  className="entry-card"
+                  href={`/${s}/${entrySlug(e)}`}
+                  key={e.id}
+                >
+                  {e.media ? (
+                    <img
+                      className="entry-card-bg"
+                      src={e.media}
+                      alt={e.alt ?? ""}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(ev) => {
+                        // Sin foto la card sigue viéndose bien: se oculta solo la imagen.
+                        ev.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : null}
+                  <span className="entry-card-shade" aria-hidden="true" />
+                  <div className="entry-card-body">
+                    <span className="eyebrow">
+                      {e.date} / {e.category}
+                      {e.eventStatus === "upcoming" ? " / UPCOMING" : ""}
+                    </span>
+                    <h2>{e.title}</h2>
+                    <span className="entry-card-cta">
+                      {e.eventStatus === "upcoming" ? "Event details" : "Read more"}
+                      <ArrowUpRight size={16} />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           ) : (
             <div className="archive-empty">
               <span aria-hidden="true">✳</span>
