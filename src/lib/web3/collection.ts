@@ -58,7 +58,22 @@ export function ipfsPath(uri: unknown): string | null {
     return null;
   return path;
 }
-export function ipfsImage(uri: unknown) {
+/**
+ * Gateways de IPFS, en orden de preferencia.
+ *
+ * ⚠️ `ipfs.io` YA NO SIRVE para esto: devuelve **429** con el aviso «This IPFS
+ * gateway is switching to a service worker gateway only» (verificado el 11 de
+ * octubre de 2026). Como la metadata del token vive en IPFS, eso dejaba la
+ * vista oficial del Mingle sin imagen. Pinata sí responde 200 y va primero;
+ * los demás quedan de respaldo por si uno se cae o limita.
+ */
+export const IPFS_GATEWAYS = [
+  "https://gateway.pinata.cloud/ipfs/",
+  "https://ipfs.io/ipfs/",
+  "https://dweb.link/ipfs/",
+] as const;
+
+export function ipfsImage(uri: unknown, gateway: string = IPFS_GATEWAYS[0]) {
   const path = ipfsPath(uri);
-  return path ? `https://ipfs.io/ipfs/${path}` : null;
+  return path ? `${gateway}${path}` : null;
 }

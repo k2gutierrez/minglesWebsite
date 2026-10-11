@@ -5,6 +5,7 @@ import {
   validTokenId,
   ipfsPath,
   ipfsImage,
+  IPFS_GATEWAYS,
 } from "@/lib/web3/collection";
 import { checkedClient } from "@/lib/server/chain";
 import { requireUser, rateLimit, json, ApiError } from "@/lib/server/http";
@@ -63,13 +64,22 @@ export async function GET(
     };
     const path = ipfsPath(uri);
     if (path) {
-      try {
-        const response = await fetch(`https://ipfs.io/ipfs/${path}`, {
-          redirect: "error",
-          signal: AbortSignal.timeout(6000),
-          next: { revalidate: 3600 },
-        });
-        if (response.ok && response.body) {
+      // Se prueban los gateways EN ORDEN: si uno limita o se cae, el siguiente.
+      // `redirect: "error"` se mantiene A PROPOSITO: la lectura del servidor no
+      // debe poder ser redirigida a otra URL. Los gateways de la lista responden
+      // 200 directo (Pinata, verificado), asi que no hay que seguir redirecciones
+      // y la proteccion queda exactamente igual que antes.
+      for (const gateway of IPFS_GATEWAYS) {
+        try {
+          // 15 s y no 6: en frio Pinata ha tardado 6,3 s en devolver una
+          // metadata (medido), asi que 6 s dejaba tokens sin imagen. Las
+          // respuestas buenas se cachean 1 h, asi que solo se paga una vez.
+          const response = await fetch(`${gateway}${path}`, {
+            redirect: "error",
+            signal: AbortSignal.timeout(15000),
+            next: { revalidate: 3600 },
+          });
+          if (!response.ok || !response.body) continue;
           const reader = response.body.getReader();
           let size = 0;
           const chunks: Uint8Array[] = [];
@@ -92,11 +102,13 @@ export async function GET(
             typeof data.description === "string"
               ? data.description.slice(0, 600)
               : "";
-          result.image = ipfsImage(data.image);
+          // La imagen usa el MISMO gateway que funciono, no uno fijo.
+          result.image = ipfsImage(data.image, gateway);
           result.metadataStatus = "loaded";
+          break;
+        } catch {
+          continue; // Se prueba el siguiente gateway.
         }
-      } catch {
-        /* Metadata never changes the separately verified ownership result. */
       }
     }
     return json(result);

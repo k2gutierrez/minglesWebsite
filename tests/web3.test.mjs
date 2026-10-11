@@ -5,6 +5,7 @@ import {
   validTokenId,
   ipfsPath,
   ipfsImage,
+  IPFS_GATEWAYS,
 } from "../src/lib/web3/collection.ts";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { verifyMessage } from "viem";
@@ -23,9 +24,13 @@ test("ApeChain collection and token limits are explicit", () => {
 test("metadata cannot redirect server reads to arbitrary or private URLs", () => {
   const cid = "QmcoeRsFYeHzPD9Gx84aKD3tjLUKjvPEMSmoPs2GQmHR1t";
   assert.equal(ipfsPath(`ipfs://${cid}/1`), `${cid}/1`);
-  assert.ok(
-    ipfsImage(`ipfs://${cid}/1.png`).startsWith("https://ipfs.io/ipfs/"),
-  );
+  // El gateway debe salir SIEMPRE de la lista permitida y ser https. Antes esta
+  // prueba fijaba ipfs.io, que el 11-oct-2026 empezo a responder 429 («service
+  // worker gateway only») y dejaba la vista oficial sin imagen.
+  const image = ipfsImage(`ipfs://${cid}/1.png`);
+  assert.ok(image && image.startsWith("https://"));
+  assert.ok(IPFS_GATEWAYS.some((gateway) => image.startsWith(gateway)));
+  assert.ok(IPFS_GATEWAYS.every((gateway) => gateway.startsWith("https://")));
   for (const url of [
     "http://127.0.0.1/admin",
     "https://example.com/file",

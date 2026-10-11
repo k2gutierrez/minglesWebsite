@@ -51,6 +51,8 @@ export function useHolder(user: string | null) {
   const [connected, setConnected] = useState<string | null>(null);
   const [pendingUnlink, setPendingUnlink] = useState<string | null>(null);
   const generation = useRef(0);
+  /** Wallets ya verificadas automáticamente, para no repetir el escaneo. */
+  const autoChecked = useRef<Set<string>>(new Set());
   // La conexión la maneja RainbowKit/wagmi. Aquí solo se lee la cuenta.
   const { address, chainId } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -99,6 +101,28 @@ export function useHolder(user: string | null) {
     setPendingUnlink(null);
     void load();
   }, [load]);
+  /**
+   * Verificación automática la primera vez.
+   *
+   * Antes había que pulsar "Verify NFTs" y, si el usuario no lo hacía o no lo
+   * veía, el portal parecía vacío aunque tuviera Mingles. Ahora, si hay una
+   * wallet vinculada y todavía no tiene lectura de propiedad, se hace sola una
+   * vez (el registro en `autoChecked` evita repetirlo en cada render).
+   */
+  useEffect(() => {
+    if (!user || !config?.walletConfigured) return;
+    const pending = data.wallets.find(
+      (w) =>
+        !data.holdings.some((h) => h.walletId === w.id) &&
+        !autoChecked.current.has(w.id),
+    );
+    if (!pending) return;
+    autoChecked.current.add(pending.id);
+    void refresh(pending.id);
+    // `refresh` es estable en la práctica; incluirlo dispararía el efecto en
+    // cada render y volvería a lanzar el escaneo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, user, config?.walletConfigured]);
   async function connect() {
     if (!user) {
       setMessage("Sign in with email, then link your wallet to that account.");
