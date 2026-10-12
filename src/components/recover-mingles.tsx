@@ -185,10 +185,10 @@ export function RecoverMingles() {
               {readError
                 ? readError
                 : staked === null
-                  ? "Reading the contract…"
+                  ? "Asking the contract about this wallet…"
                   : hasStaked
-                    ? "These are inside the staking contract, not in your wallet."
-                    : "Nothing staked for this wallet. Nothing to recover."}
+                    ? `This wallet has ${staked} Mingle${stakedNumber === 1 ? "" : "s"} inside the CAVA contract, not in the wallet.`
+                    : "This wallet has nothing staked. If you staked from a different wallet, connect that one — the contract reports per wallet, not per person."}
             </small>
           </div>
 
