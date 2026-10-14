@@ -51,6 +51,15 @@ function Field({
 }
 type MediaItem = { url: string; alt: string };
 type Uploader = (file?: File) => Promise<string | null>;
+/**
+ * Tope de subida del estudio.
+ * ⚠️ Tiene que coincidir con el `file_size_limit` del bucket `public-media` en
+ * Supabase: si aquí fuera mayor, la subida fallaría en el servidor con un error
+ * confuso; si fuera menor, el navegador rechazaría archivos que el bucket sí
+ * acepta. Cambiar los dos a la vez.
+ */
+const MAX_UPLOAD_MB = 10;
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 /** Pestañas ordenadas por flujo de trabajo real: contenido → secciones → media → publicar. */
 const tabOrder = [
   "Copy",
@@ -76,8 +85,7 @@ const tabHelp: Record<string, string> = {
     "Build-log entries. Add a cover image, a gallery and a video link, then publish to show them on /updates.",
   Story:
     "Story entries. Same editor as Updates: cover image, gallery, event fields and a video link.",
-  Media:
-    "Upload approved images here, then pick them anywhere in the studio. PNG, JPEG or WebP, up to 2 MB.",
+  Media: `Upload approved images here, then pick them anywhere in the studio. PNG, JPEG or WebP, up to ${MAX_UPLOAD_MB} MB.`,
   Visuals:
     "Imported artwork and brand images, plus the symbol and background of each project card. Empty means the site keeps its current look.",
   "Mingle lab": "Layer viewer from the old generator. Read-only: it never writes to the art bucket.",
@@ -496,10 +504,10 @@ export function Admin() {
     if (!file) return null;
     if (
       !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
-      file.size > 2 * 1024 * 1024
+      file.size > MAX_UPLOAD_BYTES
     ) {
       setMessage(
-        "Choose a PNG, JPEG, or WebP under 2 MB. Videos are added as HTTPS links, not uploads.",
+        `Choose a PNG, JPEG, or WebP under ${MAX_UPLOAD_MB} MB. Videos are added as HTTPS links, not uploads.`,
       );
       return null;
     }
@@ -1275,11 +1283,7 @@ export function Admin() {
       {tab === "Media" && (
         <>
           <p className="editor-help">
-            Use approved Mingles media only. PNG, JPEG, WebP · up to 2 MB.
-            Uploads to the public bucket are immediately public; never upload
-            unrevealed or confidential material. Uploaded images can be picked
-            as a project card image, an entry cover, an entry gallery or a
-            Visuals slot.
+            {`Use approved Mingles media only. PNG, JPEG, WebP · up to ${MAX_UPLOAD_MB} MB. Uploads to the public bucket are immediately public; never upload unrevealed or confidential material. Uploaded images can be picked as a project card image, an entry cover, an entry gallery or a Visuals slot.`}
           </p>
           <label className="field">
             <span>Add an approved image</span>
