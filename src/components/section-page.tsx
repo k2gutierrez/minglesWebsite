@@ -12,6 +12,7 @@ import { useSite } from "./provider";
 import { Button, Status, EmptyMedia, ArrowLink, Reveal } from "./ui";
 import { Experiments } from "./home";
 import {
+  ArtGallery,
   ArtLineage,
   ArtistSections,
   EndCta,
@@ -88,6 +89,7 @@ export function SectionPage({ section }: { section: string }) {
               <p>{c.copy["art.lineage.body"]}</p>
             </div>
             <ArtLineage />
+            <ArtGallery />
           </section>
           <ArtistSections />
         </>

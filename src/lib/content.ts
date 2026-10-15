@@ -126,6 +126,8 @@ export type Visuals = {
   agaveBackgroundAlt?: string;
   /** Hero shot del intro de /art. */
   artHeroShot?: string;
+  /** Galeria de fotos de /art. Misma regla que la de Tequila: desde 4. */
+  artGallery?: Slide[];
   artHeroAlt?: string;
   /** Contexto y behind-the-scenes de Mike Lombard. */
   artist?: ArtistDetails;
@@ -227,6 +229,10 @@ export const initialContent: SiteContent = {
     "tequila.experience.label": "THE EXPERIENCE",
     "tequila.detail.status": "In development",
     "tequila.gallery.label": "Tequila gallery",
+    "art.gallery.eyebrow": "THE ART / GALLERY",
+    "art.gallery.heading": "LOOK AT THE WORK.",
+    "art.gallery.label": "Art gallery",
+    "art.gallery.autoplay": "Autoplay",
     "art.artist.name": "Mike Lombard",
     "art.artist.bts.heading": "BEHIND THE SCENES.",
     "art.artist.portfolio.href": "https://www.mike-lombard.com",
@@ -582,6 +588,7 @@ function normalizeVisuals(value: unknown): Visuals {
     tequilaHeroShot: normalizePhotoUrl(record.tequilaHeroShot),
     tequilaHeroAlt: optionalText(record.tequilaHeroAlt),
     tequilaGallery: normalizeSlides(record.tequilaGallery),
+    artGallery: normalizeSlides(record.artGallery),
     agaveBackground: normalizePhotoUrl(record.agaveBackground),
     agaveBackgroundAlt: optionalText(record.agaveBackgroundAlt),
     artHeroShot: normalizePhotoUrl(record.artHeroShot),

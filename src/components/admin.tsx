@@ -673,7 +673,7 @@ export function Admin() {
     });
   /** Galerías nuevas: carrusel de Tequila y behind-the-scenes de Art. */
   const patchSlides = (
-    key: "tequilaGallery" | "behindScenes",
+    key: "tequilaGallery" | "artGallery" | "behindScenes",
     slides: Slide[],
   ) =>
     setDraft((d) => {
@@ -682,6 +682,11 @@ export function Admin() {
         return {
           ...d,
           visuals: { ...visuals, tequilaGallery: slides },
+        };
+      if (key === "artGallery")
+        return {
+          ...d,
+          visuals: { ...visuals, artGallery: slides },
         };
       return {
         ...d,
@@ -1708,6 +1713,17 @@ export function Admin() {
               media={media}
               busy={busy}
               onChange={(slides) => patchSlides("tequilaGallery", slides)}
+              onUpload={upload}
+            />
+            <GalleryField
+              label="Art gallery"
+              min={4}
+              withCaption
+              help="At least 4 images. The order here is the order of the carousel."
+              value={visuals.artGallery ?? []}
+              media={media}
+              busy={busy}
+              onChange={(slides) => patchSlides("artGallery", slides)}
               onUpload={upload}
             />
           </div>

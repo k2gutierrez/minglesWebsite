@@ -371,6 +371,28 @@ export function TequilaSections() {
   );
 }
 /** Las tres eras del lineage. Los fondos y textos los sube el admin. */
+/**
+ * Galeria de fotos de la seccion de Art, editable desde el panel.
+ * Se monta a partir de 4 imagenes, igual que la de Tequila, y reutiliza el mismo
+ * carrusel (ya probado): sin fotos, la seccion queda exactamente como estaba.
+ */
+export function ArtGallery() {
+  const { content } = useSite();
+  const copy = useCopy();
+  const slides = content.visuals?.artGallery;
+  if (!slides || slides.length < 4) return null;
+  return (
+    <section className="section lined">
+      <Carousel
+        slides={slides}
+        label={copy("art.gallery.label") || "Art gallery"}
+        autoplayLabel={copy("art.gallery.autoplay") || "Autoplay"}
+        eyebrow={copy("art.gallery.eyebrow")}
+        heading={copy("art.gallery.heading")}
+      />
+    </section>
+  );
+}
 export function ArtLineage() {
   const { content } = useSite();
   const [era, setEra] = useState(0);
