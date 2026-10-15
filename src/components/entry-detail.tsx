@@ -58,18 +58,87 @@ function formatDate(value: string) {
  *
  * Es texto, nunca marcado: no hay HTML crudo ni innerHTML.
  */
-function Paragraphs({ text }: { text: string }) {
-  const blocks = text
+/**
+ * Articulo: parrafos con imagenes intercaladas.
+ *
+ * El cliente lo pidio asi: "1-2 parrafos, luego unas imagenes, luego 2 parrafos
+ * mas, luego imagenes". Antes todo el texto iba junto y despues todas las fotos
+ * (una entrada tiene 14 parrafos y 20 imagenes: se veia como un muro de texto
+ * seguido de un muro de fotos).
+ *
+ * Se agrupan los parrafos de dos en dos y las imagenes se reparten **de manera
+ * pareja** entre los bloques: con 3 filas y 7 bloques caen despues de los
+ * bloques 0, 2 y 4, no todas al principio.
+ */
+const PARAGRAPHS_PER_BLOCK = 2;
+const MAX_IMAGES_PER_ROW = 3;
+
+function Article({ text, images }: { text: string; images: string[] }) {
+  const paragraphs = text
     .split(/\n\s*\n/)
     .map((block) => block.trim())
     .filter(Boolean);
-  if (!blocks.length) return null;
+
+  const blocks: string[][] = [];
+  for (let i = 0; i < paragraphs.length; i += PARAGRAPHS_PER_BLOCK) {
+    blocks.push(paragraphs.slice(i, i + PARAGRAPHS_PER_BLOCK));
+  }
+
+  // Filas de imagenes, repartidas parejo entre los bloques.
+  const rows: string[][] = [];
+  if (blocks.length && images.length) {
+    const perRow = Math.max(
+      1,
+      Math.min(MAX_IMAGES_PER_ROW, Math.ceil(images.length / blocks.length)),
+    );
+    for (let i = 0; i < images.length; i += perRow)
+      rows.push(images.slice(i, i + perRow));
+  }
+  const rowsAfterBlock = new Map<number, string[][]>();
+  rows.forEach((row, index) => {
+    const target = Math.min(
+      blocks.length - 1,
+      Math.floor((index * blocks.length) / rows.length),
+    );
+    rowsAfterBlock.set(target, [...(rowsAfterBlock.get(target) ?? []), row]);
+  });
+
+  const figureRow = (row: string[], key: string) => (
+    <div className="entry-figure-row" data-count={row.length} key={key}>
+      {row.map((url) => (
+        <img key={url} src={url} alt="" loading="lazy" referrerPolicy="no-referrer" />
+      ))}
+    </div>
+  );
+
+  if (!blocks.length) {
+    // Sin texto: las imagenes se muestran juntas, como antes.
+    if (!images.length) return null;
+    return (
+      <section className="entry-detail-gallery">
+        <span className="eyebrow">GALLERY</span>
+        <div className="entry-detail-grid">
+          {images.map((url) => (
+            <img key={url} src={url} alt="" loading="lazy" referrerPolicy="no-referrer" />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <>
-      {blocks.map((block, index) => (
-        <p className="entry-detail-lead" key={index}>
-          {block}
-        </p>
+      {blocks.map((block, blockIndex) => (
+        <div className="entry-block" key={blockIndex}>
+          {block.map((paragraph, paragraphIndex) => (
+            <p className="entry-detail-lead" key={paragraphIndex}>
+              {paragraph}
+            </p>
+          ))}
+          {(rowsAfterBlock.get(blockIndex) ?? []).map((row, rowIndex) =>
+            figureRow(row, `b${blockIndex}-r${rowIndex}`),
+          )}
+        </div>
       ))}
     </>
   );
@@ -109,7 +178,11 @@ export function EntryDetail({
       ) : null}
 
       <h1>{entry.title}</h1>
-      {entry.summary ? <Paragraphs text={entry.summary} /> : null}
+      {entry.summary ? (
+        <Article text={entry.summary} images={gallery} />
+      ) : gallery.length ? (
+        <Article text="" images={gallery} />
+      ) : null}
 
       <dl className="entry-detail-meta">
         {entry.date ? (
@@ -167,23 +240,6 @@ export function EntryDetail({
         >
           Watch the video <ArrowUpRight size={16} />
         </a>
-      ) : null}
-
-      {gallery.length ? (
-        <section className="entry-detail-gallery">
-          <span className="eyebrow">GALLERY</span>
-          <div className="entry-detail-grid">
-            {gallery.map((url) => (
-              <img
-                key={url}
-                src={url}
-                alt=""
-                loading="lazy"
-                referrerPolicy="no-referrer"
-              />
-            ))}
-          </div>
-        </section>
       ) : null}
 
       {entry.proof && isHttpsUrl(entry.proof) ? (

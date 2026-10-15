@@ -73,7 +73,32 @@
 /* --- detalle --- */
 .entry-detail {
   padding: clamp(24px, 5vw, 72px) clamp(20px, 6vw, 90px) 90px;
-  max-width: 1100px;
+  /* Mas ancho y centrado: con 1100 px en una pantalla de 1600 quedaban ~500 px
+     muertos a la derecha (el cliente lo reporto). El texto sigue limitado a ~68
+     caracteres para que se lea comodo; lo que ocupa el ancho es la imagenes. */
+  max-width: min(1400px, 100%);
+  margin-inline: auto;
+}
+/* Bloque de parrafos con sus imagenes intercaladas. */
+.entry-block + .entry-block {
+  margin-top: 4px;
+}
+.entry-figure-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 28px 0;
+}
+.entry-figure-row img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+/* Una sola imagen no debe volverse un banner gigante. */
+.entry-figure-row[data-count="1"] img {
+  aspect-ratio: 16 / 9;
+  max-width: 860px;
 }
 .entry-detail-top {
   display: flex;
@@ -162,6 +187,11 @@
 @media (max-width: 560px) {
   .entry-cards {
     grid-template-columns: 1fr;
+  }
+  .entry-figure-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 20px 0;
   }
   .entry-card {
     min-height: 260px;
