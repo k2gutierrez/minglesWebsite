@@ -141,9 +141,9 @@ export function BrandArt({
         002 / AGAVE SPIRIT <span>↗</span>
       </motion.div>
       <div className="art-stamp">
-        100%
+        100%{" "}
         <br />
-        MINGLES
+        MINGLES{" "}
         <br />
         <span>SPIRIT</span>
       </div>

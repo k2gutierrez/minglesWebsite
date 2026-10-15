@@ -257,7 +257,7 @@ export function Home() {
                                 THE MINGLES SPIRIT
                               </span>
                               <strong>
-                                AGAVE
+                                AGAVE{" "}
                                 <br />& ATTITUDE.
                               </strong>
                               <span>OFFICIAL BOTTLE REVEAL TO FOLLOW ↗</span>

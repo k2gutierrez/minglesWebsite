@@ -72,7 +72,7 @@ export function Portal() {
           <div className="portal-emblem">
             <Fingerprint size={55} strokeWidth={1} />
             <span>
-              YOUR CORNER
+              YOUR CORNER{" "}
               <br />
               OF THE WEIRD.
             </span>
@@ -98,7 +98,7 @@ export function Portal() {
             </a>
           </nav>
           <small>
-            ACTIVATION SYSTEM
+            ACTIVATION SYSTEM{" "}
             <br />
             <span className="coral">BUILDING / NOT LIVE</span>
           </small>
