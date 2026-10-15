@@ -47,6 +47,34 @@ function formatDate(value: string) {
   });
 }
 
+/**
+ * Respeta los saltos de linea que escribe el admin.
+ *
+ * HTML colapsa los saltos, asi que un texto con parrafos salia todo corrido en
+ * un solo bloque. Aqui se separa por **linea en blanco** en parrafos, y los
+ * saltos simples dentro de un parrafo se conservan con `white-space: pre-line`
+ * (ver `.entry-detail-lead` en site-cards.css). Asi funciona tanto si separa
+ * los parrafos con una linea en blanco como si usa saltos simples.
+ *
+ * Es texto, nunca marcado: no hay HTML crudo ni innerHTML.
+ */
+function Paragraphs({ text }: { text: string }) {
+  const blocks = text
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+  if (!blocks.length) return null;
+  return (
+    <>
+      {blocks.map((block, index) => (
+        <p className="entry-detail-lead" key={index}>
+          {block}
+        </p>
+      ))}
+    </>
+  );
+}
+
 export function EntryDetail({
   entry,
   kind,
@@ -81,7 +109,7 @@ export function EntryDetail({
       ) : null}
 
       <h1>{entry.title}</h1>
-      {entry.summary ? <p className="entry-detail-lead">{entry.summary}</p> : null}
+      {entry.summary ? <Paragraphs text={entry.summary} /> : null}
 
       <dl className="entry-detail-meta">
         {entry.date ? (

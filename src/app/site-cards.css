@@ -101,6 +101,13 @@
   line-height: 1.6;
   color: #dedecb;
   max-width: 70ch;
+  /* Conserva los saltos de linea simples dentro de un parrafo; los bloques
+     separados por linea en blanco se pintan como <p> distintos. */
+  white-space: pre-line;
+}
+/* Separacion entre parrafos consecutivos del detalle. */
+.entry-detail-lead + .entry-detail-lead {
+  margin-top: 15px;
 }
 .entry-detail-meta {
   display: grid;
