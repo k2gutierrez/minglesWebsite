@@ -200,6 +200,24 @@ const copyGroups = [
     help: "Footer note and the adult-responsibility line.",
     match: (k: string) => k.startsWith("footer."),
   },
+  {
+    id: "cta",
+    title: "Closing call to action",
+    help: "The band repeated at the bottom of several pages. Empty = each page keeps its own text and destination.",
+    match: (k: string) => k.startsWith("cta."),
+  },
+  {
+    id: "cards",
+    title: "Card labels (Story & Updates)",
+    help: "Small labels shared by the story and update cards.",
+    match: (k: string) => k.startsWith("cards."),
+  },
+  {
+    id: "modules",
+    title: "Shared modules (Experiments & Play)",
+    help: "Text of the experiment cards. It shows on both pages, on purpose.",
+    match: (k: string) => k.startsWith("modules."),
+  },
 ];
 /** Campo de imagen: elige del catálogo o sube una nueva al bucket público. */
 function MediaField({

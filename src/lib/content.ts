@@ -196,6 +196,57 @@ export const initialContent: SiteContent = {
       "We said we would make tequila. We are. A new bottle, a collectible cap, and a real-world expression of the Mingles spirit.",
     "tequila.kicker": "01 / THE REAL-WORLD SPIRIT",
     "tequila.cta": "Follow the bottle",
+    // --- Etapa 3 (continuacion) ---
+    "cards.explore": "EXPLORE ↗",
+    "home.lab.kicker": "03 / THE EXPERIMENT LAB",
+    "home.lab.cta": "Inside the lab",
+    "home.protocol.cta": "See how it connects",
+    "home.protocol.vertical": "MINGLES PROTOCOL / NOT LIVE",
+    // Modulo compartido por /experiments y /play (mismas claves a proposito).
+    "modules.pvg.label": "PVG",
+    "modules.pvg.caption": "IDENTITY STUDY / GAME MEDIA PENDING",
+    "modules.pvg.cta": "View experiment",
+    "experiments.lab.title": "PVG IS THE LAB. MINGLES IS THE IDENTITY.",
+    "experiments.rules.title1": "WATCH THE BUILD.",
+    "experiments.rules.title2": "KNOW THE RULES.",
+    "experiments.rules.body":
+      "The deep game experience lives with PVG. Participation only opens when rules, costs, limits, and official links are ready.",
+    "experiments.rules.note":
+      "Rules, fees, results, and any Mingles allocation: not yet published.",
+    "tequila.agave.eyebrow": "REAL-WORLD SPIRIT",
+    "tequila.agave.title": "ROOTED\nIN AGAVE.",
+    "tequila.agave.note": "PRODUCT PHOTOGRAPHY TO FOLLOW",
+    "tequila.detail.title": "THE SPIRIT.\nTHE SURPRISE.",
+    // --- Etapa 3: copy que estaba fijo en el codigo ---
+    // Banda CTA compartida (varias paginas). Si el admin la deja vacia, cada
+    // pagina conserva su texto y su destino actuales.
+    "cta.band.eyebrow": "THE NEXT CHAPTER IS BEING BUILT.",
+    "cta.band.label": "Follow the build",
+    "cta.band.href": "",
+    // Etiquetas de las tarjetas de Story y Updates (mismo componente).
+    "cards.readMore": "Read more",
+    "cards.eventDetails": "Event details",
+    // Destileria (/build-the-distillery)
+    "mission.eyebrow": "OUR NORTH STAR",
+    "protocol.engine1.title": "CHARACTER IP",
+    "protocol.engine1.body":
+      "Mingles is the collectible identity at the center of everything we build.",
+    "protocol.engine2.title": "THE EXPERIMENT LAB",
+    "protocol.engine2.body":
+      "PVG creates onchain experiments, with demand beyond the holder community.",
+    "protocol.engine3.title": "REAL-WORLD TEQUILA",
+    "protocol.engine3.body":
+      "A physical product that carries the Mingles brand into the world.",
+    "protocol.bridge.title": "THE FUTURE BRIDGE.",
+    "protocol.bridge.body":
+      "Activation is being designed to connect eligible ownership to published allocations from selected systems. It will be opt-in. No economics are live.",
+    "protocol.flow.1": "Outside demand",
+    "protocol.flow.2": "Tequila / PVG",
+    "protocol.flow.3": "Published allocation",
+    "protocol.flow.4": "Activated Mingles",
+    "protocol.flow.5": "Distribution record",
+    "protocol.bridge.note":
+      "Future architecture only. Allocations, periods, fees, contracts, and eligibility remain subject to published rules and approval.",
     /**
      * Copy editable del bloque "THE SPIRIT. THE SURPRISE.". Es una clave nueva
      * con el mismo valor que `tequila.body`, así que si el admin ya editó la
@@ -532,6 +583,19 @@ function normalizeVisuals(value: unknown): Visuals {
 export function withContentDefaults(raw: SiteContent): SiteContent {
   return {
     ...raw,
+    /**
+     * Rellena las claves de copy que el documento no trae.
+     *
+     * El panel construye sus campos a partir de `draft.copy`, así que una clave
+     * que no esté en el documento **no aparece en el admin** y su texto queda
+     * imposible de editar. El documento publicado se guardó antes de que
+     * existieran estas claves, de modo que sin esto no se verían (es justo lo
+     * que reporta el cliente: "algunas secciones ni aparecen en el panel").
+     *
+     * Los valores por defecto son el texto que el sitio **ya enseña**, así que
+     * rellenarlos no cambia nada visible; y lo que haya guardado siempre gana.
+     */
+    copy: { ...initialContent.copy, ...(raw.copy ?? {}) },
     visuals: normalizeVisuals(raw.visuals),
     projects: (raw.projects ?? []).map((p) => ({
       ...p,

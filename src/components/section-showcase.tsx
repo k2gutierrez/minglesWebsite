@@ -230,6 +230,13 @@ function useCopy() {
   };
 }
 function AgaveArt({ photo }: { photo: Photo }) {
+  const copy = useCopy();
+  // El salto de linea vive en el texto editable (el admin puede escribir en
+  // varias lineas), no en un <br/> fijo: asi el texto se copia y se lee bien.
+  const titleLines = (copy("tequila.agave.title") || "ROOTED\nIN AGAVE.").split("\n");
+  const copyTitle = titleLines.flatMap((line, i) =>
+    i === 0 ? [line] : [<br key={i} />, line],
+  );
   // Sin imagen de fondo se mantiene el bloque actual: la planta dibujada y el
   // rótulo "PRODUCT PHOTOGRAPHY TO FOLLOW". Con imagen, el velo es el que
   // mantiene el texto legible.
@@ -251,13 +258,11 @@ function AgaveArt({ photo }: { photo: Photo }) {
           />
         </svg>
         <div className="tequila-art-copy">
-          <span className="eyebrow">REAL-WORLD SPIRIT</span>
-          <strong>
-            ROOTED
-            <br />
-            IN AGAVE.
-          </strong>
-          <span>PRODUCT PHOTOGRAPHY TO FOLLOW</span>
+          <span className="eyebrow">
+            {copy("tequila.agave.eyebrow") || "REAL-WORLD SPIRIT"}
+          </span>
+          <strong>{copyTitle}</strong>
+          <span>{copy("tequila.agave.note") || "PRODUCT PHOTOGRAPHY TO FOLLOW"}</span>
         </div>
       </div>
     );
@@ -272,12 +277,10 @@ function AgaveArt({ photo }: { photo: Photo }) {
       />
       <span className="agave-art-shade" aria-hidden="true" />
       <div className="tequila-art-copy">
-        <span className="eyebrow">REAL-WORLD SPIRIT</span>
-        <strong>
-          ROOTED
-          <br />
-          IN AGAVE.
-        </strong>
+        <span className="eyebrow">
+          {copy("tequila.agave.eyebrow") || "REAL-WORLD SPIRIT"}
+        </span>
+        <strong>{copyTitle}</strong>
       </div>
     </div>
   );

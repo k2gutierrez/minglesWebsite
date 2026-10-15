@@ -64,7 +64,9 @@ export function SectionPage({ section }: { section: string }) {
         />
       ) : (
         <section className="page-intro">
-          {entryEyebrow(s === "mission" ? "OUR NORTH STAR" : s.toUpperCase())}
+          {entryEyebrow(
+            s === "mission" ? c.copy["mission.eyebrow"] || "OUR NORTH STAR" : s.toUpperCase(),
+          )}
           <h1>{c.copy[`${s}.title`]}</h1>
           <div className="intro-bottom">
             <p>{c.copy[`${s}.body`]}</p>
@@ -95,7 +97,8 @@ export function SectionPage({ section }: { section: string }) {
           <section className="section">
             <div className="flex-between section-heading">
               <span className="eyebrow">
-                PVG IS THE LAB. MINGLES IS THE IDENTITY.
+                {c.copy["experiments.lab.title"] ||
+                  "PVG IS THE LAB. MINGLES IS THE IDENTITY."}
               </span>
               <Status>Building</Status>
             </div>
@@ -104,13 +107,13 @@ export function SectionPage({ section }: { section: string }) {
           <section className="section lined">
             <div className="section-heading">
               <h2>
-                WATCH THE BUILD.
+                {c.copy["experiments.rules.title1"] || "WATCH THE BUILD."}
                 <br />
-                KNOW THE RULES.
+                {c.copy["experiments.rules.title2"] || "KNOW THE RULES."}
               </h2>
               <p>
-                The deep game experience lives with PVG. Participation only
-                opens when rules, costs, limits, and official links are ready.
+                {c.copy["experiments.rules.body"] ||
+                  "The deep game experience lives with PVG. Participation only opens when rules, costs, limits, and official links are ready."}
               </p>
             </div>
             {c.projects
@@ -127,8 +130,8 @@ export function SectionPage({ section }: { section: string }) {
                     <h3>{p.title}</h3>
                     <p>{p.description}</p>
                     <p className="muted">
-                      Rules, fees, results, and any Mingles allocation: not yet
-                      published.
+                      {c.copy["experiments.rules.note"] ||
+                        "Rules, fees, results, and any Mingles allocation: not yet published."}
                     </p>
                   </div>
                   <Status>{p.status}</Status>
@@ -204,8 +207,8 @@ export function SectionPage({ section }: { section: string }) {
                     <h2>{e.title}</h2>
                     <span className="entry-card-cta">
                       {e.eventStatus === "upcoming"
-                        ? "Event details"
-                        : "Read more"}
+                        ? c.copy["cards.eventDetails"] || "Event details"
+                        : c.copy["cards.readMore"] || "Read more"}
                       <ArrowUpRight size={16} />
                     </span>
                   </div>
@@ -245,26 +248,35 @@ export function SectionPage({ section }: { section: string }) {
           <section className="section">
             <div className="three-grid">
               {[
-                [
-                  "01",
-                  "CHARACTER IP",
-                  "Mingles is the collectible identity at the center of everything we build.",
-                ],
-                [
-                  "02",
-                  "THE EXPERIMENT LAB",
-                  "PVG creates onchain experiments, with demand beyond the holder community.",
-                ],
-                [
-                  "03",
-                  "REAL-WORLD TEQUILA",
-                  "A physical product that carries the Mingles brand into the world.",
-                ],
-              ].map(([n, title, body]) => (
-                <article className="mission-card" key={n}>
-                  <span className="eyebrow">ENGINE {n}</span>
-                  <h2>{title}</h2>
-                  <p>{body}</p>
+                {
+                  n: "01",
+                  title: "protocol.engine1.title",
+                  fallbackTitle: "CHARACTER IP",
+                  body: "protocol.engine1.body",
+                  fallbackBody:
+                    "Mingles is the collectible identity at the center of everything we build.",
+                },
+                {
+                  n: "02",
+                  title: "protocol.engine2.title",
+                  fallbackTitle: "THE EXPERIMENT LAB",
+                  body: "protocol.engine2.body",
+                  fallbackBody:
+                    "PVG creates onchain experiments, with demand beyond the holder community.",
+                },
+                {
+                  n: "03",
+                  title: "protocol.engine3.title",
+                  fallbackTitle: "REAL-WORLD TEQUILA",
+                  body: "protocol.engine3.body",
+                  fallbackBody:
+                    "A physical product that carries the Mingles brand into the world.",
+                },
+              ].map((e) => (
+                <article className="mission-card" key={e.n}>
+                  <span className="eyebrow">ENGINE {e.n}</span>
+                  <h2>{c.copy[e.title] || e.fallbackTitle}</h2>
+                  <p>{c.copy[e.body] || e.fallbackBody}</p>
                 </article>
               ))}
             </div>
@@ -274,30 +286,29 @@ export function SectionPage({ section }: { section: string }) {
               {c.projects.find((p) => p.id === "protocol")?.status ||
                 "In development"}
             </Status>
-            <h2>THE FUTURE BRIDGE.</h2>
+            <h2>{c.copy["protocol.bridge.title"] || "THE FUTURE BRIDGE."}</h2>
             <p className="measure">
-              Activation is being designed to connect eligible ownership to
-              published allocations from selected systems. It will be opt-in. No
-              economics are live.
+              {c.copy["protocol.bridge.body"] ||
+                "Activation is being designed to connect eligible ownership to published allocations from selected systems. It will be opt-in. No economics are live."}
             </p>
             <div className="flow">
               {[
-                "Outside demand",
-                "Tequila / PVG",
-                "Published allocation",
-                "Activated Mingles",
-                "Distribution record",
-              ].map((v, i) => (
-                <div key={v}>
+                ["protocol.flow.1", "Outside demand"],
+                ["protocol.flow.2", "Tequila / PVG"],
+                ["protocol.flow.3", "Published allocation"],
+                ["protocol.flow.4", "Activated Mingles"],
+                ["protocol.flow.5", "Distribution record"],
+              ].map(([key, fallback], i) => (
+                <div key={key}>
                   <span>0{i + 1}</span>
-                  <strong>{v}</strong>
+                  <strong>{c.copy[key] || fallback}</strong>
                   {i < 4 && <ArrowRight size={18} />}
                 </div>
               ))}
             </div>
             <p className="muted">
-              Future architecture only. Allocations, periods, fees, contracts,
-              and eligibility remain subject to published rules and approval.
+              {c.copy["protocol.bridge.note"] ||
+                "Future architecture only. Allocations, periods, fees, contracts, and eligibility remain subject to published rules and approval."}
             </p>
             <Button href="/portal">Explore the holder portal</Button>
           </section>
@@ -307,12 +318,18 @@ export function SectionPage({ section }: { section: string }) {
         <EndCta section={s} />
       ) : (
         <section className="section end-cta">
-          <span className="eyebrow">THE NEXT CHAPTER IS BEING BUILT.</span>
+          <span className="eyebrow">
+            {c.copy["cta.band.eyebrow"] || "THE NEXT CHAPTER IS BEING BUILT."}
+          </span>
           <Button
-            href={s === "updates" ? "/build-the-distillery" : "/updates"}
+            href={safeLinkHref(
+              c.copy["cta.band.href"] || "",
+              s === "updates" ? "/build-the-distillery" : "/updates",
+            )}
             dark
           >
-            {s === "updates" ? "Build the Distillery" : "Follow the build"}
+            {c.copy["cta.band.label"] ||
+              (s === "updates" ? "Build the Distillery" : "Follow the build")}
           </Button>
         </section>
       )}

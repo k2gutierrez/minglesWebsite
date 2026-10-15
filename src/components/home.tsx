@@ -96,12 +96,15 @@ export function Experiments() {
                 />
               ) : (
                 <>
-                  <span className="experiment-index">PVG — 0{i + 1}</span>
+                  <span className="experiment-index">
+                    {content.copy["modules.pvg.label"] || "PVG"} — 0{i + 1}
+                  </span>
                   <span className="experiment-symbol" aria-hidden="true">
                     {i === 0 ? "✳" : "↯"}
                   </span>
                   <span className="experiment-caption">
-                    IDENTITY STUDY / GAME MEDIA PENDING
+                    {content.copy["modules.pvg.caption"] ||
+                      "IDENTITY STUDY / GAME MEDIA PENDING"}
                   </span>
                 </>
               )}
@@ -117,7 +120,7 @@ export function Experiments() {
                   p.href === "/experiments" ? `/experiments#${p.id}` : p.href
                 }
               >
-                View experiment
+                {content.copy["modules.pvg.cta"] || "View experiment"}
               </ArrowLink>
             </div>
           </TiltSurface>
@@ -344,13 +347,15 @@ export function Home() {
                   <Reveal>
                     <div className="section-heading">
                       <div>
-                        <span className="eyebrow">03 / THE EXPERIMENT LAB</span>
+                        <span className="eyebrow">
+                          {copy("home.lab.kicker", "03 / THE EXPERIMENT LAB")}
+                        </span>
                         <h2>{copy("experiments.title")}</h2>
                       </div>
                       <div>
                         <p>{copy("experiments.body")}</p>
                         <ArrowLink href="/experiments">
-                          Inside the lab
+                          {copy("home.lab.cta", "Inside the lab")}
                         </ArrowLink>
                       </div>
                     </div>
@@ -384,11 +389,11 @@ export function Home() {
                         <h2>{copy("protocol.title")}</h2>
                         <p>{copy("protocol.body")}</p>
                         <ArrowLink href="/build-the-distillery">
-                          See how it connects
+                          {copy("home.protocol.cta", "See how it connects")}
                         </ArrowLink>
                       </div>
                       <span className="vertical-type">
-                        MINGLES PROTOCOL / NOT LIVE
+                        {copy("home.protocol.vertical", "MINGLES PROTOCOL / NOT LIVE")}
                       </span>
                     </div>
                   </Reveal>
