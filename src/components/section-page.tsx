@@ -5,70 +5,22 @@ import {
   ArrowUpRight,
   ArrowRight,
   Fingerprint,
-  Sprout,
   FlaskConical,
   Search,
 } from "lucide-react";
 import { useSite } from "./provider";
 import { Button, Status, EmptyMedia, ArrowLink, Reveal } from "./ui";
 import { Experiments } from "./home";
-import { safeHref, entrySlug } from "@/lib/content";
-const eras = ["Legacy PFP", "ApeChain", "Lombard era"];
-export function ArtLineage() {
-  const [era, setEra] = useState(0);
-  return (
-    <div className="lineage">
-      <div className="tabs" role="tablist" aria-label="Art era">
-        {eras.map((e, i) => (
-          <button
-            role="tab"
-            id={`era-${i}`}
-            aria-selected={era === i}
-            aria-controls="era-panel"
-            tabIndex={era === i ? 0 : -1}
-            onKeyDown={(event) => {
-              if (["ArrowRight", "ArrowLeft"].includes(event.key)) {
-                event.preventDefault();
-                const next = (i + (event.key === "ArrowRight" ? 1 : 2)) % 3;
-                setEra(next);
-                document.getElementById(`era-${next}`)?.focus();
-              }
-            }}
-            onClick={() => setEra(i)}
-            key={e}
-          >
-            {e}
-          </button>
-        ))}
-      </div>
-      <div
-        id="era-panel"
-        role="tabpanel"
-        aria-labelledby={`era-${era}`}
-        className="era-panel"
-        key={era}
-      >
-        <EmptyMedia kind={eras[era]} />
-        <div>
-          <span className="eyebrow">0{era + 1} / THE COLLECTION EVOLVES</span>
-          <h3>{eras[era]}</h3>
-          <p>
-            {
-              [
-                "The original collectible identity. The beginning of the Mingles story, preserved as part of its provenance.",
-                "The current official ApeChain chapter. Verified token art will appear with ownership and provenance data.",
-                "Incoming authored character art by Mike Lombard. Same recognizable DNA, a new creative chapter.",
-              ][era]
-            }
-          </p>
-          <Status>
-            {era === 2 ? "Reveal pending" : "Official assets pending"}
-          </Status>
-        </div>
-      </div>
-    </div>
-  );
-}
+import {
+  ArtLineage,
+  ArtistSections,
+  EndCta,
+  IntroExtras,
+  TequilaSections,
+} from "./section-showcase";
+import { entrySlug, safeLinkHref } from "@/lib/content";
+// Se reexporta para no romper el import que ya usa el portal.
+export { ArtLineage };
 export function SectionPage({ section }: { section: string }) {
   const { content: c } = useSite();
   const [filter, setFilter] = useState("All");
@@ -87,148 +39,55 @@ export function SectionPage({ section }: { section: string }) {
       (filter === "All" || e.category === filter) &&
       `${e.title} ${e.summary}`.toLowerCase().includes(query.toLowerCase()),
   );
+  const entryEyebrow = (label: string) => (
+    <span className="eyebrow">MINGLES / {label}</span>
+  );
   return (
     <main id="main">
-      <section className="page-intro">
-        <span className="eyebrow">
-          MINGLES / {s === "mission" ? "OUR NORTH STAR" : s.toUpperCase()}
-        </span>
-        <h1>{c.copy[`${s}.title`]}</h1>
-        <div className="intro-bottom">
-          <p>{c.copy[`${s}.body`]}</p>
-          <span className="intro-symbol" aria-hidden="true">
-            ✳
-          </span>
-        </div>
-      </section>
-      {s === "tequila" && (
-        <>
-          <section className="section">
-            <div className="feature-grid">
-              <div className="tequila-art">
-                <Sprout strokeWidth={0.65} />
-                <div className="tequila-art-copy">
-                  <span className="eyebrow">REAL-WORLD SPIRIT</span>
-                  <strong>
-                    ROOTED
-                    <br />
-                    IN AGAVE.
-                  </strong>
-                  <span>PRODUCT PHOTOGRAPHY TO FOLLOW</span>
-                </div>
-              </div>
-              <div className="feature-copy">
-                <Status>
-                  {c.projects.find((p) => p.id === "bottle")?.status ||
-                    "Building"}
-                </Status>
-                <h2>
-                  THE SPIRIT.
-                  <br />
-                  THE SURPRISE.
-                </h2>
-                <p>
-                  A bottle that belongs in the real world. A collectible cap
-                  that belongs in the Mingles universe.
-                </p>
-                <div className="detail-list">
-                  <div>
-                    <span>01</span>
-                    <div>
-                      <h3>The bottle</h3>
-                      <p>
-                        Product details will be published with verified
-                        production information.
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <span>02</span>
-                    <div>
-                      <h3>Reveal your Mingle</h3>
-                      <p>
-                        The collectible cap is the signature moment. The full
-                        reveal comes with the real product.
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <span>03</span>
-                    <div>
-                      <h3>The whole experience</h3>
-                      <p>
-                        Packaging, unboxing, and the details that make it
-                        Mingles.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <Button href="/updates">Follow the build</Button>
-              </div>
-            </div>
-          </section>
-          <section className="section lined">
-            <span className="eyebrow">PRODUCT FIRST</span>
-            <h2>PROOF AT EVERY STEP.</h2>
-            <div className="three-grid">
-              {[
-                "Bottle & cap",
-                "Packaging & unboxing",
-                "Production & testing",
-              ].map((t) => (
-                <EmptyMedia key={t} kind={t} />
-              ))}
-            </div>
-            <p className="muted">
-              Launch information, availability, and retail channels will be
-              published when confirmed.
-            </p>
-          </section>
-        </>
+      {s === "tequila" || s === "art" ? (
+        <IntroExtras
+          section={s}
+          eyebrow={entryEyebrow(s.toUpperCase())}
+          title={<h1>{c.copy[`${s}.title`]}</h1>}
+          body={c.copy[`${s}.body`]}
+          rune="✳"
+          ctaHref={
+            s === "tequila"
+              ? c.copy["tequila.intro.cta.href"]
+              : c.copy["art.intro.cta.href"]
+          }
+          ctaLabel={
+            s === "tequila"
+              ? c.copy["tequila.intro.cta"]
+              : c.copy["art.intro.cta"]
+          }
+        />
+      ) : (
+        <section className="page-intro">
+          {entryEyebrow(s === "mission" ? "OUR NORTH STAR" : s.toUpperCase())}
+          <h1>{c.copy[`${s}.title`]}</h1>
+          <div className="intro-bottom">
+            <p>{c.copy[`${s}.body`]}</p>
+            <span className="intro-symbol" aria-hidden="true">
+              ✳
+            </span>
+          </div>
+        </section>
       )}
+      {s === "tequila" && <TequilaSections />}
       {s === "art" && (
         <>
           <section className="section">
             <div className="section-heading">
               <div>
-                <span className="eyebrow">THREE CHAPTERS. ONE IDENTITY.</span>
-                <h2>
-                  AN EVOLUTION.
-                  <br />
-                  STILL A MINGLE.
-                </h2>
+                <span className="eyebrow">{c.copy["art.lineage.eyebrow"]}</span>
+                <h2>{c.copy["art.lineage.title"]}</h2>
               </div>
-              <p>
-                Explore the lineage. Each era is part of the story; official art
-                is shown only when approved.
-              </p>
+              <p>{c.copy["art.lineage.body"]}</p>
             </div>
             <ArtLineage />
           </section>
-          <section className="section coral-section">
-            <div className="feature-grid">
-              <div>
-                <span className="eyebrow">THE ARTIST / MIKE LOMBARD</span>
-                <h2>
-                  MORE CHARACTER.
-                  <br />
-                  MORE MINGLES.
-                </h2>
-              </div>
-              <div>
-                <p>
-                  The new art direction builds a stronger foundation for
-                  character IP: weird, irreverent creatures of the agave that
-                  can live in collectibles, product, and play.
-                </p>
-                <p>
-                  Collection and migration details will follow once the official
-                  rules are finalized.
-                </p>
-                <ArrowLink href="/updates">Follow the reveals</ArrowLink>
-              </div>
-            </div>
-          </section>
+          <ArtistSections />
         </>
       )}
       {s === "experiments" && (
@@ -344,7 +203,9 @@ export function SectionPage({ section }: { section: string }) {
                     </span>
                     <h2>{e.title}</h2>
                     <span className="entry-card-cta">
-                      {e.eventStatus === "upcoming" ? "Event details" : "Read more"}
+                      {e.eventStatus === "upcoming"
+                        ? "Event details"
+                        : "Read more"}
                       <ArrowUpRight size={16} />
                     </span>
                   </div>
@@ -442,15 +303,19 @@ export function SectionPage({ section }: { section: string }) {
           </section>
         </>
       )}
-      <section className="section end-cta">
-        <span className="eyebrow">THE NEXT CHAPTER IS BEING BUILT.</span>
-        <Button
-          href={s === "updates" ? "/build-the-distillery" : "/updates"}
-          dark
-        >
-          {s === "updates" ? "Build the Distillery" : "Follow the build"}
-        </Button>
-      </section>
+      {s === "tequila" || s === "art" ? (
+        <EndCta section={s} />
+      ) : (
+        <section className="section end-cta">
+          <span className="eyebrow">THE NEXT CHAPTER IS BEING BUILT.</span>
+          <Button
+            href={s === "updates" ? "/build-the-distillery" : "/updates"}
+            dark
+          >
+            {s === "updates" ? "Build the Distillery" : "Follow the build"}
+          </Button>
+        </section>
+      )}
     </main>
   );
 }

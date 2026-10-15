@@ -1,0 +1,364 @@
+/* ---------------------------------------------------------------------------
+   Etapa 1 del PDF del cliente (páginas 1, 2, 3, 4, 9, 10 y 11).
+   Tequila y Art editables por completo: hero shots, galería de la botella,
+   bloques "ROOTED IN AGAVE" y "PROOF AT EVERY STEP.", lineage, contexto de
+   Mike Lombard y behind-the-scenes.
+
+   Todo es aditivo y opcional: las clases nuevas solo existen cuando el admin
+   subió una imagen o cambió un texto. Sin esos campos, el sitio se ve igual que
+   antes. Nada de Tailwind: se reutilizan las variables y clases de `globals.css`
+   (`.section`, `.feature-grid`, `.tequila-art`, `.detail-list`, `.three-grid`,
+   `.empty-media`, `.tabs`, `.era-panel`, `.button`, `.text-link`,
+   `.icon-button`, `.eyebrow`, `.muted`).
+   --------------------------------------------------------------------------- */
+
+/* --- Hero shot del intro de /tequila y /art ------------------------------- */
+/* Sin imagen el intro conserva exactamente su marcado de siempre. Con imagen
+   pasa a dos columnas: el titular manda y la foto ocupa la derecha. */
+.page-intro-has-shot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 340px);
+  gap: 44px;
+  align-items: start;
+}
+.page-intro-has-shot h1 {
+  max-width: none;
+  /* La columna es más estrecha: el titular puede necesitar ceder un poco. */
+  font-size: clamp(48px, 6vw, 104px);
+}
+.page-intro-main {
+  min-width: 0;
+}
+.intro-shot {
+  position: relative;
+  margin-top: 24px;
+}
+.intro-shot-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: #1c1c1d;
+}
+.intro-cta {
+  margin-top: 22px;
+}
+
+/* --- Bloque "ROOTED IN AGAVE" con foto de fondo --------------------------- */
+.agave-plant {
+  position: absolute;
+  width: 95%;
+  height: 95%;
+  right: -15%;
+  top: -9%;
+  color: var(--ivory);
+  opacity: 0.23;
+  transform: rotate(-16deg);
+}
+.agave-art-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.agave-art-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 11, 0.25),
+    rgba(10, 10, 11, 0.8)
+  );
+}
+.agave-photo .tequila-art-copy {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Galería de Tequila: carrusel con el efecto del landing --------------- */
+/* Pista continua (no rejilla): el slide activo viene al frente y los vecinos se
+   hunden y se apagan, como el recuadro del héroe del landing. */
+.gallery-heading {
+  align-items: flex-end;
+}
+.tequila-carousel {
+  position: relative;
+}
+.tequila-carousel-viewport {
+  overflow: hidden;
+  /* Aire arriba y abajo para que el recorte no corte la sombra/rotación. */
+  padding: 34px 0 18px;
+  /* La fila de slides no debe provocar scroll horizontal en móvil. */
+  max-width: 100%;
+}
+.tequila-carousel-track {
+  position: relative;
+  height: clamp(240px, 44vw, 480px);
+  /* Cada slide mide la mitad de la pista; el 50% del transform es medio slide. */
+  --slide: 50%;
+}
+.tequila-slide {
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: var(--slide);
+  height: 100%;
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s ease;
+  will-change: transform, opacity;
+}
+.tequila-slide-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: #1c1c1f;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tequila-slide-frame[aria-current="true"] {
+  border-color: var(--coral);
+}
+.tequila-slide-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tequila-slide-frame[aria-current="true"] img {
+  transform: scale(1.03);
+  transition: transform 0.6s ease;
+}
+.tequila-slide-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px 16px;
+  background: rgba(10, 10, 11, 0.72);
+  color: var(--ivory);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+}
+.tequila-carousel-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+.tequila-dots {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.tequila-dots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: none;
+}
+.tequila-dots button.selected {
+  background: var(--coral);
+  border-color: var(--coral);
+}
+.tequila-carousel-count {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+/* --- "PROOF AT EVERY STEP.": tarjeta cuando el admin escribe una tagline --- */
+.proof-card {
+  min-height: 220px;
+  padding: 35px;
+  border: 1px solid var(--line);
+  background: #1c1c1f;
+  color: var(--ivory);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+}
+.proof-card h3 {
+  font-size: 30px;
+}
+.proof-card p {
+  font-size: 11px;
+  opacity: 0.75;
+  max-width: 32ch;
+}
+
+/* --- Lineage de Art: imagen de la era en lugar del hueco ------------------ */
+.era-image {
+  width: 100%;
+  min-height: 350px;
+  max-height: 520px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: #1c1c1f;
+}
+
+/* --- Mike Lombard: retrato, acciones y behind-the-scenes ------------------ */
+.artist-portrait {
+  margin: 26px 0 0;
+}
+.artist-portrait img {
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+.artist-portrait figcaption {
+  margin-top: 10px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.artist-bio {
+  border-left: 2px solid var(--coral);
+  padding-left: 16px;
+}
+.artist-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.bts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+.bts-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #1c1c1f;
+}
+.bts-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.bts-card:hover img,
+.bts-card:focus-within img {
+  transform: scale(1.04);
+}
+.bts-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 14px;
+  background: rgba(10, 10, 11, 0.72);
+  color: var(--ivory);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* --- Editor del admin: galería y lista de puntos -------------------------- */
+.gallery-admin-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: grid;
+  gap: 12px;
+}
+.gallery-admin-list li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  padding: 12px;
+  min-width: 0;
+}
+.gallery-admin-list img {
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+}
+.gallery-admin-fields {
+  display: grid;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.gallery-admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.era-editor-row {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  margin-top: 18px;
+}
+@media (max-width: 900px) {
+  /* En móvil el carrusel pierde la profundidad 3D y el intro vuelve a una
+     columna: cero scroll horizontal en 390px. */
+  .page-intro-has-shot {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .page-intro-has-shot h1 {
+    font-size: clamp(46px, 13vw, 80px);
+  }
+  .intro-shot {
+    margin-top: 0;
+  }
+  .intro-shot-image {
+    aspect-ratio: 16 / 10;
+  }
+  .tequila-carousel-track {
+    --slide: 84%;
+    height: clamp(220px, 62vw, 360px);
+  }
+  .tequila-slide {
+    left: 8%;
+  }
+  .tequila-slide-frame {
+    box-shadow: none;
+  }
+  .artist-portrait img {
+    max-width: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tequila-slide,
+  .tequila-slide-frame,
+  .tequila-slide-frame[aria-current="true"] img,
+  .bts-card img {
+    transition: none;
+  }
+  .tequila-slide-frame[aria-current="true"] img {
+    transform: none;
+  }
+  .bts-card:hover img,
+  .bts-card:focus-within img {
+    transform: none;
+  }
+  .agave-plant {
+    transform: none;
+  }
+}

@@ -52,6 +52,54 @@ export type Entry = {
 };
 export type Module = { id: string; label: string; enabled: boolean };
 /**
+ * Imagen del CMS con su texto alternativo.
+ * Se guarda como objeto (no como cadena) para que el admin pueda escribir la
+ * descripción de cada imagen; el normalizador también acepta cadenas sueltas.
+ */
+export type Photo = { url?: string; alt?: string };
+/**
+ * Diapositiva de un carrusel: la foto y, si el admin la escribe, una leyenda.
+ * El carrusel exige 4 como mínimo para montarse (petición 2 del PDF).
+ */
+export type Slide = Photo & { caption?: string };
+/** Un punto de la lista "01 / 02 / 03" del bloque ROOTED IN AGAVE. */
+export type AgavePoint = { title?: string; body?: string };
+/**
+ * Contenido del bloque "ROOTED IN AGAVE" / "THE SPIRIT. THE SURPRISE.".
+ * Todo opcional: cada hueco vacío conserva el texto o la imagen actuales.
+ */
+export type AgaveDetails = {
+  status?: string;
+  title?: string;
+  body?: string;
+  points?: AgavePoint[];
+};
+/** Una tarjeta del bloque "PROOF AT EVERY STEP.". */
+export type ProofCard = { title?: string; tagline?: string };
+/**
+ * Una era del lineage de Art. Los fondos e imágenes los sube el admin; si
+ * faltan, la era se ve exactamente como hasta ahora.
+ */
+export type EraDetails = {
+  title?: string;
+  body?: string;
+  status?: string;
+  image?: string;
+  imageAlt?: string;
+};
+/**
+ * Contexto de Mike Lombard (petición 11 del PDF): retrato, biografía y galería
+ * behind-the-scenes. El CTA al portfolio es obligatorio y no depende de estos
+ * campos: siempre apunta a MIKE_LOMBARD_URL mientras el admin no ponga otra.
+ */
+export type ArtistDetails = {
+  name?: string;
+  bio?: string;
+  portrait?: string;
+  portraitAlt?: string;
+  behindScenes?: Slide[];
+};
+/**
  * Recuadros visuales del sitio. Todo opcional: si un campo está vacío, el sitio
  * mantiene el aspecto actual (nunca deja un hueco roto).
  */
@@ -68,7 +116,27 @@ export type Visuals = {
   bottleBackground?: string;
   /** Fondo por tarjeta de proyecto, con el `id` del proyecto como clave. */
   cardBackgrounds?: Record<string, string>;
+  /** Hero shot del intro de /tequila (hoy ese hueco está vacío). */
+  tequilaHeroShot?: string;
+  tequilaHeroAlt?: string;
+  /** Galería de la botella: se monta a partir de 4 imágenes. */
+  tequilaGallery?: Slide[];
+  /** Fondo del bloque "ROOTED IN AGAVE". */
+  agaveBackground?: string;
+  agaveBackgroundAlt?: string;
+  /** Hero shot del intro de /art. */
+  artHeroShot?: string;
+  artHeroAlt?: string;
+  /** Contexto y behind-the-scenes de Mike Lombard. */
+  artist?: ArtistDetails;
+  /** Las tres eras del lineage de Art. */
+  eras?: EraDetails[];
 };
+/**
+ * Portfolio de Mike Lombard. Es el destino obligatorio del CTA de Art: mientras
+ * el admin no escriba otro, el botón apunta aquí.
+ */
+export const MIKE_LOMBARD_URL = "https://www.mike-lombard.com";
 export type SiteContent = {
   hero: {
     eyebrow: string;
@@ -128,11 +196,66 @@ export const initialContent: SiteContent = {
       "We said we would make tequila. We are. A new bottle, a collectible cap, and a real-world expression of the Mingles spirit.",
     "tequila.kicker": "01 / THE REAL-WORLD SPIRIT",
     "tequila.cta": "Follow the bottle",
+    /**
+     * Copy editable del bloque "THE SPIRIT. THE SURPRISE.". Es una clave nueva
+     * con el mismo valor que `tequila.body`, así que si el admin ya editó la
+     * antigua se sigue leyendo hasta que toque este campo.
+     */
+    "tequila.detail.body":
+      "A bottle that belongs in the real world. A collectible cap that belongs in the Mingles universe.",
+    "tequila.detail.cta": "Follow the build",
+    "tequila.detail.cta.href": "/updates",
+    "tequila.gallery.eyebrow": "THE BOTTLE / GALLERY",
+    "tequila.gallery.heading": "LOOK AT THE SPIRIT.",
+    "tequila.gallery.autoplay": "Autoplay",
+    "tequila.proof.eyebrow": "PRODUCT FIRST",
+    "tequila.proof.title": "PROOF AT EVERY STEP.",
+    "tequila.proof.card.1.title": "Bottle & cap",
+    "tequila.proof.card.2.title": "Packaging & unboxing",
+    "tequila.proof.card.3.title": "Production & testing",
+    "tequila.proof.card.1.tagline": "Official media awaiting publication",
+    "tequila.proof.card.2.tagline": "Official media awaiting publication",
+    "tequila.proof.card.3.tagline": "Official media awaiting publication",
+    "tequila.proof.body":
+      "Launch information, availability, and retail channels will be published when confirmed.",
+    "tequila.detail.1.title": "The bottle",
+    "tequila.detail.2.title": "Reveal your Mingle",
+    "tequila.detail.3.title": "The whole experience",
+    "tequila.detail.1.body":
+      "Product details will be published with verified production information.",
+    "tequila.detail.2.body":
+      "The collectible cap is the signature moment. The full reveal comes with the real product.",
+    "tequila.detail.3.body":
+      "Packaging, unboxing, and the details that make it Mingles.",
+    "tequila.end.eyebrow": "THE NEXT CHAPTER IS BEING BUILT.",
+    "tequila.end.cta": "Follow the build",
+    "tequila.end.cta.href": "/updates",
     "art.title": "SAME WEIRD DNA.\nNEW CREATURES.",
     "art.body":
       "A new era by Mike Lombard. More character, more authorship, and a whole new way to meet your Mingle.",
     "art.kicker": "02 / COLLECTIBLE IDENTITY",
     "art.cta": "Explore the new era",
+    "art.intro.cta": "View Mike Lombard's portfolio",
+    "art.intro.cta.href": MIKE_LOMBARD_URL,
+    "art.lineage.eyebrow": "THREE CHAPTERS. ONE IDENTITY.",
+    "art.lineage.title": "AN EVOLUTION.\nSTILL A MINGLE.",
+    "art.lineage.body":
+      "Explore the lineage. Each era is part of the story; official art is shown only when approved.",
+    "art.artist.eyebrow": "THE ARTIST / MIKE LOMBARD",
+    "art.artist.title": "MORE CHARACTER.\nMORE MINGLES.",
+    "art.artist.body":
+      "The new art direction builds a stronger foundation for character IP: weird, irreverent creatures of the agave that can live in collectibles, product, and play.",
+    "art.artist.body2":
+      "Collection and migration details will follow once the official rules are finalized.",
+    "art.artist.cta": "Follow the reveals",
+    "art.artist.cta.href": "/updates",
+    "art.artist.portfolio": "Mike Lombard's portfolio",
+    "art.artist.bts.eyebrow": "BEHIND THE SCENES",
+    "art.artist.bts.body":
+      "Sketches, work in progress, and the studio moments behind the new Mingles.",
+    "art.end.eyebrow": "THE NEXT CHAPTER IS BEING BUILT.",
+    "art.end.cta": "Follow the build",
+    "art.end.cta.href": "/updates",
     "experiments.title": "SERIOUSLY\nEXPERIMENTAL.",
     "experiments.body":
       "PVG is our experiment lab. Onchain systems built to be watched, played, and put to the test.",
@@ -153,6 +276,16 @@ export const initialContent: SiteContent = {
       "A home for your collection, its evolution, and what comes next.",
     "footer.note": "Collectible identity. Real-world spirit.",
     "footer.responsibility": "Made for adults. Enjoy responsibly.",
+  },
+  /**
+   * Solo el documento local (si el CMS no responde) trae `visuals`. Se limita a
+   * los textos alternativos por defecto: ninguna imagen inventada.
+   */
+  visuals: {
+    tequilaHeroAlt: "Mingles bottle",
+    artHeroAlt: "Official Mingles art",
+    agaveBackgroundAlt: "Agave field",
+    artist: { portraitAlt: "Mike Lombard" },
   },
   projects: [
     {
@@ -253,6 +386,16 @@ export function safeHref(value: string, fallback = "/updates") {
   return fallback;
 }
 /**
+ * Destino de un botón elegido en el admin (petición 3 del PDF): ruta interna
+ * (`/...`), ancla (`#...`) o `https://`. Cualquier otro esquema —`javascript:`,
+ * `data:`, `mailto:`— se cambia por `fallback` en lugar de publicarse.
+ */
+export function safeLinkHref(value: string, fallback = "") {
+  if (typeof value !== "string") return fallback;
+  const clean = safeHref(value.trim(), "");
+  return clean === "" ? fallback : clean;
+}
+/**
  * true solo para URLs https absolutas y limpias; los enlaces de vídeo lo exigen.
  * Acepta `undefined` para poder usarse directamente sobre campos opcionales.
  */
@@ -273,6 +416,34 @@ function optionalText(value: unknown) {
 function stringList(value: unknown) {
   return Array.isArray(value)
     ? value.filter((v): v is string => typeof v === "string" && !!v.trim())
+    : [];
+}
+/**
+ * Una imagen del CMS solo se acepta si es un `https://` limpio. Cualquier otra
+ * cosa —`javascript:`, `data:`, `http://` o una ruta interna— se descarta y el
+ * hueco se queda como estaba.
+ */
+function normalizePhotoUrl(value: unknown) {
+  return typeof value === "string" && isHttpsUrl(value) ? value : undefined;
+}
+/** Acepta `{url,alt,caption}` o la cadena suelta de una galería antigua. */
+function normalizeSlide(value: unknown): Slide | undefined {
+  if (typeof value === "string") {
+    const url = normalizePhotoUrl(value);
+    return url ? { url } : undefined;
+  }
+  if (!isRecord(value)) return undefined;
+  const url = normalizePhotoUrl(value.url);
+  if (!url) return undefined;
+  return {
+    url,
+    alt: optionalText(value.alt),
+    caption: optionalText(value.caption),
+  };
+}
+function normalizeSlides(value: unknown): Slide[] {
+  return Array.isArray(value)
+    ? value.map(normalizeSlide).filter((s): s is Slide => !!s)
     : [];
 }
 /** Convierte un título en un segmento de URL seguro (sin acentos ni símbolos). */
@@ -317,6 +488,18 @@ function normalizeVisuals(value: unknown): Visuals {
   if (isRecord(record.cardBackgrounds))
     for (const [id, url] of Object.entries(record.cardBackgrounds))
       if (typeof url === "string" && url.trim()) cardBackgrounds[id] = url;
+  const eras: EraDetails[] = Array.from({ length: 3 }, (_, i) => {
+    const raw = Array.isArray(record.eras) ? record.eras[i] : undefined;
+    const era = isRecord(raw) ? raw : {};
+    return {
+      title: optionalText(era.title),
+      body: optionalText(era.body),
+      status: optionalText(era.status),
+      image: normalizePhotoUrl(era.image),
+      imageAlt: optionalText(era.imageAlt),
+    };
+  });
+  const artistRaw = isRecord(record.artist) ? record.artist : {};
   return {
     heroArt: optionalText(record.heroArt),
     heroShot: optionalText(record.heroShot),
@@ -324,6 +507,21 @@ function normalizeVisuals(value: unknown): Visuals {
     bigSilhouette: optionalText(record.bigSilhouette),
     bottleBackground: optionalText(record.bottleBackground),
     cardBackgrounds,
+    tequilaHeroShot: normalizePhotoUrl(record.tequilaHeroShot),
+    tequilaHeroAlt: optionalText(record.tequilaHeroAlt),
+    tequilaGallery: normalizeSlides(record.tequilaGallery),
+    agaveBackground: normalizePhotoUrl(record.agaveBackground),
+    agaveBackgroundAlt: optionalText(record.agaveBackgroundAlt),
+    artHeroShot: normalizePhotoUrl(record.artHeroShot),
+    artHeroAlt: optionalText(record.artHeroAlt),
+    artist: {
+      name: optionalText(artistRaw.name),
+      bio: optionalText(artistRaw.bio),
+      portrait: normalizePhotoUrl(artistRaw.portrait),
+      portraitAlt: optionalText(artistRaw.portraitAlt),
+      behindScenes: normalizeSlides(artistRaw.behindScenes),
+    },
+    eras,
   };
 }
 /**
@@ -343,6 +541,90 @@ export function withContentDefaults(raw: SiteContent): SiteContent {
     stories: (raw.stories ?? []).map(normalizeEntry),
   };
 }
+/**
+ * Valores por defecto de los campos nuevos de la Etapa 1. Se usan en el admin
+ * para que cada campo muestre el texto que el sitio enseña hoy y en la página
+ * como respaldo cuando el CMS no trae nada (el documento publicado no los
+ * tiene). Nunca añaden contenido nuevo: solo reproducen lo que ya se ve.
+ */
+export const tequilaDetailDefaults: {
+  title: string;
+  body: string;
+  points: { title: string; body: string }[];
+} = {
+  title: "THE SPIRIT.\nTHE SURPRISE.",
+  body: "A bottle that belongs in the real world. A collectible cap that belongs in the Mingles universe.",
+  points: [
+    {
+      title: "The bottle",
+      body: "Product details will be published with verified production information.",
+    },
+    {
+      title: "Reveal your Mingle",
+      body: "The collectible cap is the signature moment. The full reveal comes with the real product.",
+    },
+    {
+      title: "The whole experience",
+      body: "Packaging, unboxing, and the details that make it Mingles.",
+    },
+  ],
+};
+export const proofDefaults: {
+  eyebrow: string;
+  title: string;
+  cards: { title: string; tagline: string }[];
+  body: string;
+  ctaLabel: string;
+} = {
+  eyebrow: "PRODUCT FIRST",
+  title: "PROOF AT EVERY STEP.",
+  cards: [
+    { title: "Bottle & cap", tagline: "Official media awaiting publication" },
+    {
+      title: "Packaging & unboxing",
+      tagline: "Official media awaiting publication",
+    },
+    {
+      title: "Production & testing",
+      tagline: "Official media awaiting publication",
+    },
+  ],
+  body: "Launch information, availability, and retail channels will be published when confirmed.",
+  ctaLabel: "Follow the build",
+};
+export const endCtaDefaults = {
+  eyebrow: "THE NEXT CHAPTER IS BEING BUILT.",
+  label: "Follow the build",
+  href: "/updates",
+};
+export const agaveDefaults: {
+  status: string;
+  title: string;
+  body: string;
+  points: { title: string; body: string }[];
+} = {
+  status: "Building",
+  title: "THE SPIRIT.\nTHE SURPRISE.",
+  body: tequilaDetailDefaults.body,
+  points: tequilaDetailDefaults.points,
+};
+export const eraDefaults: { title: string; body: string; status: string }[] = [
+  {
+    title: "Legacy PFP",
+    body: "The original collectible identity. The beginning of the Mingles story, preserved as part of its provenance.",
+    status: "Official assets pending",
+  },
+  {
+    title: "ApeChain",
+    body: "The current official ApeChain chapter. Verified token art will appear with ownership and provenance data.",
+    status: "Official assets pending",
+  },
+  {
+    title: "Lombard era",
+    body: "Incoming authored character art by Mike Lombard. Same recognizable DNA, a new creative chapter.",
+    status: "Reveal pending",
+  },
+];
 /**
  * Slug estable de una entrada para su página de detalle. La Capa 2 lo usa como
  * respaldo cuando el admin no escribió uno: `entrySlug(entry)`.

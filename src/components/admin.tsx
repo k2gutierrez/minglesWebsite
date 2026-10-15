@@ -15,11 +15,16 @@ import {
   initialContent,
   isHttpsUrl,
   isSiteContent,
+  MIKE_LOMBARD_URL,
   normalizeSymbol,
+  safeLinkHref,
   statuses,
   withContentDefaults,
+  type Photo,
   type SiteContent,
+  type Slide,
   type Entry,
+  type EraDetails,
   type Visuals,
   type Status as BuildStatus,
 } from "@/lib/content";
@@ -87,10 +92,22 @@ const tabHelp: Record<string, string> = {
     "Story entries. Same editor as Updates: cover image, gallery, event fields and a video link.",
   Media: `Upload approved images here, then pick them anywhere in the studio. PNG, JPEG or WebP, up to ${MAX_UPLOAD_MB} MB.`,
   Visuals:
-    "Imported artwork and brand images, plus the symbol and background of each project card. Empty means the site keeps its current look.",
-  "Mingle lab": "Layer viewer from the old generator. Read-only: it never writes to the art bucket.",
-  Revisions: "Restore an earlier publication into the draft, review it, then publish.",
+    "Tequila, Art, hero shots, galleries, the lineage, Mike Lombard's context and the destination of every button. An empty field or image keeps the site exactly as it looks today.",
+  "Mingle lab":
+    "Layer viewer from the old generator. Read-only: it never writes to the art bucket.",
+  Revisions:
+    "Restore an earlier publication into the draft, review it, then publish.",
 };
+/** Destinos que se ofrecen en el selector de CTA; se puede escribir otro. */
+const linkSuggestions = [
+  { label: "Updates", href: "/updates" },
+  { label: "Story", href: "/story" },
+  { label: "Tequila", href: "/tequila" },
+  { label: "Art", href: "/art" },
+  { label: "Experiments", href: "/experiments" },
+  { label: "Build the distillery", href: "/build-the-distillery" },
+  { label: "Holder portal", href: "/portal" },
+];
 const entryFields = [
   { key: "title", label: "Title" },
   { key: "slug", label: "URL slug (optional)" },
@@ -276,6 +293,203 @@ function LinkField({
     </>
   );
 }
+/**
+ * Galería de imágenes del sitio (Tequila y behind-the-scenes de Art).
+ * Sube varias a la vez al mismo bucket de siempre, deja elegir del catálogo,
+ * ordenar, describir cada imagen y borrar. El orden es el del carrusel.
+ */
+function GalleryField({
+  label,
+  help,
+  min,
+  withCaption = false,
+  value,
+  media,
+  busy,
+  onChange,
+  onUpload,
+}: {
+  label: string;
+  help?: string;
+  /** Aviso cuando faltan imágenes para que la galería se monte (mínimo 4). */
+  min?: number;
+  withCaption?: boolean;
+  value: Slide[];
+  media: MediaItem[];
+  busy: boolean;
+  onChange: (next: Slide[]) => void;
+  onUpload: Uploader;
+}) {
+  const patch = (index: number, fields: Partial<Slide>) =>
+    onChange(value.map((s, i) => (i === index ? { ...s, ...fields } : s)));
+  const move = (index: number, delta: number) => {
+    const next = [...value];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+  };
+  const addFiles = (files: File[]) => {
+    if (!files.length) return;
+    void (async () => {
+      const urls: string[] = [];
+      for (const file of files) {
+        const url = await onUpload(file);
+        if (url) urls.push(url);
+      }
+      if (urls.length) onChange([...value, ...urls.map((url) => ({ url }))]);
+    })();
+  };
+  return (
+    <div className="media-field">
+      <label className="field">
+        <span>Add images to {label.toLowerCase()} (several at once)</span>
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          multiple
+          disabled={busy}
+          onChange={(e) => {
+            const input = e.currentTarget;
+            // Copiar los ficheros antes de vaciar el input: asignar value=""
+            // vacía el FileList capturado.
+            const files = Array.from(input.files ?? []);
+            input.value = "";
+            addFiles(files);
+          }}
+        />
+      </label>
+      <label className="field">
+        <span>Add from the media library</span>
+        <select
+          value=""
+          disabled={!media.length}
+          onChange={(e) => {
+            if (e.target.value) onChange([...value, { url: e.target.value }]);
+          }}
+        >
+          <option value="">Choose an uploaded image…</option>
+          {media.map((m, i) => (
+            <option key={i} value={m.url}>
+              {m.alt || m.url}
+            </option>
+          ))}
+        </select>
+      </label>
+      {value.length ? (
+        <ul className="gallery-admin-list">
+          {value.map((slide, i) => (
+            <li key={`${slide.url}-${i}`}>
+              <img
+                src={slide.url}
+                alt={`${label} image ${i + 1}`}
+                loading="lazy"
+              />
+              <div className="gallery-admin-fields">
+                <Field
+                  label={`Image description / alt text (${i + 1})`}
+                  value={slide.alt ?? ""}
+                  onChange={(v) => patch(i, { alt: v || undefined })}
+                />
+                {withCaption && (
+                  <Field
+                    label={`Caption (${i + 1})`}
+                    value={slide.caption ?? ""}
+                    onChange={(v) => patch(i, { caption: v || undefined })}
+                  />
+                )}
+              </div>
+              <div className="gallery-admin-actions">
+                <button
+                  className="icon-button"
+                  aria-label={`Move ${label} image ${i + 1} up`}
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                >
+                  <ArrowUp size={16} />
+                </button>
+                <button
+                  className="icon-button"
+                  aria-label={`Move ${label} image ${i + 1} down`}
+                  disabled={i === value.length - 1}
+                  onClick={() => move(i, 1)}
+                >
+                  <ArrowDown size={16} />
+                </button>
+                <button
+                  className="icon-button delete-button"
+                  aria-label={`Remove ${label} image ${i + 1}`}
+                  onClick={() => onChange(value.filter((_, j) => j !== i))}
+                >
+                  Remove
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="editor-help">No images yet.</p>
+      )}
+      {min !== undefined && value.length > 0 && value.length < min && (
+        <p className="link-warning" role="alert">
+          Add at least {min} images: with fewer, the gallery stays hidden and
+          the page looks exactly as it does today.
+        </p>
+      )}
+      {help && <p className="editor-help">{help}</p>}
+    </div>
+  );
+}
+/**
+ * Destino de un botón (petición 3 del PDF): elige una página del sitio o
+ * escribe una URL `https://`. Se avisa en el momento si el esquema no vale, y
+ * el sitio, además, cae al destino por defecto en vez de publicarlo.
+ */
+function LinkPickerField({
+  label,
+  value,
+  suggestions,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  suggestions: { label: string; href: string }[];
+  onChange: (v: string) => void;
+}) {
+  const valid = !value || safeLinkHref(value, "") !== "";
+  return (
+    <div className="media-field">
+      <label className="field">
+        <span>{label}</span>
+        <select
+          value={
+            valid && suggestions.some((s) => s.href === value) ? value : ""
+          }
+          onChange={(e) => {
+            if (e.target.value) onChange(e.target.value);
+          }}
+        >
+          <option value="">Choose a page of the site…</option>
+          {suggestions.map((s) => (
+            <option key={s.href} value={s.href}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="field">
+        <span>Or type a link (internal route or https://)</span>
+        <input value={value} onChange={(e) => onChange(e.target.value)} />
+      </label>
+      {!valid && (
+        <p className="link-warning" role="alert">
+          Only internal routes (<code>/updates</code>) or <code>https://…</code>{" "}
+          links are allowed. Anything else keeps the default destination.
+        </p>
+      )}
+    </div>
+  );
+}
 export function Admin() {
   const { content, mode, publish } = useSite();
   const [draft, setDraft] = useState<SiteContent>(() =>
@@ -373,6 +587,111 @@ export function Admin() {
     setDraft((d) => ({ ...d, copy: { ...d.copy, [key]: value } }));
   const patchVisuals = (patch: Partial<Visuals>) =>
     setDraft((d) => ({ ...d, visuals: { ...d.visuals, ...patch } }));
+  /** Imagen + su texto alternativo en un solo paso (evita dos renders). */
+  const patchPhoto = (
+    key: "tequilaHero" | "agaveBackground" | "artHero" | "artistPortrait",
+    patch: Partial<Photo>,
+  ) =>
+    setDraft((d) => {
+      const visuals = d.visuals ?? {};
+      const artist = visuals.artist ?? {};
+      switch (key) {
+        case "tequilaHero":
+          return {
+            ...d,
+            visuals: {
+              ...visuals,
+              ...(patch.url !== undefined
+                ? { tequilaHeroShot: patch.url || undefined }
+                : {}),
+              ...(patch.alt !== undefined
+                ? { tequilaHeroAlt: patch.alt || undefined }
+                : {}),
+            },
+          };
+        case "agaveBackground":
+          return {
+            ...d,
+            visuals: {
+              ...visuals,
+              ...(patch.url !== undefined
+                ? { agaveBackground: patch.url || undefined }
+                : {}),
+              ...(patch.alt !== undefined
+                ? { agaveBackgroundAlt: patch.alt || undefined }
+                : {}),
+            },
+          };
+        case "artHero":
+          return {
+            ...d,
+            visuals: {
+              ...visuals,
+              ...(patch.url !== undefined
+                ? { artHeroShot: patch.url || undefined }
+                : {}),
+              ...(patch.alt !== undefined
+                ? { artHeroAlt: patch.alt || undefined }
+                : {}),
+            },
+          };
+        default:
+          return {
+            ...d,
+            visuals: {
+              ...visuals,
+              artist: {
+                ...artist,
+                ...(patch.url !== undefined
+                  ? { portrait: patch.url || undefined }
+                  : {}),
+                ...(patch.alt !== undefined
+                  ? { portraitAlt: patch.alt || undefined }
+                  : {}),
+              },
+            },
+          };
+      }
+    });
+  /** Galerías nuevas: carrusel de Tequila y behind-the-scenes de Art. */
+  const patchSlides = (
+    key: "tequilaGallery" | "behindScenes",
+    slides: Slide[],
+  ) =>
+    setDraft((d) => {
+      const visuals = d.visuals ?? {};
+      if (key === "tequilaGallery")
+        return {
+          ...d,
+          visuals: { ...visuals, tequilaGallery: slides },
+        };
+      return {
+        ...d,
+        visuals: {
+          ...visuals,
+          artist: { ...(visuals.artist ?? {}), behindScenes: slides },
+        },
+      };
+    });
+  /** Contexto de Mike Lombard: nombre, biografía y retrato. */
+  const patchArtist = (patch: Partial<NonNullable<Visuals["artist"]>>) =>
+    setDraft((d) => ({
+      ...d,
+      visuals: {
+        ...d.visuals,
+        artist: { ...(d.visuals?.artist ?? {}), ...patch },
+      },
+    }));
+  /** Una de las tres eras del lineage de Art. */
+  const patchEra = (index: number, patch: Partial<EraDetails>) =>
+    setDraft((d) => {
+      const eras = Array.from(
+        { length: 3 },
+        (_, i) => d.visuals?.eras?.[i] ?? {},
+      );
+      eras[index] = { ...eras[index], ...patch };
+      return { ...d, visuals: { ...d.visuals, eras } };
+    });
   const setCardBackground = (id: string, url: string) =>
     setDraft((d) => {
       const cardBackgrounds = { ...(d.visuals?.cardBackgrounds ?? {}) };
@@ -407,8 +726,7 @@ export function Admin() {
     // esquemas ejecutables.
     const badLink = [...draft.updates, ...draft.stories].find(
       (e) =>
-        (e.proof && !isHttpsUrl(e.proof)) ||
-        (e.video && !isHttpsUrl(e.video)),
+        (e.proof && !isHttpsUrl(e.proof)) || (e.video && !isHttpsUrl(e.video)),
     );
     if (badLink) {
       setMessage(
@@ -584,7 +902,8 @@ export function Admin() {
         <h1>CONTENT STUDIO</h1>
         <p>Checking access…</p>
       </main>
-    );  if (!authorized)
+    );
+  if (!authorized)
     return (
       <main id="main" className="admin">
         <span className="eyebrow">MINGLES / ADMIN ACCESS</span>
@@ -1054,7 +1373,9 @@ export function Admin() {
                               key={field.key}
                               label={field.label}
                               value={entry[field.key] ?? ""}
-                              multiline={"multiline" in field && field.multiline}
+                              multiline={
+                                "multiline" in field && field.multiline
+                              }
                               onChange={(v) =>
                                 patchEntry(kind, entry.id, {
                                   [field.key]: v,
@@ -1171,7 +1492,9 @@ export function Admin() {
                                   setGallery([...gallery, e.target.value]);
                               }}
                             >
-                              <option value="">Choose an uploaded image…</option>
+                              <option value="">
+                                Choose an uploaded image…
+                              </option>
                               {media.map((m, mi) => (
                                 <option key={mi} value={m.url}>
                                   {m.alt || m.url}
@@ -1222,9 +1545,7 @@ export function Admin() {
                                       className="icon-button delete-button"
                                       onClick={() =>
                                         setGallery(
-                                          gallery.filter(
-                                            (_, j) => j !== gi,
-                                          ),
+                                          gallery.filter((_, j) => j !== gi),
                                         )
                                       }
                                     >
@@ -1338,6 +1659,221 @@ export function Admin() {
             </div>
           </div>
           <div className="editor-card">
+            <h3>Tequila</h3>
+            <p className="editor-help">
+              Page 1 and 2 of the brief. The hero shot fills the empty right
+              side of the /tequila intro; the gallery needs at least 4 images
+              and only then replaces the current look with the carousel.
+            </p>
+            <div className="editor-grid">
+              <MediaField
+                label="Tequila hero shot (intro, right side)"
+                value={visuals.tequilaHeroShot ?? ""}
+                media={media}
+                busy={busy}
+                help="Empty keeps the intro exactly as it looks today."
+                onChange={(url) => patchPhoto("tequilaHero", { url })}
+                onUpload={upload}
+              />
+              <Field
+                label="Hero shot description (alt text)"
+                value={visuals.tequilaHeroAlt ?? ""}
+                onChange={(v) => patchPhoto("tequilaHero", { alt: v })}
+              />
+            </div>
+            <GalleryField
+              label="Tequila gallery"
+              min={4}
+              withCaption
+              help="At least 4 images. The order here is the order of the carousel."
+              value={visuals.tequilaGallery ?? []}
+              media={media}
+              busy={busy}
+              onChange={(slides) => patchSlides("tequilaGallery", slides)}
+              onUpload={upload}
+            />
+          </div>
+          <div className="editor-card">
+            <h3>Rooted in agave — background image</h3>
+            <p className="editor-help">
+              Page 3 of the brief. The image behind the “ROOTED IN AGAVE.”
+              block. Its texts live in the Copy tab, under Tequila.
+            </p>
+            <div className="editor-grid">
+              <MediaField
+                label="Background of “ROOTED IN AGAVE.”"
+                value={visuals.agaveBackground ?? ""}
+                media={media}
+                busy={busy}
+                help="Empty keeps the drawn agave plant and the current label."
+                onChange={(url) => patchPhoto("agaveBackground", { url })}
+                onUpload={upload}
+              />
+              <Field
+                label="Background description (alt text)"
+                value={visuals.agaveBackgroundAlt ?? ""}
+                onChange={(v) => patchPhoto("agaveBackground", { alt: v })}
+              />
+            </div>
+          </div>
+          <div className="editor-card">
+            <h3>Art — hero shot and lineage</h3>
+            <p className="editor-help">
+              Pages 9 and 10 of the brief. The hero shot fills the empty right
+              side of the /art intro. The lineage keeps three eras: change their
+              titles, texts and images here.
+            </p>
+            <div className="editor-grid">
+              <MediaField
+                label="Art hero shot (intro, right side)"
+                value={visuals.artHeroShot ?? ""}
+                media={media}
+                busy={busy}
+                help="Empty keeps the intro exactly as it looks today."
+                onChange={(url) => patchPhoto("artHero", { url })}
+                onUpload={upload}
+              />
+              <Field
+                label="Hero shot description (alt text)"
+                value={visuals.artHeroAlt ?? ""}
+                onChange={(v) => patchPhoto("artHero", { alt: v })}
+              />
+            </div>
+            {Array.from({ length: 3 }, (_, i) => {
+              const era = draft.visuals?.eras?.[i] ?? {};
+              return (
+                <div className="era-editor-row" key={i}>
+                  <span className="eyebrow">Era 0{i + 1}</span>
+                  <div className="editor-grid">
+                    <Field
+                      label={`Era ${i + 1} — tab and title`}
+                      value={era.title ?? ""}
+                      onChange={(v) => patchEra(i, { title: v })}
+                    />
+                    <Field
+                      label={`Era ${i + 1} — status`}
+                      value={era.status ?? ""}
+                      onChange={(v) => patchEra(i, { status: v })}
+                    />
+                    <Field
+                      label={`Era ${i + 1} — description`}
+                      value={era.body ?? ""}
+                      multiline
+                      onChange={(v) => patchEra(i, { body: v })}
+                    />
+                  </div>
+                  <div className="editor-grid">
+                    <MediaField
+                      label={`Era ${i + 1} — image`}
+                      value={era.image ?? ""}
+                      media={media}
+                      busy={busy}
+                      help="Empty keeps the current placeholder."
+                      onChange={(url) =>
+                        patchEra(i, { image: url || undefined })
+                      }
+                      onUpload={upload}
+                    />
+                    <Field
+                      label={`Era ${i + 1} — image description (alt text)`}
+                      value={era.imageAlt ?? ""}
+                      onChange={(v) =>
+                        patchEra(i, { imageAlt: v || undefined })
+                      }
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="editor-card">
+            <h3>Mike Lombard — context and behind the scenes</h3>
+            <p className="editor-help">
+              Page 11 of the brief. Portrait and biography of the artist, plus
+              the behind-the-scenes gallery. The button to his portfolio is
+              always shown and its default is https://www.mike-lombard.com.
+            </p>
+            <div className="editor-grid">
+              <MediaField
+                label="Portrait of Mike Lombard"
+                value={visuals.artist?.portrait ?? ""}
+                media={media}
+                busy={busy}
+                onChange={(url) => patchPhoto("artistPortrait", { url })}
+                onUpload={upload}
+              />
+              <Field
+                label="Portrait description (alt text)"
+                value={visuals.artist?.portraitAlt ?? ""}
+                onChange={(v) => patchPhoto("artistPortrait", { alt: v })}
+              />
+              <Field
+                label="Artist name"
+                value={visuals.artist?.name ?? ""}
+                onChange={(v) => patchArtist({ name: v || undefined })}
+              />
+              <Field
+                label="Biography"
+                value={visuals.artist?.bio ?? ""}
+                multiline
+                onChange={(v) => patchArtist({ bio: v || undefined })}
+              />
+            </div>
+            <GalleryField
+              label="Behind the scenes gallery"
+              withCaption
+              help="Any number of images. With none, the block stays hidden."
+              value={visuals.artist?.behindScenes ?? []}
+              media={media}
+              busy={busy}
+              onChange={(slides) => patchSlides("behindScenes", slides)}
+              onUpload={upload}
+            />
+          </div>
+          <div className="editor-card">
+            <h3>Buttons and links</h3>
+            <p className="editor-help">
+              Page 3 of the brief: the destination of each button is chosen
+              here. Only internal routes (/updates) or https:// links are
+              published.
+            </p>
+            <div className="editor-grid">
+              <LinkPickerField
+                label="“Follow the build” (Tequila block)"
+                value={draft.copy["tequila.detail.cta.href"] ?? ""}
+                suggestions={linkSuggestions}
+                onChange={(v) => updateCopy("tequila.detail.cta.href", v)}
+              />
+              <LinkPickerField
+                label="“Follow the build” (Tequila, bottom)"
+                value={draft.copy["tequila.end.cta.href"] ?? ""}
+                suggestions={linkSuggestions}
+                onChange={(v) => updateCopy("tequila.end.cta.href", v)}
+              />
+              <LinkPickerField
+                label="Art — portfolio CTA (Mike Lombard)"
+                value={draft.copy["art.intro.cta.href"] ?? ""}
+                suggestions={[
+                  { label: "Mike Lombard portfolio", href: MIKE_LOMBARD_URL },
+                  ...linkSuggestions,
+                ]}
+                onChange={(v) => updateCopy("art.intro.cta.href", v)}
+              />
+              <LinkPickerField
+                label="“Follow the reveals” (Art, artist block)"
+                value={draft.copy["art.artist.cta.href"] ?? ""}
+                suggestions={linkSuggestions}
+                onChange={(v) => updateCopy("art.artist.cta.href", v)}
+              />
+              <LinkPickerField
+                label="“Follow the build” (Art, bottom)"
+                value={draft.copy["art.end.cta.href"] ?? ""}
+                suggestions={linkSuggestions}
+                onChange={(v) => updateCopy("art.end.cta.href", v)}
+              />
+            </div>
+          </div>
+          <div className="editor-card">
             <h3>Bottle, silhouette and footer</h3>
             <p className="editor-help">
               Every slot is optional. An empty slot keeps the current look, so
@@ -1370,7 +1906,9 @@ export function Admin() {
                 media={media}
                 busy={busy}
                 help="Replaces the footer text with the logo typography image."
-                onChange={(url) => patchVisuals({ footerLogo: url || undefined })}
+                onChange={(url) =>
+                  patchVisuals({ footerLogo: url || undefined })
+                }
                 onUpload={upload}
               />
             </div>

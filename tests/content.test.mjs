@@ -4,8 +4,10 @@ import {
   initialContent,
   isHttpsUrl,
   isSiteContent,
+  MIKE_LOMBARD_URL,
   normalizeSymbol,
   safeHref,
+  safeLinkHref,
   entrySlug,
   withContentDefaults,
 } from "../src/lib/content.ts";
@@ -207,3 +209,192 @@ test("video and proof links must be clean HTTPS URLs", () => {
   ])
     assert.equal(isHttpsUrl(value), false);
 });
+/* ---------------------------------------------------------------------------
+   Etapa 1 del PDF (páginas 1, 2, 3, 4, 9, 10 y 11): Tequila y Art editables.
+   Lo que no puede romperse es que el documento ya publicado —que no trae
+   ninguno de estos campos— siga validando y se normalice sin inventar nada.
+   --------------------------------------------------------------------------- */
+test("a document without the Etapa 1 fields keeps the site exactly as it was", () => {
+  const normalized = withContentDefaults(legacyDocument);
+  // Sin hero shots, sin galería y sin contexto: los componentes no pintan nada.
+  assert.equal(normalized.visuals.tequilaHeroShot, undefined);
+  assert.equal(normalized.visuals.tequilaHeroAlt, undefined);
+  assert.deepEqual(normalized.visuals.tequilaGallery, []);
+  assert.equal(normalized.visuals.agaveBackground, undefined);
+  assert.equal(normalized.visuals.artHeroShot, undefined);
+  assert.equal(normalized.visuals.artist.name, undefined);
+  assert.equal(normalized.visuals.artist.portrait, undefined);
+  assert.equal(normalized.visuals.artist.bio, undefined);
+  assert.deepEqual(normalized.visuals.artist.behindScenes, []);
+  // El lineage siempre son tres eras, vacías: la página usa sus textos de siempre.
+  assert.equal(normalized.visuals.eras.length, 3);
+  for (const era of normalized.visuals.eras) {
+    assert.equal(era.title, undefined);
+    assert.equal(era.body, undefined);
+    assert.equal(era.image, undefined);
+  }
+  // Sigue siendo válido después de normalizarlo.
+  assert.ok(isSiteContent(normalized));
+});
+test("the shape published in production today still validates untouched", () => {
+  // Reproduce el documento real de `site_content.published` (Supabase): trae
+  // `visuals` con heroArt/footerLogo/cardBackgrounds y ninguna clave nueva.
+  const published = {
+    ...legacyDocument,
+    visuals: {
+      heroArt: "https://x.supabase.co/storage/v1/object/public/public-media/a.webp",
+      footerLogo:
+        "https://x.supabase.co/storage/v1/object/public/public-media/b.png",
+      cardBackgrounds: {
+        art: "https://x.supabase.co/storage/v1/object/public/public-media/c.webp",
+        bottle:
+          "https://x.supabase.co/storage/v1/object/public/public-media/d.webp",
+      },
+    },
+  };
+  assert.ok(isSiteContent(published));
+  const normalized = withContentDefaults(JSON.parse(JSON.stringify(published)));
+  assert.equal(normalized.visuals.heroArt, published.visuals.heroArt);
+  assert.equal(normalized.visuals.footerLogo, published.visuals.footerLogo);
+  assert.deepEqual(
+    normalized.visuals.cardBackgrounds,
+    published.visuals.cardBackgrounds,
+  );
+  assert.equal(normalized.visuals.heroShot, undefined);
+  assert.deepEqual(normalized.visuals.tequilaGallery, []);
+  // La normalización no añade ni quita claves obligatorias del documento.
+  assert.deepEqual(
+    Object.keys(normalized).sort(),
+    Object.keys(published).sort(),
+  );
+});
+test("Etapa 1 images, galleries and artist context survive a round trip", () => {
+  const document = withContentDefaults({
+    ...legacyDocument,
+    visuals: {
+      tequilaHeroShot: "https://example.com/tequila-hero.png",
+      tequilaHeroAlt: "Mingles bottle",
+      tequilaGallery: [
+        { url: "https://example.com/1.png", alt: "Bottle", caption: "01" },
+        "https://example.com/2.png",
+        { url: "https://example.com/3.png" },
+        { url: "https://example.com/4.png" },
+      ],
+      agaveBackground: "https://example.com/agave.png",
+      agaveBackgroundAlt: "Agave field",
+      artHeroShot: "https://example.com/art-hero.png",
+      artist: {
+        name: "Mike Lombard",
+        bio: "Painter and illustrator.",
+        portrait: "https://example.com/mike.png",
+        portraitAlt: "Mike Lombard",
+        behindScenes: [
+          { url: "https://example.com/bts-1.png", caption: "Sketching" },
+        ],
+      },
+      eras: [
+        { title: "Legacy PFP", image: "https://example.com/era-1.png" },
+        { title: "ApeChain", body: "Current chapter." },
+      ],
+    },
+  });
+  const roundTrip = JSON.parse(JSON.stringify(document));
+  assert.equal(roundTrip.visuals.tequilaHeroShot, "https://example.com/tequila-hero.png");
+  assert.equal(roundTrip.visuals.tequilaGallery.length, 4);
+  // La cadena suelta se guarda como objeto con su URL.
+  assert.deepEqual(roundTrip.visuals.tequilaGallery[1], {
+    url: "https://example.com/2.png",
+  });
+  assert.equal(roundTrip.visuals.tequilaGallery[0].caption, "01");
+  assert.equal(roundTrip.visuals.artist.name, "Mike Lombard");
+  assert.equal(
+    roundTrip.visuals.artist.behindScenes[0].caption,
+    "Sketching",
+  );
+  assert.equal(roundTrip.visuals.eras.length, 3);
+  assert.equal(roundTrip.visuals.eras[0].image, "https://example.com/era-1.png");
+  assert.equal(roundTrip.visuals.eras[1].body, "Current chapter.");
+  assert.ok(isSiteContent(roundTrip));
+});
+test("unsafe image URLs are dropped instead of published", () => {
+  const document = withContentDefaults({
+    ...legacyDocument,
+    visuals: {
+      tequilaHeroShot: "javascript:alert(1)",
+      artHeroShot: "http://example.com/art.png",
+      agaveBackground: 42,
+      tequilaGallery: [
+        { url: "javascript:alert(1)" },
+        { url: "http://example.com/plain.png" },
+        "data:text/html,<script>",
+        { url: "https://example.com/ok.png", alt: "  Bottle  " },
+      ],
+      artist: {
+        portrait: "/local.png",
+        behindScenes: [{ url: "javascript:void(0)" }],
+      },
+      eras: [{ image: "javascript:alert(1)" }, { image: "https://ok/x.png" }],
+    },
+  });
+  assert.equal(document.visuals.tequilaHeroShot, undefined);
+  assert.equal(document.visuals.artHeroShot, undefined);
+  assert.equal(document.visuals.agaveBackground, undefined);
+  // Una ruta interna tampoco vale como imagen: el hueco no se pinta.
+  assert.equal(document.visuals.artist.portrait, undefined);
+  // `https://` no se reescribe (el alt se conserva tal cual, como en las
+  // entradas de Updates).
+  assert.deepEqual(document.visuals.tequilaGallery, [
+    { url: "https://example.com/ok.png", alt: "  Bottle  ", caption: undefined },
+  ]);
+  assert.deepEqual(document.visuals.artist.behindScenes, []);
+  assert.equal(document.visuals.eras[0].image, undefined);
+  assert.equal(document.visuals.eras[1].image, "https://ok/x.png");
+});
+test("CTA destinations accept internal routes and https only", () => {
+  assert.equal(safeLinkHref("/updates"), "/updates");
+  assert.equal(safeLinkHref("  /art#lineage  "), "/art#lineage");
+  assert.equal(safeLinkHref("#building"), "#building");
+  assert.equal(safeLinkHref(MIKE_LOMBARD_URL), "https://www.mike-lombard.com/");
+  for (const value of [
+    "javascript:alert(1)",
+    "data:text/html,<script>",
+    "mailto:hi@example.com",
+    "http://example.com/insecure",
+    "//example.com",
+    "/\\example.com",
+    "",
+    "   ",
+  ])
+    assert.equal(safeLinkHref(value, "/updates"), "/updates");
+  assert.equal(safeLinkHref("javascript:alert(1)"), "");
+});
+test("the local seed writes the current Tequila and Art copy", () => {
+  // El documento local (sin CMS) no inventa imágenes, pero sí trae los textos
+  // que el sitio enseña hoy para que el admin los vea escritos.
+  assert.ok(!initialContent.visuals.tequilaHeroShot);
+  assert.match(initialContent.copy["tequila.detail.cta.href"], /^\//);
+  assert.match(initialContent.copy["art.intro.cta.href"], /^https:\/\//);
+  assert.equal(
+    initialContent.copy["art.intro.cta.href"],
+    MIKE_LOMBARD_URL,
+  );
+  for (const key of [
+    "tequila.proof.card.1.title",
+    "tequila.proof.card.2.title",
+    "tequila.proof.card.3.title",
+    "tequila.proof.card.1.tagline",
+    "tequila.proof.card.2.tagline",
+    "tequila.proof.card.3.tagline",
+    "tequila.detail.1.title",
+    "tequila.detail.2.title",
+    "tequila.detail.3.title",
+    "tequila.detail.1.body",
+    "tequila.detail.2.body",
+    "tequila.detail.3.body",
+    "tequila.end.eyebrow",
+    "art.lineage.title",
+    "art.artist.bts.body",
+  ])
+    assert.ok(initialContent.copy[key], `falta el copy por defecto ${key}`);
+});
+
