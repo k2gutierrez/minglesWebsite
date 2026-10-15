@@ -27,6 +27,7 @@ export function ProjectCard({
 }) {
   // El símbolo lo elige el admin. Si no hay, se mantiene el comportamiento de
   // siempre (rotación por índice) para no cambiar el aspecto actual.
+  const { content } = useSite();
   const chosen = normalizeSymbol(item.symbol);
   const Icon = chosen
     ? symbolIcons[chosen]
@@ -68,7 +69,7 @@ export function ProjectCard({
           <p>{item.description}</p>
           <div className="card-bottom">
             <Status>{item.status}</Status>
-            <span>EXPLORE ↗</span>
+            <span>{content.copy["cards.explore"] || "EXPLORE ↗"}</span>
           </div>
         </div>
       </Link>
@@ -459,8 +460,8 @@ export function Home() {
               return (
                 <section className="holder-cta" key={m.id}>
                   <span className="eyebrow">
-                    FOR THE ONES WHO OWN THE WEIRD
-                  </span>
+                      {copy("holder.kicker", "FOR THE ONES WHO OWN THE WEIRD")}
+                    </span>
                   <h2>{copy("holder.title")}</h2>
                   <p>{copy("holder.body")}</p>
                   <Button href="/portal" dark>

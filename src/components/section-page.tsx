@@ -274,7 +274,9 @@ export function SectionPage({ section }: { section: string }) {
                 },
               ].map((e) => (
                 <article className="mission-card" key={e.n}>
-                  <span className="eyebrow">ENGINE {e.n}</span>
+                  <span className="eyebrow">
+                    {c.copy["protocol.engine.label"] || "ENGINE"} {e.n}
+                  </span>
                   <h2>{c.copy[e.title] || e.fallbackTitle}</h2>
                   <p>{c.copy[e.body] || e.fallbackBody}</p>
                 </article>

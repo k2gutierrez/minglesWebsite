@@ -214,6 +214,27 @@ export const initialContent: SiteContent = {
     "experiments.rules.note":
       "Rules, fees, results, and any Mingles allocation: not yet published.",
     "tequila.agave.eyebrow": "REAL-WORLD SPIRIT",
+    // --- Etapa 3: claves que los componentes ya usaban pero NO estaban en el
+    // modelo, asi que el panel no mostraba su campo aunque el texto se viera. ---
+    "hero.foot": "THE WORLD OF MINGLES",
+    "home.progress.kicker": "PROGRESS, NOT PROMISES.",
+    "story.kicker": "BUILT THROUGH PEOPLE",
+    "updates.kicker": "FROM THE BUILD LOG",
+    "updates.heading": "LATEST MOVES.",
+    "holder.kicker": "FOR THE ONES WHO OWN THE WEIRD",
+    "tequila.bottle.label": "THE BOTTLE",
+    "tequila.cap.label": "THE CAP",
+    "tequila.experience.label": "THE EXPERIENCE",
+    "tequila.detail.status": "In development",
+    "tequila.gallery.label": "Tequila gallery",
+    "art.artist.name": "Mike Lombard",
+    "art.artist.bts.heading": "BEHIND THE SCENES.",
+    "art.artist.portfolio.href": "https://www.mike-lombard.com",
+    "protocol.engine.label": "ENGINE",
+    // Rotulos del recuadro interactivo (BrandArt).
+    "field.corner": "M / IDENTITY IN MOTION",
+    "field.cornerAccent": "INTERACTIVE FIELD",
+    "field.hint": "MOVE YOUR CURSOR / EXPLORE THE FIELD",
     "tequila.agave.title": "ROOTED\nIN AGAVE.",
     "tequila.agave.note": "PRODUCT PHOTOGRAPHY TO FOLLOW",
     "tequila.detail.title": "THE SPIRIT.\nTHE SURPRISE.",

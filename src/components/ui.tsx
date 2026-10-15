@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { AgaveField } from "./effects";
 import { safeHref, isHttpsUrl } from "@/lib/content";
+import { useSite } from "./provider";
 export function Button({
   children,
   href,
@@ -70,6 +71,7 @@ export function BrandArt({
 }) {
   const reduced = useReducedMotion();
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
+  const { content } = useSite();
   const artImage = isHttpsUrl(image) ? image : undefined;
   const artBackground = isHttpsUrl(background) ? background : undefined;
   return (
@@ -97,8 +99,9 @@ export function BrandArt({
     >
       <AgaveField />
       <span className="art-corner">
-        M / IDENTITY IN MOTION <i>INTERACTIVE FIELD</i>
-      </span>
+          {content.copy["field.corner"] || "M / IDENTITY IN MOTION"}{" "}
+          <i>{content.copy["field.cornerAccent"] || "INTERACTIVE FIELD"}</i>
+        </span>
       <div className="orbit orbit-one" />
       <div className="orbit orbit-two" />
       <motion.div
@@ -148,7 +151,9 @@ export function BrandArt({
         <span>SPIRIT</span>
       </div>
       <span className="art-bottom">
-        <span>MOVE YOUR CURSOR / EXPLORE THE FIELD</span>{" "}
+        <span>
+          {content.copy["field.hint"] || "MOVE YOUR CURSOR / EXPLORE THE FIELD"}
+        </span>{" "}
         <ArrowUpRight size={15} />
       </span>
     </div>
