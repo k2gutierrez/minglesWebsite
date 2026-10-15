@@ -83,21 +83,27 @@
 .entry-block + .entry-block {
   margin-top: 4px;
 }
+/*
+ * Galeria del articulo, tipo mosaico.
+ * Cada foto conserva SU forma: antes se forzaba 4:3 con recorte y una foto en
+ * vertical salia cortada por arriba y por abajo. Con columnas no se recorta
+ * nada.
+ */
 .entry-figure-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  columns: 3 220px;
+  column-gap: 12px;
   margin: 28px 0;
 }
 .entry-figure-row img {
+  display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  height: auto;
+  margin-bottom: 12px;
+  break-inside: avoid;
   border: 1px solid var(--line);
 }
 /* Una sola imagen no debe volverse un banner gigante. */
 .entry-figure-row[data-count="1"] img {
-  aspect-ratio: 16 / 9;
   max-width: 860px;
 }
 .entry-detail-top {
@@ -116,9 +122,13 @@
   margin: 22px 0 14px;
 }
 .entry-detail-cover {
+  /* Entera: una foto vertical ya no se recorta a 16:9. El alto se limita para
+     que una vertical muy larga no se coma la pantalla. */
+  display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+  height: auto;
+  max-height: 620px;
+  object-fit: contain;
   border: 1px solid var(--line);
 }
 .entry-detail-lead {
@@ -173,14 +183,15 @@
   gap: 16px;
 }
 .entry-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  columns: 3 240px;
+  column-gap: 12px;
 }
 .entry-detail-grid img {
+  display: block;
   width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
+  height: auto;
+  margin-bottom: 12px;
+  break-inside: avoid;
   border: 1px solid var(--line);
 }
 
@@ -189,8 +200,8 @@
     grid-template-columns: 1fr;
   }
   .entry-figure-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    columns: 1;
+    column-gap: 0;
     margin: 20px 0;
   }
   .entry-card {
