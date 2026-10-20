@@ -3486,3 +3486,30 @@ footer {
     width: 100%;
   }
 }
+
+/* --- OpenSea dentro del portal del holder -----------------------------------
+   El panel de 'My Mingles' remata el enlace con nombre: mismo recuadro fino y
+   coral al pasar el raton que el pie, para que se sienta parte del sitio. */
+.os-link-wide {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  color: var(--ivory);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+.os-link-wide > svg:first-child {
+  color: var(--coral);
+}
+.os-link-wide:hover,
+.os-link-wide:focus-visible {
+  border-color: var(--coral);
+  background: rgba(225, 81, 98, 0.1);
+}

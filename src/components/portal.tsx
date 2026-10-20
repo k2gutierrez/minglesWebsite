@@ -12,8 +12,10 @@ import {
   Unlock,
 } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
+import { OPENSEA_URL } from "@/lib/content";
 import { useSite } from "./provider";
 import { Status, Button, ArrowLink } from "./ui";
+import { OpenSeaIcon } from "./brand-icons";
 import { useHolder, WalletPanel } from "./wallet-panel";
 import { ArtLineage } from "./section-page";
 import { Experiments } from "./home";
@@ -96,6 +98,17 @@ export function Portal() {
               Recover staked
               <span>↗</span>
             </a>
+            {/* El mercado de la coleccion: utilidad, no pestaña del portal. */}
+            <a
+              className="portal-recover"
+              href={OPENSEA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <OpenSeaIcon size={17} />
+              Collection on OpenSea
+              <span>↗</span>
+            </a>
           </nav>
           <small>
             ACTIVATION SYSTEM{" "}
@@ -170,6 +183,27 @@ export function Portal() {
               user={user}
               showTokens={tab === "My Mingles"}
             />
+          )}
+          {tab === "My Mingles" && (
+            <div className="portal-panel">
+              <span className="eyebrow">The marketplace</span>
+              <h2>YOUR COLLECTION ON OPENSEA.</h2>
+              <p>
+                Buy, sell or check the value of your Mingles on the official
+                collection page. It opens in a new tab: nothing here is signed or
+                moved without you.
+              </p>
+              <a
+                className="os-link-wide"
+                href={OPENSEA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <OpenSeaIcon size={19} />
+                View on OpenSea
+                <ArrowUpRight size={16} />
+              </a>
+            </div>
           )}
           {tab === "Overview" && (
             <>
