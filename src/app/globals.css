@@ -3417,3 +3417,72 @@ footer {
     transition: none;
   }
 }
+
+/* --- Enlace a la coleccion en OpenSea ---------------------------------------
+   En la cabecera va solo el icono (discreto, junto al CTA del portal); en el pie
+   va con nombre y una linea de apoyo, para que se lea como un destino de compra
+   sin gritar. El color de marca (coral) aparece al pasar el raton. */
+.os-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  border: 1px solid var(--line);
+  color: var(--ivory);
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+.os-link:hover,
+.os-link:focus-visible {
+  color: var(--coral);
+  border-color: var(--coral);
+  background: rgba(225, 81, 98, 0.08);
+}
+.footer-os {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  justify-self: start;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  color: var(--ivory);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+.footer-os:hover,
+.footer-os:focus-visible {
+  border-color: var(--coral);
+  background: rgba(225, 81, 98, 0.1);
+  transform: translateY(-1px);
+}
+.footer-os-icon {
+  display: inline-flex;
+  color: var(--coral);
+}
+.footer-os > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.25;
+}
+.footer-os small {
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  color: #b5b5a7;
+}
+@media (max-width: 800px) {
+  /* En movil el enlace vive dentro del menu, no en la barra. */
+  .os-link {
+    display: none;
+  }
+  .footer-os {
+    width: 100%;
+  }
+}

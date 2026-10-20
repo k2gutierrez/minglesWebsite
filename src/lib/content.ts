@@ -139,6 +139,8 @@ export type Visuals = {
  * el admin no escriba otro, el botón apunta aquí.
  */
 export const MIKE_LOMBARD_URL = "https://www.mike-lombard.com";
+/** Coleccion oficial en OpenSea: el mercado donde se compran los Mingles. */
+export const OPENSEA_URL = "https://opensea.io/collection/mingles";
 export type SiteContent = {
   hero: {
     eyebrow: string;

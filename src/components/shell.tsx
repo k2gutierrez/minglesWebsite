@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X, ArrowUpRight, ArrowUp } from "lucide-react";
 import { useSite } from "./provider";
-import { safeHref, isHttpsUrl } from "@/lib/content";
+import { safeHref, isHttpsUrl, OPENSEA_URL } from "@/lib/content";
+import { OpenSeaIcon } from "./brand-icons";
 export function Header() {
   const { content, mode } = useSite();
   const path = usePathname();
@@ -42,6 +43,16 @@ export function Header() {
             </Link>
           ))}
         </nav>
+        <a
+          className="os-link"
+          href={OPENSEA_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Mingles collection on OpenSea"
+          title="Mingles on OpenSea"
+        >
+          <OpenSeaIcon size={17} />
+        </a>
         <Link className="portal-link" href="/portal">
           Holder portal <ArrowUpRight size={16} />
         </Link>
@@ -75,6 +86,9 @@ export function Header() {
             <Link href="/portal">
               Holder portal <ArrowUpRight />
             </Link>
+            <a href={OPENSEA_URL} target="_blank" rel="noopener noreferrer">
+              <OpenSeaIcon size={16} /> Collection on OpenSea <ArrowUpRight />
+            </a>
           </nav>
         )}
       </header>
@@ -107,6 +121,21 @@ export function Footer() {
           <p>{content.copy["footer.note"]}</p>
         </div>
         <div className="footer-links">
+          <a
+            className="footer-os"
+            href={OPENSEA_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="footer-os-icon">
+              <OpenSeaIcon size={19} />
+            </span>
+            <span>
+              Collection on OpenSea
+              <small>Buy and sell Mingles</small>
+            </span>
+            <ArrowUpRight size={14} />
+          </a>
           <Link href="/build-the-distillery">Build the Distillery ↗</Link>
           <Link href="/portal">Holder portal ↗</Link>
           <Link href="/updates">Follow the build ↗</Link>
