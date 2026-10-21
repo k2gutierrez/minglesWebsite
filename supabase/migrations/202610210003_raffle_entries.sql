@@ -3,6 +3,28 @@
 -- Aplicar en el SQL Editor del proyecto o con `psql "$SUPABASE_DB_URL" -f este-archivo.sql`.
 begin;
 
+-- Limpieza puntual (21-oct-2026): en este proyecto ya existía una tabla
+-- `raffle_entries` VACÍA con otro esquema (raffle_id / wallet_address) de un
+-- scaffold anterior. Con `create table if not exists` se saltaba la creación y
+-- el índice fallaba con «column wallet does not exist». Solo se elimina si sigue
+-- teniendo el esquema viejo; si ya tiene el nuevo, no se toca nada.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'raffle_entries'
+      and column_name = 'raffle_id'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'raffle_entries'
+      and column_name = 'wallet'
+  ) then
+    drop table public.raffle_entries;
+  end if;
+end $$;
+
 create table if not exists public.raffle_entries (
   id bigint generated always as identity primary key,
   raffle text not null default 'apefest-2026',
@@ -19,12 +41,13 @@ create table if not exists public.raffle_entries (
 );
 
 create index if not exists raffle_entries_wallet_idx
-  on public.raffle_entries (lower(wallet));
+  on public.raffle_entries (wallet);
 
 alter table public.raffle_entries enable row level security;
 
 -- Sin políticas de INSERT/UPDATE/DELETE: solo escribe la ruta del servidor con la
 -- service_role (que ignora RLS). La lectura queda para administradores del CMS.
+drop policy if exists "Admins read raffle entries" on public.raffle_entries;
 create policy "Admins read raffle entries"
   on public.raffle_entries
   for select
