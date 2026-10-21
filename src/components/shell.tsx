@@ -42,6 +42,13 @@ export function Header() {
               {n.label}
             </Link>
           ))}
+          <Link
+            href="/apefest-raffle"
+            className="nav-raffle"
+            aria-current={path === "/apefest-raffle" ? "page" : undefined}
+          >
+            Raffle
+          </Link>
         </nav>
         <a
           className="os-link"
@@ -80,6 +87,9 @@ export function Header() {
                 <ArrowUpRight />
               </Link>
             ))}
+            <Link href="/apefest-raffle" className="nav-raffle">
+              ApeFest raffle <ArrowUpRight />
+            </Link>
             <Link href="/build-the-distillery">
               Build the Distillery <ArrowUpRight />
             </Link>
@@ -136,6 +146,7 @@ export function Footer() {
             </span>
             <ArrowUpRight size={14} />
           </a>
+          <Link href="/apefest-raffle">ApeFest raffle ↗</Link>
           <Link href="/build-the-distillery">Build the Distillery ↗</Link>
           <Link href="/portal">Holder portal ↗</Link>
           <Link href="/updates">Follow the build ↗</Link>

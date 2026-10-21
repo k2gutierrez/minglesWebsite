@@ -2,6 +2,7 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http } from "wagmi";
 import { apeChain } from "viem/chains";
+import { raffleChain, raffleRpcUrl } from "./chains";
 
 /**
  * Configuración de conexión de wallets.
@@ -28,8 +29,16 @@ export const wagmiConfig = getDefaultConfig({
   appName: "Mingles",
   appDescription: "Collectible identity. Real-world spirit.",
   projectId,
-  chains: [apeChain],
-  transports: { [apeChain.id]: http() },
+  // Curtis solo se añade cuando la rifa apunta a testnet; el resto del sitio
+  // sigue viviendo en ApeChain mainnet.
+  chains:
+    raffleChain.id === apeChain.id ? [apeChain] : [apeChain, raffleChain],
+  transports: {
+    [apeChain.id]: http(),
+    ...(raffleChain.id === apeChain.id
+      ? {}
+      : { [raffleChain.id]: http(raffleRpcUrl) }),
+  },
   ssr: true,
 });
 

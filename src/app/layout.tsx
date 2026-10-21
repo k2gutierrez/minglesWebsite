@@ -12,6 +12,7 @@ import "@fontsource/ibm-plex-mono/600.css";
 import "./globals.css";
 import "./site-cards.css";
 import "./sections.css";
+import "./raffle.css";
 export const metadata: Metadata = {
   title: {
     default: "Mingles — A little weird. A lot of spirit.",

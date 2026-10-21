@@ -1,0 +1,671 @@
+/* ---------------------------------------------------------------------------
+   Rifa ApeFest. Sigue los tokens del sitio: marfil, tinta y coral; Barlow
+   Condensed para titulares e IBM Plex Mono para etiquetas y datos.
+   --------------------------------------------------------------------------- */
+
+.raffle {
+  background: var(--ivory);
+  color: var(--ink);
+}
+
+.raffle-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(28px, 4vw, 64px);
+  align-items: center;
+  padding: clamp(36px, 5vw, 72px) 4.5% clamp(48px, 6vw, 88px);
+}
+
+.raffle-hero-copy h1 {
+  margin: 18px 0 22px;
+  font-size: clamp(58px, 7.4vw, 132px);
+  text-transform: uppercase;
+}
+
+.raffle-lede {
+  max-width: 54ch;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.raffle-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 34px 0 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.raffle-meta strong {
+  display: block;
+  font-family: var(--display);
+  font-size: clamp(26px, 2.4vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.raffle-meta span {
+  display: block;
+  margin-top: 6px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.raffle-hero-art {
+  position: relative;
+  isolation: isolate;
+}
+
+.raffle-hero-art img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  filter: saturate(0.95);
+}
+
+.raffle-stamp {
+  position: absolute;
+  left: -14px;
+  bottom: 26px;
+  padding: 12px 18px;
+  background: var(--coral);
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+.raffle-ticker {
+  overflow: hidden;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  background: var(--coral);
+  color: var(--ink);
+  padding: 11px 0;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.raffle-ticker span {
+  display: inline-block;
+  padding-left: 4.5%;
+}
+
+.raffle-section {
+  padding: clamp(56px, 7vw, 96px) 4.5%;
+}
+
+.raffle-section-head {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: clamp(20px, 4vw, 56px);
+  align-items: end;
+  margin-bottom: 42px;
+}
+
+.raffle-section-head h2 {
+  margin: 12px 0 0;
+  font-size: clamp(42px, 4.8vw, 80px);
+  text-transform: uppercase;
+}
+
+.raffle-section-head p {
+  max-width: 46ch;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.raffle-prize {
+  border-bottom: 1px solid var(--line);
+}
+
+.raffle-prize-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+
+.raffle-loot {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.raffle-loot li {
+  display: flex;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.raffle-loot li span {
+  color: var(--coral);
+}
+
+.raffle-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.raffle-shot {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #141415;
+}
+
+.raffle-shot-wide {
+  grid-column: 1 / -1;
+}
+
+.raffle-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.raffle-shot:hover img {
+  transform: scale(1.03);
+}
+
+.raffle-shot-wide img {
+  aspect-ratio: 16 / 9;
+}
+
+.raffle-shot:not(.raffle-shot-wide) img {
+  aspect-ratio: 4 / 3;
+}
+
+.raffle-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 40px);
+}
+
+.raffle-step {
+  padding-top: 18px;
+  border-top: 1px solid var(--ink);
+}
+
+.raffle-step-number {
+  font-family: var(--display);
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--coral);
+}
+
+.raffle-step h3 {
+  margin: 14px 0 8px;
+  font-size: 30px;
+  text-transform: uppercase;
+}
+
+.raffle-step p {
+  font-size: 12px;
+  line-height: 1.75;
+  max-width: 34ch;
+}
+
+/* --- Tablero ------------------------------------------------------------- */
+
+.raffle-board {
+  background: var(--ink);
+  color: var(--ivory);
+  padding: clamp(56px, 7vw, 96px) 4.5%;
+}
+
+.raffle-board-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid #ededd930;
+}
+
+.raffle-board-head h2 {
+  margin: 10px 0 0;
+  font-size: clamp(42px, 4.6vw, 78px);
+  text-transform: uppercase;
+}
+
+.raffle-board-status {
+  text-align: right;
+}
+
+.raffle-board-status .status {
+  color: var(--ivory);
+}
+
+.raffle-board-status p {
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+}
+
+.raffle-board-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(24px, 3.5vw, 48px);
+  margin-top: 32px;
+  align-items: start;
+}
+
+.raffle-numbers {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.raffle-number {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  aspect-ratio: 1;
+  border: 1px solid #ededd930;
+  background: #242426;
+  color: var(--ivory);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.raffle-number > span {
+  font-family: var(--display);
+  font-size: clamp(20px, 2.3vw, 34px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.raffle-number small {
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.raffle-number:hover:not(:disabled) {
+  border-color: var(--coral);
+}
+
+.raffle-number.is-taken {
+  opacity: 0.32;
+}
+
+.raffle-number.is-taken > span {
+  text-decoration: line-through;
+}
+
+.raffle-number.is-mine {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.raffle-number.is-mine small {
+  color: var(--coral);
+  opacity: 1;
+}
+
+.raffle-number.is-selected {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: var(--ink);
+}
+
+.raffle-number.is-selected small {
+  color: var(--ink);
+  opacity: 1;
+}
+
+.raffle-fine {
+  margin-top: 12px;
+  font-size: 10px;
+  line-height: 1.7;
+  opacity: 0.55;
+}
+
+.raffle-checkout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(20px, 2.4vw, 30px);
+  border: 1px solid #ededd930;
+  background: #242426;
+}
+
+.raffle-checkout .eyebrow {
+  color: var(--ivory);
+  opacity: 0.7;
+}
+
+.raffle-connect-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.raffle-connect,
+.raffle-primary {
+  border: 1px solid var(--coral);
+  background: var(--coral);
+  color: var(--ink);
+  padding: 14px 18px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: background 0.2s ease;
+}
+
+.raffle-connect:hover:not(:disabled),
+.raffle-primary:hover:not(:disabled) {
+  background: var(--ivory);
+  border-color: var(--ivory);
+}
+
+.raffle-picked {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--coral);
+}
+
+.raffle-switch,
+.raffle-secondary {
+  border: 1px solid #ededd950;
+  background: transparent;
+  color: var(--ivory);
+  padding: 10px 14px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.raffle-switch:hover,
+.raffle-secondary:hover:not(:disabled) {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.raffle-form {
+  display: grid;
+  gap: 12px;
+}
+
+.raffle-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.raffle-form label span {
+  opacity: 0.5;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.raffle-form input {
+  width: 100%;
+  border: 1px solid #ededd940;
+  background: #1b1b1d;
+  color: var(--ivory);
+  padding: 11px 12px;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.raffle-form input:focus-visible {
+  outline: none;
+  border-color: var(--coral);
+}
+
+.raffle-form .raffle-primary {
+  margin-top: 4px;
+}
+
+.raffle-form .raffle-primary:disabled {
+  opacity: 0.4;
+}
+
+.raffle-error {
+  margin: 0;
+  color: var(--coral);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.raffle-done {
+  display: grid;
+  gap: 10px;
+}
+
+.raffle-done h3 {
+  font-size: 44px;
+  text-transform: uppercase;
+}
+
+.raffle-done p {
+  font-size: 12px;
+  line-height: 1.7;
+  opacity: 0.8;
+}
+
+.raffle-tx {
+  display: inline-block;
+  color: var(--coral);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.raffle-banner {
+  margin-top: 26px;
+  padding: 14px 18px;
+  border: 1px solid #ededd940;
+  background: #242426;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.raffle-banner code {
+  font-family: var(--mono);
+  color: var(--coral);
+}
+
+.raffle-banner-alert {
+  border-color: var(--coral);
+  background: rgba(225, 81, 98, 0.14);
+}
+
+.raffle-banner-win {
+  border-color: var(--coral);
+  background: var(--coral);
+  color: var(--ink);
+}
+
+.raffle-mine {
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid #ededd930;
+}
+
+.raffle-mine-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.raffle-mine-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #ededd930;
+  background: #242426;
+}
+
+.raffle-mine-item strong {
+  font-family: var(--display);
+  font-size: 26px;
+  line-height: 1;
+  color: var(--coral);
+}
+
+/* --- Preguntas ----------------------------------------------------------- */
+
+.raffle-faq {
+  border-top: 1px solid var(--line);
+}
+
+.raffle-faq-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px 48px;
+}
+
+.raffle-faq-grid h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  text-transform: uppercase;
+}
+
+.raffle-faq-grid p {
+  font-size: 12px;
+  line-height: 1.75;
+  max-width: 46ch;
+}
+
+/* --- Enlaces del sitio ---------------------------------------------------- */
+
+.desktop-nav a.nav-raffle {
+  color: var(--coral);
+}
+
+.mobile-nav a.nav-raffle {
+  color: var(--coral);
+}
+
+/* --- Responsive ----------------------------------------------------------- */
+
+@media (max-width: 960px) {
+  .raffle-hero {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .raffle-hero-art {
+    order: -1;
+  }
+
+  .raffle-hero-art img {
+    aspect-ratio: 16 / 10;
+  }
+
+  .raffle-stamp {
+    left: 12px;
+    bottom: 12px;
+  }
+
+  .raffle-section-head,
+  .raffle-prize-grid,
+  .raffle-board-grid,
+  .raffle-faq-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .raffle-section-head {
+    align-items: start;
+  }
+
+  .raffle-board-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .raffle-board-status {
+    text-align: left;
+  }
+
+  .raffle-steps {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .raffle-number > span {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 520px) {
+  .raffle-hero {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+  .raffle-hero-copy h1 {
+    font-size: clamp(44px, 13vw, 64px);
+  }
+
+  .raffle-meta {
+    gap: 10px;
+  }
+
+  .raffle-meta strong {
+    font-size: 22px;
+  }
+
+  .raffle-numbers {
+    gap: 6px;
+  }
+
+  .raffle-number > span {
+    font-size: 21px;
+  }
+
+  .raffle-number small {
+    font-size: 7px;
+  }
+
+  .raffle-board {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+  .raffle-checkout {
+    padding: 18px;
+  }
+
+  .raffle-section {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+}
