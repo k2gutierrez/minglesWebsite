@@ -1,8 +1,8 @@
 "use client";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { http } from "wagmi";
+import { fallback, http } from "wagmi";
 import { apeChain } from "viem/chains";
-import { raffleChain, raffleRpcUrl } from "./chains";
+import { raffleChain, raffleRpcUrls } from "./chains";
 
 /**
  * Configuración de conexión de wallets.
@@ -37,7 +37,11 @@ export const wagmiConfig = getDefaultConfig({
     [apeChain.id]: http(),
     ...(raffleChain.id === apeChain.id
       ? {}
-      : { [raffleChain.id]: http(raffleRpcUrl) }),
+      : {
+          [raffleChain.id]: fallback(
+            raffleRpcUrls.map((url) => http(url, { timeout: 10_000 })),
+          ),
+        }),
   },
   ssr: true,
 });

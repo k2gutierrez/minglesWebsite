@@ -1,6 +1,7 @@
 import "server-only";
 import {
   createPublicClient,
+  fallback,
   getAddress,
   http,
   isAddress,
@@ -56,18 +57,27 @@ function text(value: unknown, field: string, min: number, max: number) {
   return trimmed;
 }
 
-function rpcUrl() {
-  return raffleChain.id === 33111
-    ? process.env.CURTIS_RPC_URL ||
-        raffleChain.rpcUrls.default.http[0]
-    : process.env.APECHAIN_RPC_URL ||
-        raffleChain.rpcUrls.default.http[0];
+function rpcUrls() {
+  const configured =
+    raffleChain.id === 33111
+      ? process.env.CURTIS_RPC_URL
+      : process.env.APECHAIN_RPC_URL;
+  return Array.from(
+    new Set(
+      [configured, ...raffleChain.rpcUrls.default.http].filter(
+        (url): url is string => Boolean(url),
+      ),
+    ),
+  );
 }
 
 function rpcClient() {
+  // Si el RPC configurado está sin cuota o caído, se usa el público.
   return createPublicClient({
     chain: raffleChain,
-    transport: http(rpcUrl(), { timeout: 10_000, retryCount: 1 }),
+    transport: fallback(
+      rpcUrls().map((url) => http(url, { timeout: 10_000, retryCount: 1 })),
+    ),
   });
 }
 

@@ -29,9 +29,18 @@ const configuredId = Number(process.env.NEXT_PUBLIC_RAFFLE_CHAIN_ID || 33139);
 export const raffleChain: Chain =
   configuredId === apeChainCurtis.id ? apeChainCurtis : apeChain;
 
-/** RPC del navegador para la red de la rifa (nunca una llave privada). */
-export const raffleRpcUrl =
-  process.env.NEXT_PUBLIC_RAFFLE_RPC_URL ||
-  (raffleChain.id === apeChainCurtis.id
-    ? "https://curtis.rpc.caldera.xyz/http"
-    : undefined);
+/**
+ * RPCs del navegador para la red de la rifa, en orden de preferencia. Si el
+ * primero falla (por ejemplo, una llave de Alchemy sin cuota), viem prueba el
+ * siguiente. Nunca se usa una llave privada aquí.
+ */
+export const raffleRpcUrls = Array.from(
+  new Set(
+    [
+      process.env.NEXT_PUBLIC_RAFFLE_RPC_URL,
+      ...raffleChain.rpcUrls.default.http,
+    ].filter((url): url is string => Boolean(url)),
+  ),
+);
+
+export const raffleRpcUrl = raffleRpcUrls[0];

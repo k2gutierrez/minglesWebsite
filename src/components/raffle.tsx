@@ -68,12 +68,12 @@ export function Raffle() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
 
   const infoContracts = [
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getCounter" },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getIsSellOut" },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getRaffleEnd" },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getIsCancelled" },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getPrice" },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getWinnerInfo" },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getCounter", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getIsSellOut", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getRaffleEnd", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getIsCancelled", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getPrice", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getWinnerInfo", chainId: raffleChain.id },
   ] as const;
 
   const {
@@ -91,6 +91,7 @@ export function Raffle() {
         abi: RAFFLE_ABI,
         functionName: "getUserAddressByNumber" as const,
         args: [index + 1] as const,
+        chainId: raffleChain.id,
       })),
     [],
   );
@@ -180,6 +181,7 @@ export function Raffle() {
         functionName: "pickNumber",
         args: [selected],
         value: price,
+        chainId: raffleChain.id,
       });
       await publicClient.waitForTransactionReceipt({ hash });
       setTxHash(hash);
@@ -203,6 +205,7 @@ export function Raffle() {
         abi: RAFFLE_ABI,
         functionName: "removeNumber",
         args: [number],
+        chainId: raffleChain.id,
       });
       await publicClient.waitForTransactionReceipt({ hash });
       await refresh();
