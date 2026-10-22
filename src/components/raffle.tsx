@@ -527,7 +527,7 @@ export function Raffle() {
                         ? "yours"
                         : row.taken
                           ? "taken"
-                          : "free"}
+                          : "available"}
                     </small>
                   </button>
                 );
