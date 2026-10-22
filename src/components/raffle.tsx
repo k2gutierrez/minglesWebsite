@@ -36,6 +36,12 @@ const LOOT = [
   "1 Mingle Tequila NFT",
 ];
 
+function formatPrice(value: bigint) {
+  const text = formatEther(value);
+  if (!text.includes(".")) return text;
+  return text.replace(/0+$/, "").replace(/\.$/, "");
+}
+
 const STEPS = [
   {
     n: "01",
@@ -45,7 +51,7 @@ const STEPS = [
   {
     n: "02",
     title: "Pick one number",
-    body: "Numbers 1 to 25. One number per transaction, 690 APE each, paid in native APE.",
+    body: "Numbers 1 to 25. One number per transaction, paid in the chain's native token.",
   },
   {
     n: "03",
@@ -70,6 +76,9 @@ export function Raffle() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
   const [ownerBusy, setOwnerBusy] = useState<string | null>(null);
   const [ownerMessage, setOwnerMessage] = useState("");
+
+  const symbol = raffleChain.nativeCurrency.symbol;
+  const chainName = raffleChain.name;
 
   const infoContracts = [
     { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getCounter", chainId: raffleChain.id },
@@ -257,7 +266,7 @@ export function Raffle() {
     if (!publicClient) return;
     if (
       !window.confirm(
-        "Cancel the raffle? Every holder will be able to take their APE back.",
+        `Cancel the raffle? Every holder will be able to take their ${symbol} back.`,
       )
     )
       return;
@@ -361,12 +370,12 @@ export function Raffle() {
           </h1>
           <p className="raffle-lede">
             A sealed BAYC Mudwater TCG booster box signed by Beeple &amp; Figge,
-            the full ApeFest kit and a Mingle Tequila NFT. Twenty-five numbers,
-            690 APE each, one winner.
+            the full ApeFest kit and a Mingle Tequila NFT. Twenty-five numbers,{" "}
+            {formatPrice(price)} {symbol} each, one winner.
           </p>
           <div className="raffle-meta">
             <div>
-              <strong>{formatEther(RAFFLE_PRICE)} APE</strong>
+              <strong>{formatPrice(price)} {symbol}</strong>
               <span>per number</span>
             </div>
             <div>
@@ -390,8 +399,8 @@ export function Raffle() {
 
       <div className="raffle-ticker" aria-hidden="true">
         <span>
-          690 APE / NUMBER ✳ 25 NUMBERS ✳ ONE WINNER ✳ MUDWATER TCG ✳ APEFEST
-          2026 ✳
+          {formatPrice(price)} {symbol} / NUMBER ✳ 25 NUMBERS ✳ ONE WINNER ✳
+          MUDWATER TCG ✳ APEFEST 2026 ✳
         </span>
       </div>
 
@@ -471,9 +480,16 @@ export function Raffle() {
                       ? "Sold out"
                       : "Open"}
             </span>
-            <p>{formatEther(price)} APE per number · native APE on ApeChain</p>
+            <p>{formatPrice(price)} {symbol} per number · native {symbol} on {chainName}</p>
           </div>
         </div>
+
+        <p className="raffle-board-help">
+          <strong>How to enter:</strong> connect your wallet, pick an available
+          number, fill in your contact details, sign the message and confirm the
+          payment. If you change your mind, you can leave the raffle from
+          &ldquo;Your numbers&rdquo; below and get the full price back.
+        </p>
 
         {!raffleConfigured && (
           <div className="raffle-banner">
@@ -483,8 +499,8 @@ export function Raffle() {
         )}
         {raffleConfigured && cancelled && (
           <div className="raffle-banner raffle-banner-alert">
-            This raffle was cancelled. If you hold a number, take your APE back
-            below.
+            This raffle was cancelled. If you hold a number, take your {symbol}{" "}
+            back below.
           </div>
         )}
         {raffleConfigured && ended && (
@@ -609,10 +625,19 @@ export function Raffle() {
                   </ConnectButton.Custom>
                   {selected !== null && (
                     <span className="raffle-picked">
-                      Number {String(selected).padStart(2, "0")}
+                      Number {String(selected).padStart(2, "0")} ·{" "}
+                      {formatPrice(price)} {symbol}
                     </span>
                   )}
                 </div>
+
+                {selected === null && (
+                  <p className="raffle-fine">
+                    Pick an available number on the board to start. You will sign
+                    a message with your contact details, then confirm the payment
+                    in your wallet.
+                  </p>
+                )}
 
                 {wrongChain && (
                   <button
@@ -698,7 +723,7 @@ export function Raffle() {
                       ? "Confirming…"
                       : selected === null
                         ? "Pick a number"
-                        : `Enter for ${formatEther(price)} APE`}
+                        : `Enter for ${formatPrice(price)} ${symbol}`}
                   </button>
                 </form>
 
@@ -761,14 +786,14 @@ export function Raffle() {
                 >
                   {ownerBusy === "withdraw"
                     ? "Withdrawing…"
-                    : `Withdraw ${formatEther(contractBalance)} APE`}
+                    : `Withdraw ${formatPrice(contractBalance)} ${symbol}`}
                 </button>
               )}
             </div>
             <p className="raffle-fine">
               Draw fee (vRNG):{" "}
-              {drawFee === undefined ? "—" : `${formatEther(drawFee)} APE`} ·
-              Pot: {formatEther(contractBalance)} APE
+              {drawFee === undefined ? "—" : `${formatPrice(drawFee)} ${symbol}`} ·
+              Pot: {formatPrice(contractBalance)} {symbol}
               {!soldOut && !cancelled && !ended
                 ? " · The draw unlocks at 25 / 25."
                 : ""}
@@ -813,17 +838,19 @@ export function Raffle() {
                     {busyNumber === row.number
                       ? "Confirming…"
                       : cancelled
-                        ? "Refund APE"
-                        : "Leave raffle"}
+                        ? `Refund ${formatPrice(price)} ${symbol}`
+                        : "Leave & refund"}
                   </button>
                 </div>
               ))}
             </div>
-            {soldOut && !cancelled && (
-              <p className="raffle-fine">
-                The raffle is sold out; numbers are frozen until the draw.
-              </p>
-            )}
+            <p className="raffle-fine">
+              Leaving refunds {formatPrice(price)} {symbol} and frees the number
+              immediately.
+              {soldOut && !cancelled
+                ? " The raffle is sold out, so numbers are locked until the draw."
+                : ""}
+            </p>
           </div>
         )}
       </section>
@@ -840,7 +867,7 @@ export function Raffle() {
             <h3>What if all 25 numbers do not sell?</h3>
             <p>
               The draw only happens at 25 / 25. If they do not sell, Mingles can
-              cancel the raffle and every holder can take their APE back.
+              cancel the raffle and every holder can take their {symbol} back.
             </p>
           </div>
           <div>
@@ -860,7 +887,7 @@ export function Raffle() {
           <div>
             <h3>Which currency?</h3>
             <p>
-              690 APE per number, paid in native APE on ApeChain. One number per
+              {formatPrice(price)} {symbol} per number, paid in native {symbol} on {chainName}. One number per
               transaction.
             </p>
           </div>
@@ -875,6 +902,6 @@ function friendlyError(cause: unknown) {
   if (/user rejected|denied/i.test(message))
     return "Transaction cancelled in your wallet.";
   if (/insufficient funds/i.test(message))
-    return "Not enough APE in this wallet for the number plus gas.";
+    return "Not enough funds in this wallet for the number plus gas.";
   return message || "Something went wrong. Please try again.";
 }
