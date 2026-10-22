@@ -669,3 +669,70 @@
     padding-right: 5%;
   }
 }
+
+/* --- Consola del owner ---------------------------------------------------- */
+
+.raffle-owner {
+  display: grid;
+  gap: 8px;
+  margin-top: 34px;
+  padding: clamp(18px, 2.4vw, 28px);
+  border: 1px solid var(--coral);
+  background: #2a1f20;
+}
+
+.raffle-owner-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.raffle-owner-head h3 {
+  margin: 6px 0 0;
+  font-size: clamp(30px, 3vw, 44px);
+  text-transform: uppercase;
+}
+
+.raffle-owner-tag {
+  border: 1px solid var(--coral);
+  color: var(--coral);
+  padding: 6px 10px;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.raffle-owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.raffle-owner-refunds {
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #ededd930;
+}
+
+.raffle-owner-refund-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.raffle-owner-msg {
+  margin: 4px 0 0;
+  color: var(--coral);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+  .raffle-owner-head {
+    flex-direction: column;
+  }
+}

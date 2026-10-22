@@ -82,6 +82,27 @@ export const RAFFLE_ABI = [
   },
   {
     type: "function",
+    name: "getContractBalance",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getVRNG",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
+    name: "owner",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address" }],
+  },
+  {
+    type: "function",
     name: "pickNumber",
     stateMutability: "payable",
     inputs: [{ name: "number", type: "uint8" }],
@@ -94,6 +115,45 @@ export const RAFFLE_ABI = [
     inputs: [{ name: "number", type: "uint8" }],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "roll",
+    stateMutability: "payable",
+    inputs: [{ name: "userCommitment", type: "bytes32" }],
+    outputs: [{ type: "bytes32" }],
+  },
+  {
+    type: "function",
+    name: "cancelRaffle",
+    stateMutability: "nonpayable",
+    inputs: [],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "withdrawFunds",
+    stateMutability: "nonpayable",
+    inputs: [],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "sendMoneyBackToUser",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "number", type: "uint8" }],
+    outputs: [],
+  },
+] as const;
+
+/** Solo la parte del vRNG que necesita la página para saber cuánto cuesta el sorteo. */
+export const VRNG_ABI = [
+  {
+    type: "function",
+    name: "getFee",
+    stateMutability: "view",
+    inputs: [{ name: "caller", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
 ] as const;
 
 export type RaffleWinner = {
@@ -103,4 +163,12 @@ export type RaffleWinner = {
 
 export function shortAddress(address?: string) {
   return address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "";
+}
+
+/** 32 bytes aleatorios para el compromiso del sorteo. */
+export function randomCommitment(): `0x${string}` {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return `0x${Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")}`;
 }

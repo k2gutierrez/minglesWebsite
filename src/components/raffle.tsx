@@ -5,6 +5,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   useAccount,
   usePublicClient,
+  useReadContract,
   useReadContracts,
   useSignMessage,
   useSwitchChain,
@@ -18,7 +19,9 @@ import {
   RAFFLE_MAX,
   RAFFLE_PRICE,
   raffleConfigured,
+  randomCommitment,
   shortAddress,
+  VRNG_ABI,
   type RaffleWinner,
 } from "@/lib/web3/raffle";
 import { raffleEntryMessage } from "@/lib/web3/raffle-message";
@@ -26,7 +29,6 @@ import { raffleEntryMessage } from "@/lib/web3/raffle-message";
 const LOOT = [
   "Sealed Booster Box (24 packs) signed by Beeple & Figge",
   "Sealed Decks (2)",
-  "Sealed Booster Box (24 packs)",
   "Playmats (2)",
   "Pouch with Playing Beads (2)",
   "2026 ApeFest GM Tote (Red)",
@@ -66,6 +68,8 @@ export function Raffle() {
   const [error, setError] = useState("");
   const [done, setDone] = useState<number | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  const [ownerBusy, setOwnerBusy] = useState<string | null>(null);
+  const [ownerMessage, setOwnerMessage] = useState("");
 
   const infoContracts = [
     { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getCounter", chainId: raffleChain.id },
@@ -74,6 +78,9 @@ export function Raffle() {
     { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getIsCancelled", chainId: raffleChain.id },
     { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getPrice", chainId: raffleChain.id },
     { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getWinnerInfo", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getContractBalance", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "getVRNG", chainId: raffleChain.id },
+    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI, functionName: "owner", chainId: raffleChain.id },
   ] as const;
 
   const {
@@ -115,6 +122,26 @@ export function Raffle() {
     info?.[5]?.status === "success"
       ? (info[5].result as unknown as RaffleWinner)
       : undefined;
+  const contractBalance =
+    info?.[6]?.status === "success" ? (info[6].result as bigint) : 0n;
+  const vrngAddress =
+    info?.[7]?.status === "success"
+      ? (info[7].result as Address)
+      : undefined;
+  const ownerAddress =
+    info?.[8]?.status === "success"
+      ? (info[8].result as Address)
+      : undefined;
+
+  const { data: drawFee } = useReadContract({
+    address: vrngAddress ?? zeroAddress,
+    abi: VRNG_ABI,
+    functionName: "getFee",
+    args: [RAFFLE_ADDRESS],
+    chainId: raffleChain.id,
+    query: { enabled: !!vrngAddress },
+  });
+
 
   const rows = useMemo(
     () =>
@@ -138,6 +165,11 @@ export function Raffle() {
   );
 
   const mine = rows.filter((row) => row.mine);
+  const takenRows = rows.filter((row) => row.taken);
+  const isOwner =
+    !!address &&
+    !!ownerAddress &&
+    address.toLowerCase() === ownerAddress.toLowerCase();
   const wrongChain = !!address && chainId !== raffleChain.id;
   const blocked = !raffleConfigured || cancelled || ended || soldOut;
   const explorer = raffleChain.blockExplorers?.default.url;
@@ -192,6 +224,105 @@ export function Raffle() {
       setError(friendlyError(cause));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function drawWinner() {
+    if (!publicClient || drawFee === undefined) return;
+    setOwnerBusy("draw");
+    setOwnerMessage("");
+    setError("");
+    try {
+      const hash = await writeContractAsync({
+        address: RAFFLE_ADDRESS,
+        abi: RAFFLE_ABI,
+        functionName: "roll",
+        args: [randomCommitment()],
+        value: drawFee,
+        chainId: raffleChain.id,
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      setOwnerMessage(
+        "Draw requested onchain. The vRNG will return the winning number; the board updates by itself.",
+      );
+      await refresh();
+    } catch (cause) {
+      setError(friendlyError(cause));
+    } finally {
+      setOwnerBusy(null);
+    }
+  }
+
+  async function cancelRaffle() {
+    if (!publicClient) return;
+    if (
+      !window.confirm(
+        "Cancel the raffle? Every holder will be able to take their APE back.",
+      )
+    )
+      return;
+    setOwnerBusy("cancel");
+    setOwnerMessage("");
+    setError("");
+    try {
+      const hash = await writeContractAsync({
+        address: RAFFLE_ADDRESS,
+        abi: RAFFLE_ABI,
+        functionName: "cancelRaffle",
+        chainId: raffleChain.id,
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      setOwnerMessage("Raffle cancelled. Refunds are open.");
+      await refresh();
+    } catch (cause) {
+      setError(friendlyError(cause));
+    } finally {
+      setOwnerBusy(null);
+    }
+  }
+
+  async function withdrawPot() {
+    if (!publicClient) return;
+    setOwnerBusy("withdraw");
+    setOwnerMessage("");
+    setError("");
+    try {
+      const hash = await writeContractAsync({
+        address: RAFFLE_ADDRESS,
+        abi: RAFFLE_ABI,
+        functionName: "withdrawFunds",
+        chainId: raffleChain.id,
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      setOwnerMessage("Pot withdrawn to the owner wallet.");
+      await refresh();
+    } catch (cause) {
+      setError(friendlyError(cause));
+    } finally {
+      setOwnerBusy(null);
+    }
+  }
+
+  async function refundNumber(number: number) {
+    if (!publicClient) return;
+    setOwnerBusy(`refund-${number}`);
+    setOwnerMessage("");
+    setError("");
+    try {
+      const hash = await writeContractAsync({
+        address: RAFFLE_ADDRESS,
+        abi: RAFFLE_ABI,
+        functionName: "sendMoneyBackToUser",
+        args: [number],
+        chainId: raffleChain.id,
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      setOwnerMessage(`Number ${number} refunded.`);
+      await refresh();
+    } catch (cause) {
+      setError(friendlyError(cause));
+    } finally {
+      setOwnerBusy(null);
     }
   }
 
@@ -582,6 +713,89 @@ export function Raffle() {
             {error && <p className="raffle-error">{error}</p>}
           </div>
         </div>
+
+        {isOwner && (
+          <div className="raffle-owner">
+            <div className="raffle-owner-head">
+              <div>
+                <span className="eyebrow">OWNER CONSOLE</span>
+                <h3>Run the raffle</h3>
+              </div>
+              <span className="raffle-owner-tag">
+                {shortAddress(address)} · ONCHAIN
+              </span>
+            </div>
+            <p className="raffle-fine">
+              Only the owner wallet sees this panel. Every action is an onchain
+              transaction and cannot be undone.
+            </p>
+            <div className="raffle-owner-actions">
+              <button
+                type="button"
+                className="raffle-primary"
+                disabled={
+                  !soldOut ||
+                  ended ||
+                  cancelled ||
+                  ownerBusy !== null ||
+                  drawFee === undefined
+                }
+                onClick={() => void drawWinner()}
+              >
+                {ownerBusy === "draw" ? "Requesting…" : "Draw winner"}
+              </button>
+              <button
+                type="button"
+                className="raffle-secondary"
+                disabled={ended || cancelled || ownerBusy !== null}
+                onClick={() => void cancelRaffle()}
+              >
+                {ownerBusy === "cancel" ? "Cancelling…" : "Cancel raffle"}
+              </button>
+              {ended && (
+                <button
+                  type="button"
+                  className="raffle-secondary"
+                  disabled={contractBalance === 0n || ownerBusy !== null}
+                  onClick={() => void withdrawPot()}
+                >
+                  {ownerBusy === "withdraw"
+                    ? "Withdrawing…"
+                    : `Withdraw ${formatEther(contractBalance)} APE`}
+                </button>
+              )}
+            </div>
+            <p className="raffle-fine">
+              Draw fee (vRNG):{" "}
+              {drawFee === undefined ? "—" : `${formatEther(drawFee)} APE`} ·
+              Pot: {formatEther(contractBalance)} APE
+              {!soldOut && !cancelled && !ended
+                ? " · The draw unlocks at 25 / 25."
+                : ""}
+            </p>
+            {cancelled && takenRows.length > 0 && (
+              <div className="raffle-owner-refunds">
+                <span className="eyebrow">REFUNDS</span>
+                <div className="raffle-owner-refund-list">
+                  {takenRows.map((row) => (
+                    <button
+                      key={row.number}
+                      type="button"
+                      className="raffle-secondary"
+                      disabled={ownerBusy !== null}
+                      onClick={() => void refundNumber(row.number)}
+                    >
+                      {ownerBusy === `refund-${row.number}`
+                        ? "Refunding…"
+                        : `Refund #${String(row.number).padStart(2, "0")}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {ownerMessage && <p className="raffle-owner-msg">{ownerMessage}</p>}
+          </div>
+        )}
 
         {mine.length > 0 && (
           <div className="raffle-mine">
