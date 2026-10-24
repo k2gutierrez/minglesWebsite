@@ -829,3 +829,69 @@
   color: var(--coral);
   font-weight: 600;
 }
+
+/* Aviso de número ya comprado */
+.raffle-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #0b0b0dcc;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.raffle-modal {
+  position: relative;
+  width: min(460px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  border: 1px solid var(--coral);
+  background: var(--ink);
+  color: var(--ivory);
+  box-shadow: 0 30px 80px #00000080;
+}
+
+.raffle-modal h3 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 44px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.raffle-modal p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #ededd9cc;
+}
+
+.raffle-modal .raffle-primary {
+  justify-self: start;
+  margin-top: 6px;
+}
+
+.raffle-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ivory);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.raffle-modal-close:hover {
+  color: var(--coral);
+}
+
+@media (max-width: 520px) {
+  .raffle-modal {
+    padding: 22px;
+  }
+}

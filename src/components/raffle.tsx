@@ -24,6 +24,7 @@ import {
   raffleEntryMessage,
   raffleOwnerEntriesMessage,
   raffleWithdrawalMessage,
+  type RaffleContact,
 } from "@/lib/web3/raffle-message";
 
 type OwnerEntry = {
@@ -85,7 +86,12 @@ export function Raffle() {
   const publicClient = usePublicClient({ chainId: raffleChain.id });
 
   const [selected, setSelected] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", note: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    note: "",
+  });
   const [busy, setBusy] = useState(false);
   const [busyNumber, setBusyNumber] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -105,25 +111,73 @@ export function Raffle() {
   // Firma vigente del owner para leer Supabase. La API la acepta 5 minutos;
   // la reutilizamos para el auto-refresh de 30s y pedimos otra al expirar.
   const [ownerAuth, setOwnerAuth] = useState<OwnerAuth | null>(null);
+  const [modal, setModal] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
+  const [pendingContact, setPendingContact] = useState<{
+    contact: RaffleContact;
+    signature: `0x${string}`;
+  } | null>(null);
+  const [contactSaving, setContactSaving] = useState(false);
+  const [contactSaved, setContactSaved] = useState(false);
+  const [contactError, setContactError] = useState("");
 
   const symbol = raffleChain.nativeCurrency.symbol;
   const chainName = raffleChain.name;
 
   const infoContracts = [
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "getCounter", chainId: raffleChain.id },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "getIsSellOut", chainId: raffleChain.id },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "getRaffleEnd", chainId: raffleChain.id },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "getIsCancelled", chainId: raffleChain.id },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "getPrice", chainId: raffleChain.id },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "getWinnerInfo", chainId: raffleChain.id },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "getContractBalance", chainId: raffleChain.id },
-    { address: RAFFLE_ADDRESS, abi: RAFFLE_ABI_COMMON, functionName: "owner", chainId: raffleChain.id },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "getCounter",
+      chainId: raffleChain.id,
+    },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "getIsSellOut",
+      chainId: raffleChain.id,
+    },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "getRaffleEnd",
+      chainId: raffleChain.id,
+    },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "getIsCancelled",
+      chainId: raffleChain.id,
+    },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "getPrice",
+      chainId: raffleChain.id,
+    },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "getWinnerInfo",
+      chainId: raffleChain.id,
+    },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "getContractBalance",
+      chainId: raffleChain.id,
+    },
+    {
+      address: RAFFLE_ADDRESS,
+      abi: RAFFLE_ABI_COMMON,
+      functionName: "owner",
+      chainId: raffleChain.id,
+    },
   ] as const;
 
-  const {
-    data: info,
-    refetch: refetchInfo,
-  } = useReadContracts({
+  const { data: info, refetch: refetchInfo } = useReadContracts({
     contracts: infoContracts,
     query: { enabled: raffleConfigured, refetchInterval: 20_000 },
   });
@@ -140,16 +194,12 @@ export function Raffle() {
     [],
   );
 
-  const {
-    data: numbers,
-    refetch: refetchNumbers,
-  } = useReadContracts({
+  const { data: numbers, refetch: refetchNumbers } = useReadContracts({
     contracts: numberContracts,
     query: { enabled: raffleConfigured, refetchInterval: 20_000 },
   });
 
-  const counter =
-    info?.[0]?.status === "success" ? Number(info[0].result) : 0;
+  const counter = info?.[0]?.status === "success" ? Number(info[0].result) : 0;
   const soldOut = info?.[1]?.status === "success" ? info[1].result : false;
   const ended = info?.[2]?.status === "success" ? info[2].result : false;
   const cancelled = info?.[3]?.status === "success" ? info[3].result : false;
@@ -163,10 +213,7 @@ export function Raffle() {
   const contractBalance =
     info?.[6]?.status === "success" ? (info[6].result as bigint) : 0n;
   const ownerAddress =
-    info?.[7]?.status === "success"
-      ? (info[7].result as Address)
-      : undefined;
-
+    info?.[7]?.status === "success" ? (info[7].result as Address) : undefined;
 
   const rows = useMemo(
     () =>
@@ -208,12 +255,54 @@ export function Raffle() {
     await Promise.all([refetchInfo(), refetchNumbers()]);
   }
 
+  async function saveContact(contact: RaffleContact, signature: `0x${string}`) {
+    setContactSaving(true);
+    setContactSaved(false);
+    setContactError("");
+    setPendingContact(null);
+
+    let lastError = "Your contact could not be saved.";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const response = await fetch("/api/raffle/entries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...contact, signature }),
+        });
+        const payload = (await response.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        if (response.ok) {
+          setContactSaved(true);
+          setContactSaving(false);
+          return true;
+        }
+        lastError = payload.error || "Your contact could not be saved.";
+        // 409 = the RPC may not have indexed the purchase yet; 503 = the RPC
+        // or Supabase had a transient hiccup. Retry both.
+        if (response.status !== 409 && response.status !== 503) break;
+      } catch (cause) {
+        lastError = friendlyError(cause);
+      }
+      if (attempt < 2)
+        await new Promise((resolve) => setTimeout(resolve, 1_500));
+    }
+
+    setContactSaving(false);
+    setContactError(lastError);
+    setPendingContact({ contact, signature });
+    return false;
+  }
+
   async function enter() {
     if (!address || selected === null || !publicClient || price === undefined)
       return;
     const number = selected;
     setBusy(true);
     setError("");
+    setContactSaved(false);
+    setContactError("");
+    setPendingContact(null);
     try {
       const contact = {
         number,
@@ -228,8 +317,8 @@ export function Raffle() {
       const message = raffleEntryMessage(contact);
       const signature = await signMessageAsync({ message });
 
-      // Simula antes de mandar: si el número ya se tomó, la rifa se cerró o el
-      // valor no alcanza, viem lanza el revés sin gastar gas.
+      // Simulate first: if the number is already taken, the raffle is closed
+      // or the value is wrong, viem throws before spending gas.
       await publicClient.simulateContract({
         address: RAFFLE_ADDRESS,
         abi: RAFFLE_ABI_COMMON,
@@ -238,18 +327,6 @@ export function Raffle() {
         value: price,
         account: address,
       });
-
-      // Los datos de contacto se guardan antes de la compra.
-      const response = await fetch("/api/raffle/entries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...contact, signature }),
-      });
-      const payload = (await response.json().catch(() => ({}))) as {
-        error?: string;
-      };
-      if (!response.ok)
-        throw new Error(payload.error || "Your details could not be saved.");
 
       const hash = await writeContractAsync({
         address: RAFFLE_ADDRESS,
@@ -261,24 +338,40 @@ export function Raffle() {
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-      // viem NO lanza cuando la transacción revierte: devuelve un receipt con
-      // status "reverted". Sin esta comprobación la UI decía "YOU ARE IN"
-      // aunque el número no se hubiera comprado.
-      if (receipt.status !== "success")
-        throw new Error(
-          "The transaction reverted onchain. The number was not purchased.",
-        );
+      if (receipt.status !== "success") {
+        setModal({
+          title: "Number already bought",
+          message: `Number ${number} was taken by another wallet before your transaction. Pick another one.`,
+        });
+        setSelected(null);
+        await refresh();
+        return;
+      }
 
       setTxHash(hash);
       setRecentPurchases((prev) => [
         ...prev.filter((item) => item.number !== number),
         { number, buyer: address },
       ]);
+      setContactSaving(true);
       setDone(number);
       setSelected(null);
+
+      // The contact is saved only after the purchase is confirmed. The API
+      // checks that this wallet is the onchain owner; no 30-minute hold.
+      await saveContact(contact, signature);
       await refresh();
     } catch (cause) {
-      setError(friendlyError(cause));
+      if (isAlreadyBought(cause)) {
+        setModal({
+          title: "Number already bought",
+          message: `Number ${number} was taken by another wallet. Pick another one.`,
+        });
+        setSelected(null);
+        await refresh();
+      } else {
+        setError(friendlyError(cause));
+      }
     } finally {
       setBusy(false);
     }
@@ -351,7 +444,9 @@ export function Raffle() {
       };
       if (response.status === 401) {
         setOwnerAuth(null);
-        setEntriesError("Owner signature expired. Press Refresh to sign again.");
+        setEntriesError(
+          "Owner signature expired. Press Refresh to sign again.",
+        );
         return;
       }
       if (!response.ok)
@@ -407,7 +502,9 @@ export function Raffle() {
     const id = window.setInterval(() => {
       if (Date.now() - ownerAuth.timestamp > 4 * 60_000) {
         setOwnerAuth(null);
-        setEntriesError("Owner signature expired. Press Refresh to sign again.");
+        setEntriesError(
+          "Owner signature expired. Press Refresh to sign again.",
+        );
         return;
       }
       void fetchOwnerEntries(ownerAuth, true);
@@ -587,7 +684,9 @@ export function Raffle() {
           </p>
           <div className="raffle-meta">
             <div>
-              <strong>{displayPrice} {symbol}</strong>
+              <strong>
+                {displayPrice} {symbol}
+              </strong>
               <span>per number</span>
             </div>
             <div>
@@ -611,8 +710,8 @@ export function Raffle() {
 
       <div className="raffle-ticker" aria-hidden="true">
         <span>
-          {displayPrice} {symbol} / NUMBER ✳ 25 NUMBERS ✳ ONE WINNER ✳
-          MUDWATER TCG ✳ APEFEST 2026 ✳
+          {displayPrice} {symbol} / NUMBER ✳ 25 NUMBERS ✳ ONE WINNER ✳ MUDWATER
+          TCG ✳ APEFEST 2026 ✳
         </span>
       </div>
 
@@ -692,7 +791,10 @@ export function Raffle() {
                       ? "Sold out"
                       : "Open"}
             </span>
-            <p>{displayPrice} {symbol} per number · native {symbol} on {chainName}</p>
+            <p>
+              {displayPrice} {symbol} per number · native {symbol} on{" "}
+              {chainName}
+            </p>
           </div>
         </div>
 
@@ -707,8 +809,8 @@ export function Raffle() {
         {!raffleConfigured && (
           <div className="raffle-banner">
             The raffle contract is not configured yet. The page is ready: it
-            opens as soon as the address for this network is set
-            (<code>NEXT_PUBLIC_RAFFLE_ADDRESS_MAINNET</code>,{" "}
+            opens as soon as the address for this network is set (
+            <code>NEXT_PUBLIC_RAFFLE_ADDRESS_MAINNET</code>,{" "}
             <code>NEXT_PUBLIC_RAFFLE_ADDRESS_CURTIS</code>, …).
           </div>
         )}
@@ -721,21 +823,27 @@ export function Raffle() {
         {raffleConfigured && ended && (
           <div className="raffle-banner raffle-banner-win">
             Winner: number <strong>{winner?.winnerNumber ?? "—"}</strong>{" "}
-            {winner?.winnerAddress ? `(${shortAddress(winner.winnerAddress)})` : ""}
+            {winner?.winnerAddress
+              ? `(${shortAddress(winner.winnerAddress)})`
+              : ""}
             . We will contact the winner with the details on file.
           </div>
         )}
         {raffleConfigured && soldOut && !ended && !cancelled && (
           <div className="raffle-banner">
             All 25 numbers are taken. Numbers are locked; the owner will
-            register the winning number onchain. Refunds and cancellation are
-            no longer available after sellout.
+            register the winning number onchain. Refunds and cancellation are no
+            longer available after sellout.
           </div>
         )}
 
         <div className="raffle-board-grid">
           <div className="raffle-numbers-wrap">
-            <div className="raffle-numbers" role="group" aria-label="Raffle numbers">
+            <div
+              className="raffle-numbers"
+              role="group"
+              aria-label="Raffle numbers"
+            >
               {rows.map((row) => {
                 const isSelected = selected === row.number;
                 return (
@@ -746,7 +854,9 @@ export function Raffle() {
                       row.mine ? " is-mine" : ""
                     }${isSelected ? " is-selected" : ""}`}
                     aria-pressed={isSelected}
-                    disabled={blocked || row.taken || busy || price === undefined}
+                    disabled={
+                      blocked || row.taken || busy || price === undefined
+                    }
                     onClick={() => {
                       setSelected(row.number);
                       setDone(null);
@@ -755,19 +865,15 @@ export function Raffle() {
                   >
                     <span>{String(row.number).padStart(2, "0")}</span>
                     <small>
-                      {row.mine
-                        ? "yours"
-                        : row.taken
-                          ? "taken"
-                          : "available"}
+                      {row.mine ? "yours" : row.taken ? "taken" : "available"}
                     </small>
                   </button>
                 );
               })}
             </div>
             <p className="raffle-fine">
-              Availability is read live from the contract. Numbers already
-              taken cannot be selected.
+              Availability is read live from the contract. Numbers already taken
+              cannot be selected.
             </p>
           </div>
 
@@ -776,10 +882,36 @@ export function Raffle() {
               <div className="raffle-done">
                 <span className="eyebrow">YOU ARE IN</span>
                 <h3>Number {String(done).padStart(2, "0")}</h3>
-                <p>
-                  Your entry is onchain. We saved your contact details for the
-                  draw.
-                </p>
+                {contactSaving ? (
+                  <p>Saving your contact details…</p>
+                ) : contactSaved ? (
+                  <p>
+                    Your entry is onchain. We saved your contact details for the
+                    draw.
+                  </p>
+                ) : (
+                  <>
+                    <p className="raffle-error">
+                      Your entry is onchain, but we could not save your contact
+                      details.
+                      {contactError ? ` ${contactError}` : ""}
+                    </p>
+                    {pendingContact && (
+                      <button
+                        type="button"
+                        className="raffle-secondary"
+                        onClick={() =>
+                          void saveContact(
+                            pendingContact.contact,
+                            pendingContact.signature,
+                          )
+                        }
+                      >
+                        Retry saving contact
+                      </button>
+                    )}
+                  </>
+                )}
                 {txHash && explorer && (
                   <a
                     className="raffle-tx"
@@ -793,9 +925,13 @@ export function Raffle() {
                 <button
                   type="button"
                   className="raffle-secondary"
+                  disabled={contactSaving}
                   onClick={() => {
                     setDone(null);
                     setForm({ name: "", email: "", phone: "", note: "" });
+                    setContactSaved(false);
+                    setContactError("");
+                    setPendingContact(null);
                   }}
                 >
                   Pick another number
@@ -849,9 +985,9 @@ export function Raffle() {
 
                 {selected === null && (
                   <p className="raffle-fine">
-                    Pick an available number on the board to start. You will sign
-                    a message with your contact details, then confirm the payment
-                    in your wallet.
+                    Pick an available number on the board to start. You will
+                    sign a message with your contact details, then confirm the
+                    payment in your wallet.
                   </p>
                 )}
 
@@ -860,8 +996,8 @@ export function Raffle() {
                     type="button"
                     className="raffle-switch"
                     onClick={() =>
-                      switchChainAsync({ chainId: raffleChain.id }).catch(
-                        () => setError("Switch the network in your wallet."),
+                      switchChainAsync({ chainId: raffleChain.id }).catch(() =>
+                        setError("Switch the network in your wallet."),
                       )
                     }
                   >
@@ -947,12 +1083,11 @@ export function Raffle() {
                 </form>
 
                 <p className="raffle-fine">
-                  We save your contact before the purchase. MetaMask will show
-                  a hash of your details, not your name, email or phone; the
-                  contact itself is stored offchain in Supabase. If you reject
-                  the wallet transaction, the number stays free onchain and
-                  nothing is charged; the contact reservation expires
-                  automatically in 30 minutes.
+                  We save your contact after the purchase is confirmed. MetaMask
+                  will show a hash of your details, not your name, email or
+                  phone; the contact itself is stored offchain in Supabase. If
+                  the number was already bought, nothing is charged and no
+                  contact is saved.
                 </p>
               </>
             )}
@@ -1002,9 +1137,7 @@ export function Raffle() {
                 }
                 onClick={() => void registerWinner()}
               >
-                {ownerBusy === "winner"
-                  ? "Registering…"
-                  : "Register winner"}
+                {ownerBusy === "winner" ? "Registering…" : "Register winner"}
               </button>
               <button
                 type="button"
@@ -1239,20 +1372,19 @@ export function Raffle() {
           <div>
             <h3>What if all 25 numbers do not sell?</h3>
             <p>
-              The draw happens only at 25 / 25. If the raffle does not sell
-              out, the owner can cancel and every holder can take their{" "}
-              {symbol} back. Once all 25 numbers are sold, numbers are locked:
-              buyers cannot leave and the owner must register the winning
-              number.
+              The draw happens only at 25 / 25. If the raffle does not sell out,
+              the owner can cancel and every holder can take their {symbol}{" "}
+              back. Once all 25 numbers are sold, numbers are locked: buyers
+              cannot leave and the owner must register the winning number.
             </p>
           </div>
           <div>
             <h3>How is the winner picked?</h3>
             <p>
               Once all 25 numbers are sold, the owner draws the winning number
-              offchain and registers it onchain with <code>setWinner</code>.
-              The contract only accepts a number that is currently held, stores
-              the winner&apos;s address and publishes the result. The owner&apos;s
+              offchain and registers it onchain with <code>setWinner</code>. The
+              contract only accepts a number that is currently held, stores the
+              winner&apos;s address and publishes the result. The owner&apos;s
               reputation is the guarantee behind the offchain draw.
             </p>
           </div>
@@ -1266,14 +1398,59 @@ export function Raffle() {
           <div>
             <h3>Which currency?</h3>
             <p>
-              {displayPrice} {symbol} per number, paid in native {symbol} on {chainName}. One number per
-              transaction.
+              {displayPrice} {symbol} per number, paid in native {symbol} on{" "}
+              {chainName}. One number per transaction.
             </p>
           </div>
         </div>
       </section>
+
+      {modal && (
+        <div
+          className="raffle-modal-backdrop"
+          role="presentation"
+          onClick={() => setModal(null)}
+        >
+          <div
+            className="raffle-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="raffle-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="raffle-modal-close"
+              aria-label="Close"
+              onClick={() => setModal(null)}
+            >
+              ×
+            </button>
+            <span className="eyebrow">NUMBER UNAVAILABLE</span>
+            <h3 id="raffle-modal-title">{modal.title}</h3>
+            <p>{modal.message}</p>
+            <button
+              type="button"
+              className="raffle-primary"
+              onClick={() => {
+                setModal(null);
+                document
+                  .getElementById("board")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              Pick another number
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
+}
+
+function isAlreadyBought(cause: unknown) {
+  const message = cause instanceof Error ? cause.message : "";
+  return /NumberAlreadyPicked|already taken|already bought/i.test(message);
 }
 
 function friendlyError(cause: unknown) {

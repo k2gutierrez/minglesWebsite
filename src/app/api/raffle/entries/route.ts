@@ -34,10 +34,11 @@ import {
 export const runtime = "nodejs";
 
 /**
- * Guarda el contacto de un número ANTES de comprarlo y lo borra cuando el
+ * Guarda el contacto de un número DESPUÉS de comprarlo y lo borra cuando el
  * usuario se retira. El usuario firma un mensaje canónico con su wallet; aquí
- * se verifica la firma y se comprueba en cadena que el número siga libre (o que
- * ya no sea suyo, para el retiro). La escritura usa la service_role.
+ * se verifica la firma y se comprueba en cadena que el número ya sea suyo. No
+ * hay reserva previa de 30 minutos: la cadena es la fuente de verdad. La
+ * escritura usa la service_role.
  *
  * Cada fila lleva `chain_id`: las entradas de Curtis (33111), Ethereum mainnet
  * (1), Sepolia (11155111) y ApeChain (33139) nunca se mezclan.
@@ -45,10 +46,6 @@ export const runtime = "nodejs";
 
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 8;
-// Una reserva de contacto que nunca se pagó no debe bloquear el número para
-// siempre. Pasado este tiempo, otra wallet puede reclamarlo si en cadena sigue
-// libre.
-const RESERVATION_TTL_MS = 30 * 60 * 1000;
 // Firma del owner para leer la lista de compradores: válida 5 minutos.
 const OWNER_SIGNATURE_WINDOW_MS = 5 * 60 * 1000;
 const hits = new Map<string, number[]>();
@@ -76,7 +73,7 @@ function rpcUrls() {
     raffleChain.id === 33111
       ? process.env.CURTIS_RPC_URL
       : raffleChain.id === 1
-        ? process.env.ETHEREUM_RPC_URL ?? process.env.MAINNET_RPC_URL
+        ? (process.env.ETHEREUM_RPC_URL ?? process.env.MAINNET_RPC_URL)
         : raffleChain.id === 11155111
           ? process.env.SEPOLIA_RPC_URL
           : raffleChain.id === 33139
@@ -102,47 +99,6 @@ function rpcClient() {
 }
 
 type Client = ReturnType<typeof rpcClient>;
-
-async function chainState(client: Client) {
-  if (!raffleConfigured) return { configured: false as const };
-  try {
-    const [counter, sellOut, ended, cancelled] = await Promise.all([
-      client.readContract({
-        address: RAFFLE_ADDRESS,
-        abi: RAFFLE_ABI_COMMON,
-        functionName: "getCounter",
-      }),
-      client.readContract({
-        address: RAFFLE_ADDRESS,
-        abi: RAFFLE_ABI_COMMON,
-        functionName: "getIsSellOut",
-      }),
-      client.readContract({
-        address: RAFFLE_ADDRESS,
-        abi: RAFFLE_ABI_COMMON,
-        functionName: "getRaffleEnd",
-      }),
-      client.readContract({
-        address: RAFFLE_ADDRESS,
-        abi: RAFFLE_ABI_COMMON,
-        functionName: "getIsCancelled",
-      }),
-    ]);
-    return {
-      configured: true as const,
-      client,
-      counter: Number(counter),
-      sellOut,
-      ended,
-      cancelled,
-    };
-  } catch {
-    throw new ApiError(
-      503,
-      "The raffle contract could not be read right now. Try again in a moment.",
-    );
-  }
-}
 
 async function numberOwner(client: Client, number: number) {
   try {
@@ -317,52 +273,26 @@ export const POST = endpoint(async (request) => {
   if (!(await validSignature(client, address, message, signature)))
     throw new ApiError(401, "The signature does not match this wallet.");
 
-  const state = await chainState(client);
-  let chainOwner: Address = zeroAddress;
-  if (state.configured) {
-    if (state.cancelled) throw new ApiError(409, "This raffle was cancelled.");
-    if (state.ended) throw new ApiError(409, "This raffle already ended.");
-    if (state.sellOut) throw new ApiError(409, "This raffle is sold out.");
+  if (!raffleConfigured)
+    throw new ApiError(503, "The raffle contract is not configured.");
 
-    chainOwner = await numberOwner(state.client, number);
-    if (chainOwner !== zeroAddress && getAddress(chainOwner) !== address)
-      throw new ApiError(
-        409,
-        `Number ${number} is already taken by another wallet.`,
-      );
-  }
-
-  const db = adminDb();
-  const existing = await db
-    .from("raffle_entries")
-    .select("id,wallet,created_at")
-    .eq("raffle", RAFFLE_ID)
-    .eq("chain_id", raffleChain.id)
-    .eq("number", number)
-    .maybeSingle();
-  if (existing.error)
+  // El contacto se guarda DESPUÉS de la compra. El dueño onchain del número
+  // es la prueba de que esta wallet realmente lo compró; no hay reserva de
+  // 30 minutos ni bloqueo previo.
+  const chainOwner = await numberOwner(client, number);
+  if (chainOwner === zeroAddress)
     throw new ApiError(
-      503,
-      "The raffle entries table is not ready. Apply migration 202610230004_raffle_entries_chain.sql.",
+      409,
+      `Number ${number} is not owned by this wallet yet. Complete the purchase first.`,
+    );
+  if (getAddress(chainOwner) !== address)
+    throw new ApiError(
+      409,
+      `Number ${number} was already bought by another wallet.`,
     );
 
-  if (
-    existing.data &&
-    existing.data.wallet.toLowerCase() !== address.toLowerCase()
-  ) {
-    // La fila es de otra wallet. Se puede reemplazar si el número ya es de
-    // quien firma (p. ej. el anterior lo liberó) o si la reserva caducó y en
-    // cadena sigue libre. Si no, se protege al que llegó primero.
-    const ownedOnchain =
-      chainOwner !== zeroAddress && getAddress(chainOwner) === address;
-    const age = Date.now() - new Date(existing.data.created_at).getTime();
-    if (!ownedOnchain && age < RESERVATION_TTL_MS)
-      throw new ApiError(
-        409,
-        `Number ${number} was already reserved by another wallet.`,
-      );
-  }
-
+  const now = new Date().toISOString();
+  const db = adminDb();
   const { error } = await db.from("raffle_entries").upsert(
     {
       raffle: RAFFLE_ID,
@@ -373,7 +303,8 @@ export const POST = endpoint(async (request) => {
       email,
       phone,
       note: note ?? null,
-      updated_at: new Date().toISOString(),
+      created_at: now,
+      updated_at: now,
     },
     { onConflict: "raffle,chain_id,number" },
   );
