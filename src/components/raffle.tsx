@@ -694,7 +694,8 @@ export function Raffle() {
           <strong>How to enter:</strong> connect your wallet, pick an available
           number, fill in your contact details, sign the message and confirm the
           payment. If you change your mind, you can leave the raffle from
-          &ldquo;Your numbers&rdquo; below and get the full price back.
+          &ldquo;Your numbers&rdquo; below and get the full price back while the
+          raffle is not sold out.
         </p>
 
         {!raffleConfigured && (
@@ -720,9 +721,9 @@ export function Raffle() {
         )}
         {raffleConfigured && soldOut && !ended && !cancelled && (
           <div className="raffle-banner">
-            All 25 numbers are taken. The owner will register the winning
-            number onchain. Until then, holders can still leave and get their
-            money back.
+            All 25 numbers are taken. Numbers are locked; the owner will
+            register the winning number onchain. Refunds and cancellation are
+            no longer available after sellout.
           </div>
         )}
 
@@ -1199,7 +1200,7 @@ export function Raffle() {
                   <button
                     type="button"
                     className="raffle-secondary"
-                    disabled={busyNumber === row.number || ended}
+                    disabled={busyNumber === row.number || ended || soldOut}
                     onClick={() => void leave(row.number)}
                   >
                     {busyNumber === row.number
@@ -1213,8 +1214,9 @@ export function Raffle() {
             </div>
             <p className="raffle-fine">
               Leaving refunds {displayPrice} {symbol} and frees the number
-              immediately. You can leave until the owner registers the winning
-              number, even if all 25 numbers were sold.
+              immediately. You can leave only while the raffle is not sold out;
+              once all 25 numbers are sold, numbers are locked until the owner
+              registers the winner.
             </p>
           </div>
         )}
@@ -1233,9 +1235,10 @@ export function Raffle() {
             <p>
               The owner can register the winning number once there is at least
               one entry, even if the 25 numbers are not sold out. Cancellation
-              is only possible while the raffle is not sold out; once all 25
-              numbers are sold, the owner must register the winner. If the
-              raffle is cancelled, every holder can take their {symbol} back.
+              is only possible while the raffle is not sold out. Once all 25
+              numbers are sold, numbers are locked: buyers cannot leave and the
+              owner must register the winner. If the raffle is cancelled before
+              sellout, every holder can take their {symbol} back.
             </p>
           </div>
           <div>
