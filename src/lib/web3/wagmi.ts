@@ -11,9 +11,10 @@ import { raffleChain, raffleRpcUrls } from "./chains";
  * inyectadas en escritorio (sin QR, sin móvil). RainbowKit añade el modal de
  * conexión y WalletConnect, y por fin usa el projectId que ya estaba puesto.
  *
- * Dos decisiones:
- *  - **Solo ApeChain.** El sitio no habla con otras redes, así que no se
- *    ofrecen; evita que alguien conecte en Ethereum y vea todo en cero.
+ * Decisiones:
+ *  - **ApeChain siempre; la red de la rifa además.** El portal vive en ApeChain,
+ *    pero la rifa puede apuntar a Curtis, Sepolia o Ethereum L1. Solo se añade
+ *    la red de la rifa cuando es distinta de ApeChain.
  *  - **El RPC del navegador es el público, no el de Alchemy.** La llave de
  *    Alchemy solo puede vivir en el servidor: si el navegador la usara, se
  *    publicaría y cualquiera gastaría la cuota. Las lecturas pesadas del

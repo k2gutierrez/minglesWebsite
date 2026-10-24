@@ -1,9 +1,9 @@
 import { defineChain, type Chain } from "viem";
-import { apeChain } from "viem/chains";
+import { apeChain, mainnet, sepolia } from "viem/chains";
 
 /**
  * ApeChain Curtis (testnet). Se usa cuando `NEXT_PUBLIC_RAFFLE_CHAIN_ID=33111`
- * para probar la rifa de punta a punta antes de mainnet.
+ * para probar la rifa de punta a punta con el contrato vRNG que ya existe.
  */
 export const apeChainCurtis = defineChain({
   id: 33111,
@@ -23,11 +23,26 @@ export const apeChainCurtis = defineChain({
   testnet: true,
 });
 
-const configuredId = Number(process.env.NEXT_PUBLIC_RAFFLE_CHAIN_ID || 33139);
+/**
+ * Red de la rifa:
+ *   1          Ethereum mainnet (Chainlink VRF v2.5)
+ *   11155111   Ethereum Sepolia (ensayo del oráculo)
+ *   33111      ApeChain Curtis (vRNG, testnet)
+ *   33139      ApeChain mainnet (vRNG)
+ *
+ * Si la variable falta se usa mainnet (1): es mejor mostrar "próximamente" a
+ * publicar por accidente la rifa de testnet en producción.
+ */
+const configuredId = Number(process.env.NEXT_PUBLIC_RAFFLE_CHAIN_ID || 1);
 
-/** Red donde vive el contrato de la rifa. Mainnet por defecto. */
-export const raffleChain: Chain =
-  configuredId === apeChainCurtis.id ? apeChainCurtis : apeChain;
+const raffleChains: Record<number, Chain> = {
+  1: mainnet,
+  11155111: sepolia,
+  33111: apeChainCurtis,
+  33139: apeChain,
+};
+
+export const raffleChain: Chain = raffleChains[configuredId] ?? mainnet;
 
 /**
  * RPCs del navegador para la red de la rifa, en orden de preferencia. Si el

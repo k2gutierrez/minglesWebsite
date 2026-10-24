@@ -3,7 +3,7 @@ import { useState } from "react";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
-import { apeChain } from "viem/chains";
+import { apeChain, mainnet, sepolia } from "viem/chains";
 import { apeChainCurtis } from "@/lib/web3/chains";
 import { wagmiConfig } from "@/lib/web3/wagmi";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -18,10 +18,17 @@ export function WalletProviders({
   chainId = apeChain.id,
 }: {
   children: React.ReactNode;
-  /** La rifa puede apuntar a Curtis; el resto del sitio usa mainnet. */
+  /** La rifa puede apuntar a Curtis, Sepolia o Ethereum L1. */
   chainId?: number;
 }) {
-  const initialChain = chainId === apeChainCurtis.id ? apeChainCurtis : apeChain;
+  const initialChain =
+    chainId === 1
+      ? mainnet
+      : chainId === 11155111
+        ? sepolia
+        : chainId === apeChainCurtis.id
+          ? apeChainCurtis
+          : apeChain;
   const [queryClient] = useState(() => new QueryClient());
 
   return (

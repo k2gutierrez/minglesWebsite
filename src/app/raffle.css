@@ -711,6 +711,86 @@
   margin-top: 6px;
 }
 
+.raffle-owner-winner {
+  display: grid;
+  gap: 6px;
+  min-width: 130px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.raffle-owner-winner input {
+  width: 100%;
+  border: 1px solid #ededd940;
+  background: #1b1b1d;
+  color: var(--ivory);
+  padding: 10px 12px;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.raffle-owner-winner input:focus-visible {
+  outline: 1px solid var(--coral);
+  outline-offset: 2px;
+}
+
+.raffle-owner-entries {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #ededd930;
+}
+
+.raffle-owner-entries-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.raffle-owner-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #ededd920;
+}
+
+.raffle-owner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.raffle-owner-table th,
+.raffle-owner-table td {
+  border-bottom: 1px solid #ededd920;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.raffle-owner-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.raffle-owner-table th {
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.raffle-owner-table td a {
+  color: var(--coral);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .raffle-owner-refunds {
   margin-top: 12px;
   padding-top: 14px;
