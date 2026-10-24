@@ -286,6 +286,12 @@ export function Raffle() {
 
   async function registerWinner() {
     if (!publicClient || !address) return;
+    if (!soldOut) {
+      setError(
+        "The winner can only be registered after all 25 numbers are sold.",
+      );
+      return;
+    }
     const number = Number(winningNumber);
     if (!Number.isInteger(number) || number < 1 || number > RAFFLE_MAX) {
       setError(`Enter a winning number between 1 and ${RAFFLE_MAX}.`);
@@ -988,7 +994,7 @@ export function Raffle() {
                 type="button"
                 className="raffle-primary"
                 disabled={
-                  counter === 0 ||
+                  !soldOut ||
                   !winningNumber ||
                   ended ||
                   cancelled ||
@@ -1035,7 +1041,7 @@ export function Raffle() {
                   ? " · raffle cancelled"
                   : soldOut
                     ? " · sold out: cancellation disabled, register the winner"
-                    : " · register the winning number when the draw is done"}
+                    : " · the draw unlocks at 25 / 25; until then holders can leave or the owner can cancel"}
             </p>
             <div className="raffle-owner-entries">
               <div className="raffle-owner-entries-head">
@@ -1233,22 +1239,21 @@ export function Raffle() {
           <div>
             <h3>What if all 25 numbers do not sell?</h3>
             <p>
-              The owner can register the winning number once there is at least
-              one entry, even if the 25 numbers are not sold out. Cancellation
-              is only possible while the raffle is not sold out. Once all 25
-              numbers are sold, numbers are locked: buyers cannot leave and the
-              owner must register the winner. If the raffle is cancelled before
-              sellout, every holder can take their {symbol} back.
+              The draw happens only at 25 / 25. If the raffle does not sell
+              out, the owner can cancel and every holder can take their{" "}
+              {symbol} back. Once all 25 numbers are sold, numbers are locked:
+              buyers cannot leave and the owner must register the winning
+              number.
             </p>
           </div>
           <div>
             <h3>How is the winner picked?</h3>
             <p>
-              The owner draws the winning number offchain and registers it
-              onchain with <code>setWinner</code>. The contract only accepts a
-              number that is currently held, stores the winner&apos;s address and
-              publishes the result. The owner&apos;s reputation is the guarantee
-              behind the offchain draw.
+              Once all 25 numbers are sold, the owner draws the winning number
+              offchain and registers it onchain with <code>setWinner</code>.
+              The contract only accepts a number that is currently held, stores
+              the winner&apos;s address and publishes the result. The owner&apos;s
+              reputation is the guarantee behind the offchain draw.
             </p>
           </div>
           <div>
@@ -1279,6 +1284,9 @@ function friendlyError(cause: unknown) {
     return "Not enough funds in this wallet for the number plus gas.";
   if (/NumberAlreadyPicked/i.test(message))
     return "That number was just taken by another wallet. Pick another one.";
+  if (/NoSellOut/i.test(message))
+    return "The winner can only be registered after all 25 numbers are sold.";
+  if (/NoEntries/i.test(message)) return "There are no entries yet.";
   if (/SellOut/i.test(message))
     return "The raffle is sold out right now. Try another number or wait for a cancellation.";
   if (/InvalidAmount/i.test(message))
