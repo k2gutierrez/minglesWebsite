@@ -895,3 +895,51 @@
     padding: 22px;
   }
 }
+
+/* Banner del ganador cuando conecta la wallet premiada */
+.raffle-winner-banner {
+  display: grid;
+  gap: 14px;
+  padding: clamp(30px, 5vw, 58px) 4.5%;
+  background: var(--coral);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.raffle-winner-banner .eyebrow {
+  color: var(--ink);
+  opacity: 0.72;
+}
+
+.raffle-winner-banner h2 {
+  margin: 0;
+  font-size: clamp(46px, 7vw, 98px);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.raffle-winner-banner p {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.raffle-winner-banner .raffle-winner-note {
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+.raffle-winner-banner .raffle-primary {
+  justify-self: start;
+  margin-top: 4px;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--ivory);
+}
+
+.raffle-winner-banner .raffle-primary:hover {
+  border-color: var(--ivory);
+  background: var(--ivory);
+  color: var(--ink);
+}

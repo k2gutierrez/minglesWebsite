@@ -44,6 +44,10 @@ type OwnerAuth = {
   timestamp: number;
 };
 
+// Optional contact link for the winner (X, Telegram or mailto). If empty, the
+// winner banner shows the message without a button.
+const WINNER_CONTACT_URL = process.env.NEXT_PUBLIC_WINNER_CONTACT_URL;
+
 const LOOT = [
   "Sealed Booster Box (24 packs) signed by Beeple & Figge",
   "Sealed Decks (2)",
@@ -210,6 +214,10 @@ export function Raffle() {
     info?.[5]?.status === "success"
       ? (info[5].result as unknown as RaffleWinner)
       : undefined;
+  const winnerIsConnected =
+    !!address &&
+    !!winner?.winnerAddress &&
+    winner.winnerAddress.toLowerCase() === address.toLowerCase();
   const contractBalance =
     info?.[6]?.status === "success" ? (info[6].result as bigint) : 0n;
   const ownerAddress =
@@ -667,6 +675,29 @@ export function Raffle() {
 
   return (
     <main id="main" className="raffle">
+      {winnerIsConnected && (
+        <section className="raffle-winner-banner" aria-live="polite">
+          <span className="eyebrow">
+            WINNER · NUMBER {String(winner?.winnerNumber ?? 0).padStart(2, "0")}
+          </span>
+          <h2>You are the Winner!</h2>
+          <p>Get in touch with MBA Memo to claim your prize.</p>
+          <p className="raffle-winner-note">
+            Keep this wallet connected as proof of ownership. Your contact
+            details are already on file.
+          </p>
+          {WINNER_CONTACT_URL && (
+            <a
+              className="raffle-primary"
+              href={WINNER_CONTACT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Contact MBA Memo ↗
+            </a>
+          )}
+        </section>
+      )}
       <section className="raffle-hero">
         <div className="raffle-hero-copy">
           <span className="eyebrow">MINGLES × APEFEST 2026</span>
@@ -820,7 +851,7 @@ export function Raffle() {
             back below.
           </div>
         )}
-        {raffleConfigured && ended && (
+        {raffleConfigured && ended && !winnerIsConnected && (
           <div className="raffle-banner raffle-banner-win">
             Winner: number <strong>{winner?.winnerNumber ?? "—"}</strong>{" "}
             {winner?.winnerAddress
