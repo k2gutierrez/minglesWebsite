@@ -5,12 +5,16 @@ import { useEffect, useState } from "react";
 import { Menu, X, ArrowUpRight, ArrowUp } from "lucide-react";
 import { useSite } from "./provider";
 import { safeHref, isHttpsUrl, OPENSEA_URL } from "@/lib/content";
+import { RAFFLE_PUBLIC } from "@/lib/raffle-visibility";
 import { OpenSeaIcon } from "./brand-icons";
 export function Header() {
   const { content, mode } = useSite();
   const path = usePathname();
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [path]);
+  const navItems = content.nav.filter(
+    (n) => RAFFLE_PUBLIC || !/raffle/i.test(`${n.href} ${n.label}`),
+  );
   return (
     <>
       <div className="topline">
@@ -33,7 +37,7 @@ export function Header() {
           />
         </Link>
         <nav className="desktop-nav" aria-label="Main navigation">
-          {content.nav.map((n) => (
+          {navItems.map((n) => (
             <Link
               key={n.href}
               aria-current={path === n.href ? "page" : undefined}
@@ -42,13 +46,15 @@ export function Header() {
               {n.label}
             </Link>
           ))}
-          <Link
-            href="/apefest-raffle"
-            className="nav-raffle"
-            aria-current={path === "/apefest-raffle" ? "page" : undefined}
-          >
-            Raffle
-          </Link>
+          {RAFFLE_PUBLIC && (
+            <Link
+              href="/apefest-raffle"
+              className="nav-raffle"
+              aria-current={path === "/apefest-raffle" ? "page" : undefined}
+            >
+              Raffle
+            </Link>
+          )}
         </nav>
         <a
           className="os-link"
@@ -81,15 +87,17 @@ export function Header() {
               if (e.key === "Escape") setOpen(false);
             }}
           >
-            {content.nav.map((n) => (
+            {navItems.map((n) => (
               <Link key={n.href} href={safeHref(n.href)}>
                 {n.label}
                 <ArrowUpRight />
               </Link>
             ))}
-            <Link href="/apefest-raffle" className="nav-raffle">
-              ApeFest raffle <ArrowUpRight />
-            </Link>
+            {RAFFLE_PUBLIC && (
+              <Link href="/apefest-raffle" className="nav-raffle">
+                ApeFest raffle <ArrowUpRight />
+              </Link>
+            )}
             <Link href="/build-the-distillery">
               Build the Distillery <ArrowUpRight />
             </Link>
@@ -146,7 +154,9 @@ export function Footer() {
             </span>
             <ArrowUpRight size={14} />
           </a>
-          <Link href="/apefest-raffle">ApeFest raffle ↗</Link>
+          {RAFFLE_PUBLIC && (
+            <Link href="/apefest-raffle">ApeFest raffle ↗</Link>
+          )}
           <Link href="/build-the-distillery">Build the Distillery ↗</Link>
           <Link href="/portal">Holder portal ↗</Link>
           <Link href="/updates">Follow the build ↗</Link>
