@@ -570,6 +570,12 @@
   color: var(--coral);
 }
 
+/* The Last Barrel is live, so it gets the same emphasis the raffle had. */
+.desktop-nav a.nav-mudwater,
+.mobile-nav a.nav-mudwater {
+  color: #aea35d;
+}
+
 .mobile-nav a.nav-raffle {
   color: var(--coral);
 }

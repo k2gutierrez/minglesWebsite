@@ -46,6 +46,13 @@ export function Header() {
               {n.label}
             </Link>
           ))}
+          <Link
+            href="/mudwater"
+            className="nav-mudwater"
+            aria-current={path.startsWith("/mudwater") ? "page" : undefined}
+          >
+            The Last Barrel
+          </Link>
           {RAFFLE_PUBLIC && (
             <Link
               href="/apefest-raffle"
@@ -93,6 +100,9 @@ export function Header() {
                 <ArrowUpRight />
               </Link>
             ))}
+            <Link href="/mudwater" className="nav-mudwater">
+              The Last Barrel <ArrowUpRight />
+            </Link>
             {RAFFLE_PUBLIC && (
               <Link href="/apefest-raffle" className="nav-raffle">
                 ApeFest raffle <ArrowUpRight />
