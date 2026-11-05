@@ -7,10 +7,30 @@ import { getStadiumSnapshot } from "@/lib/mudwater/stadium";
 
 export const dynamic = "force-dynamic";
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.mingles.wtf";
+
+const TITLE = "The Last Barrel";
+const DESCRIPTION =
+  "Mudwater × Mingles. Two arenas, three barrels each, forty-eight hours on ApeChain. The least populated barrel wins, and a published draw decides who takes the pack.";
+
 export const metadata: Metadata = {
-  title: "The Last Barrel",
-  description:
-    "Mudwater × Mingles. Two arenas, three barrels each, forty-eight hours on ApeChain. The least populated barrel wins, and a published draw decides who takes the pack.",
+  metadataBase: new URL(SITE),
+  title: TITLE,
+  description: DESCRIPTION,
+  // The share cards in X read these. Without metadataBase the image URL would
+  // be relative and X would drop the preview.
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/mudwater",
+    siteName: "Mingles",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
   robots: { index: false, follow: false },
 };
 
@@ -84,7 +104,7 @@ export default function MudwaterPage() {
               </p>
 
               <div className="mw-actions">
-                <SignInButton enabled={isOpen} />
+                {!live && <SignInButton enabled={isOpen} />}
                 <a className="mw-button mw-button-ghost" href="#how">
                   How it works
                 </a>

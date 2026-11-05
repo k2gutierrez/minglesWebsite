@@ -70,11 +70,13 @@ function Barrel({
   return (
     <figure className="mw-barrel">
       <span className="mw-barrel-letter" aria-hidden="true">
+        <i>Barrel</i>
         {letter}
       </span>
       <span className="mw-barrel-badge" aria-hidden={!smallest}>
         MIN
       </span>
+      <span className="mw-barrel-lamp" aria-hidden="true" />
       <svg
         className="mw-barrel-svg"
         viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -115,11 +117,21 @@ function Barrel({
   );
 }
 
+const ARENA_TITLE: Record<string, string> = {
+  holders: "Mingles Arena",
+  open: "ApeChain Arena",
+};
+
 function Arena({ arena }: { arena: ArenaSnapshot }) {
+  const title = ARENA_TITLE[arena.id] ?? arena.name;
+
   return (
-    <section className="mw-arena" aria-label={arena.name}>
+    <section className="mw-arena" aria-label={`${title}, ${arena.name}`}>
       <header className="mw-arena-head">
-        <h3 className="mw-arena-title">{arena.name}</h3>
+        <div className="mw-arena-heading">
+          <h3 className="mw-arena-title">{title}</h3>
+          <p className="mw-arena-name">{arena.name}</p>
+        </div>
         <span className="mw-chip">{arena.pack}</span>
       </header>
       <p className="mw-arena-gate">{arena.gate}</p>

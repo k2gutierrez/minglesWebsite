@@ -2,16 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useSignMessage, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useSignMessage, useWriteContract } from "wagmi";
 import { getSupabase } from "@/lib/supabase";
 import { ARENA, gameAbi } from "@/lib/mudwater/abi";
 import { signInWithX } from "@/lib/mudwater/auth";
 
 /**
- * The player half of the stadium: sign in, link a wallet, declare a post, move.
+ * The player side of the stadium.
  *
- * It does not poll. The parent gives it the state it already fetched and a
- * `refresh` callback, so there is one poller in the page, not two.
+ * Four steps, one at a time. The rule is that the page never shows two calls to
+ * action, because the previous version did and nobody knew what to press next.
  */
 
 export interface GameState {
@@ -28,18 +28,72 @@ export interface GameState {
     isHolder?: boolean | null;
     holders: { barrel: number; entered: boolean; lastAction: number } | null;
     open: { barrel: number; entered: boolean; lastAction: number } | null;
-    passes?: Array<{ activation: number; status: string; tx_hash: string | null; expiry: string }>;
+    passes?: Array<{
+      activation: number;
+      status: string;
+      tx_hash: string | null;
+      expiry: string;
+    }>;
   };
 }
 
 const COOLDOWN = 300;
+const SHARE_URL = "https://www.mingles.wtf/mudwater";
 
-function hoursLeft(iso: number) {
-  const diff = iso * 1000 - Date.now();
+/** The three cards from the rules. The text is the bluff, the barrel is real. */
+const CARDS = [
+  {
+    key: "a",
+    letter: "A",
+    text: "Barrel A is the only safe spot. Follow me if you dare.",
+  },
+  {
+    key: "b",
+    letter: "B",
+    text: "I moved to B. The other barrels are traps.",
+  },
+  {
+    key: "c",
+    letter: "C",
+    text: "Nobody should enter C. Seriously. Stay away.",
+  },
+] as const;
+
+type CardKey = (typeof CARDS)[number]["key"];
+
+function hoursLeft(seconds: number) {
+  const diff = seconds * 1000 - Date.now();
   if (diff <= 0) return "expired";
   const h = Math.floor(diff / 3_600_000);
   const m = Math.floor((diff % 3_600_000) / 60_000);
   return `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
+function Step({
+  number,
+  title,
+  hint,
+  state,
+  children,
+}: {
+  number: number;
+  title: string;
+  hint?: string;
+  state: "done" | "now" | "next";
+  children?: React.ReactNode;
+}) {
+  return (
+    <li className={`mw-step is-${state}`}>
+      <span className="mw-step-n">{state === "done" ? "✓" : number}</span>
+      <div className="mw-step-body">
+        <p className="mw-step-title">{title}</p>
+        {hint && state === "now" && <p className="mw-step-hint">{hint}</p>}
+        {children && state === "now" && (
+          <div className="mw-step-action">{children}</div>
+        )}
+      </div>
+    </li>
+  );
 }
 
 export function GameActions({
@@ -51,7 +105,8 @@ export function GameActions({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [postUrl, setPostUrl] = useState("");
+  const [card, setCard] = useState<CardKey | null>(null);
+  const [openedX, setOpenedX] = useState(false);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
 
   const { address, isConnected } = useAccount();
@@ -63,13 +118,9 @@ export function GameActions({
     return () => clearInterval(id);
   }, []);
 
-  const token = useCallback(async () => {
+  const call = useCallback(async (path: string, payload: unknown) => {
     const { data } = (await getSupabase()?.auth.getSession()) ?? { data: null };
-    return data?.session?.access_token ?? null;
-  }, []);
-
-  async function call(path: string, payload: unknown) {
-    const access = await token();
+    const access = data?.session?.access_token;
     if (!access) throw new Error("Your session expired. Sign in again.");
 
     const response = await fetch(path, {
@@ -81,10 +132,10 @@ export function GameActions({
       body: JSON.stringify(payload),
     });
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data?.error ?? "The request failed.");
-    return data;
-  }
+    const parsed = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(parsed?.error ?? "The request failed.");
+    return parsed;
+  }, []);
 
   async function linkWallet() {
     if (!address) return;
@@ -92,9 +143,7 @@ export function GameActions({
     setError(null);
     try {
       const challenge = await call("/api/mudwater/wallet", { address });
-      const signature = await signMessageAsync({
-        message: challenge.message,
-      });
+      const signature = await signMessageAsync({ message: challenge.message });
       await call("/api/mudwater/wallet/verify", {
         id: challenge.id,
         address,
@@ -108,12 +157,25 @@ export function GameActions({
     }
   }
 
-  async function declarePass() {
+  function openX(key: CardKey) {
+    const chosen = CARDS.find((c) => c.key === key);
+    if (!chosen) return;
+
+    const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      chosen.text,
+    )}&url=${encodeURIComponent(SHARE_URL)}`;
+
+    window.open(intent, "_blank", "noopener,noreferrer");
+    setCard(key);
+    setOpenedX(true);
+    setError(null);
+  }
+
+  async function confirmPost() {
     setBusy("pass");
     setError(null);
     try {
-      await call("/api/mudwater/pass", { postUrl });
-      setPostUrl("");
+      await call("/api/mudwater/pass", { card });
       refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not activate the pass.");
@@ -126,13 +188,12 @@ export function GameActions({
     setBusy(`${arena}-${barrel}`);
     setError(null);
     try {
-      const hash = await writeContractAsync({
+      await writeContractAsync({
         address: state.contract as `0x${string}`,
         abi: gameAbi,
         functionName: "act",
         args: [ARENA[arena], barrel],
       });
-      void hash;
       refresh();
     } catch (e) {
       const message = e instanceof Error ? e.message : "The move failed.";
@@ -145,134 +206,175 @@ export function GameActions({
   const player = state.player;
   const passActive = Boolean(player && player.passExpiry > now);
 
+  const current = !player ? 1 : !player.wallet ? 2 : !passActive ? 3 : 4;
+  const stepState = (n: number) => (n < current ? "done" : n === current ? "now" : "next");
+
   const arenas = useMemo(
-    () =>
-      [
-        { key: "holders" as const, label: "Mingles Holders" },
-        { key: "open" as const, label: "Open Swamp" },
-      ],
+    () => [
+      { key: "holders" as const, title: "Mingles Arena", name: "Mingles Holders" },
+      { key: "open" as const, title: "ApeChain Arena", name: "Open Swamp" },
+    ],
     [],
   );
 
-  if (!player) {
-    return (
-      <div className="mw-actions-panel">
-        <p className="mw-panel-title">Play</p>
-        <p className="mw-panel-text">
-          Sign in with X to play. One account, one wallet, two arenas.
-        </p>
-        <button
-          className="mw-button"
-          type="button"
-          disabled={busy !== null}
-          onClick={async () => {
-            setError(null);
-            const result = await signInWithX();
-            if (!result.ok) {
-              setError(
-                result.reason === "unconfigured"
-                  ? "Sign-in is not connected on this build yet."
-                  : (result.message ?? "Could not start the sign-in."),
-              );
-            }
-          }}
-        >
-          Sign in with X
-        </button>
-        {error && <p className="mw-auth-error">{error}</p>}
-      </div>
-    );
-  }
-
   return (
-    <div className="mw-actions-panel">
-      <div className="mw-panel-head">
-        <div>
-          <p className="mw-panel-title">@{player.handle}</p>
-          <p className="mw-panel-text">
+    <section className="mw-play" aria-label="Play">
+      <div className="mw-play-head">
+        <p className="mw-panel-title">How to play</p>
+        {player && (
+          <p className="mw-play-id">
+            @{player.handle}
             {player.wallet
-              ? `Wallet ${player.wallet.slice(0, 6)}…${player.wallet.slice(-4)}`
-              : "No wallet linked yet"}
+              ? ` · ${player.wallet.slice(0, 6)}…${player.wallet.slice(-4)}`
+              : ""}
+            {passActive ? ` · pass ${hoursLeft(player.passExpiry)}` : ""}
           </p>
-        </div>
-        <div className="mw-panel-status">
-          <span className={passActive ? "mw-dot is-on" : "mw-dot"} />
-          {passActive ? `Pass ${hoursLeft(player.passExpiry)}` : "No pass"}
-        </div>
+        )}
       </div>
 
-      {!player.wallet && (
-        <div className="mw-panel-row">
-          <ConnectButton chainStatus="icon" showBalance={false} accountStatus="address" />
+      <ol className="mw-steps-live">
+        <Step
+          number={1}
+          title="Sign in with X"
+          hint="One X account per player. We keep the account id, not the handle."
+          state={stepState(1)}
+        >
           <button
-            className="mw-button"
+            className="mw-button mw-button-lg"
             type="button"
-            disabled={!isConnected || busy !== null}
-            onClick={linkWallet}
-          >
-            {busy === "link" ? "Signing…" : "Link this wallet"}
-          </button>
-        </div>
-      )}
-
-      {player.wallet && !passActive && (
-        <div className="mw-panel-row">
-          <input
-            className="mw-input"
-            placeholder="https://x.com/you/status/..."
-            value={postUrl}
-            onChange={(event) => setPostUrl(event.target.value)}
-          />
-          <button
-            className="mw-button"
-            type="button"
-            disabled={busy !== null || postUrl.length < 12}
-            onClick={declarePass}
-          >
-            {busy === "pass" ? "Activating…" : "Declare post"}
-          </button>
-        </div>
-      )}
-
-      {arenas.map(({ key, label }) => {
-        const own = player[key];
-        const gated = key === "holders" && player.isHolder === false;
-        const cooldownLeft = own?.entered
-          ? Math.max(0, own.lastAction + COOLDOWN - now)
-          : 0;
-
-        return (
-          <div className={gated ? "mw-panel-arena is-gated" : "mw-panel-arena"} key={key}>
-            <span className="mw-panel-label">
-              {label}
-              {gated && <em className="mw-panel-tag">holders only</em>}
-            </span>
-            <div className="mw-panel-buttons">
-              {[0, 1, 2].map((barrel) => {
-                const mine = own?.entered && own.barrel === barrel;
-                return (
-                  <button
-                    key={barrel}
-                    className={mine ? "mw-mini is-mine" : "mw-mini"}
-                    type="button"
-                    disabled={gated || !passActive || cooldownLeft > 0 || busy !== null}
-                    onClick={() => move(key, barrel)}
-                  >
-                    {busy === `${key}-${barrel}`
-                      ? "…"
-                      : `ABC`[barrel]}
-                  </button>
+            disabled={busy !== null}
+            onClick={async () => {
+              setError(null);
+              const result = await signInWithX();
+              if (!result.ok) {
+                setError(
+                  result.reason === "unconfigured"
+                    ? "Sign-in is not connected on this build yet."
+                    : (result.message ?? "Could not start the sign-in."),
                 );
-              })}
-              {cooldownLeft > 0 && (
-                <span className="mw-panel-note">{cooldownLeft}s</span>
-              )}
-            </div>
-          </div>
-        );
-      })}
+              }
+            }}
+          >
+            Sign in with X
+          </button>
+        </Step>
 
-      {error && <p className="mw-auth-error">{error}</p>}
-    </div>
+        <Step
+          number={2}
+          title="Link your wallet"
+          hint="Free signature, no gas, no transaction. This wallet will play for you."
+          state={stepState(2)}
+        >
+          <div className="mw-step-row">
+            <ConnectButton
+              chainStatus="icon"
+              showBalance={false}
+              accountStatus="address"
+            />
+            <button
+              className="mw-button"
+              type="button"
+              disabled={!isConnected || busy !== null}
+              onClick={linkWallet}
+            >
+              {busy === "link" ? "Signing…" : "Sign to link"}
+            </button>
+          </div>
+        </Step>
+
+        <Step
+          number={3}
+          title="Post your card"
+          hint="Pick what you want to say. X opens with the text ready; post it and come back."
+          state={stepState(3)}
+        >
+          <div className="mw-cards">
+            {CARDS.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                className={card === c.key ? "mw-card is-picked" : "mw-card"}
+                disabled={busy !== null}
+                onClick={() => openX(c.key)}
+              >
+                <span className="mw-card-letter">{c.letter}</span>
+                <span className="mw-card-text">{c.text}</span>
+              </button>
+            ))}
+          </div>
+
+          {openedX && (
+            <button
+              className="mw-button mw-button-lg"
+              type="button"
+              disabled={busy !== null || card === null}
+              onClick={confirmPost}
+            >
+              {busy === "pass" ? "Activating…" : "I posted it, activate my pass"}
+            </button>
+          )}
+        </Step>
+
+        <Step
+          number={4}
+          title="Pick your barrel"
+          hint="Five minutes between moves in each arena. The emptiest barrel wins."
+          state={stepState(4)}
+        >
+          <div className="mw-play-arenas">
+            {arenas.map(({ key, title, name }) => {
+              const own = player?.[key];
+              const gated = key === "holders" && player?.isHolder === false;
+              const cooldownLeft = own?.entered
+                ? Math.max(0, own.lastAction + COOLDOWN - now)
+                : 0;
+
+              return (
+                <div
+                  key={key}
+                  className={gated ? "mw-play-arena is-gated" : "mw-play-arena"}
+                >
+                  <div className="mw-play-arena-head">
+                    <b>{title}</b>
+                    <span>{name}</span>
+                    {gated && <em>holders only</em>}
+                  </div>
+                  <div className="mw-play-buttons">
+                    {[0, 1, 2].map((barrel) => {
+                      const mine = own?.entered && own.barrel === barrel;
+                      return (
+                        <button
+                          key={barrel}
+                          className={mine ? "mw-mini is-mine" : "mw-mini"}
+                          type="button"
+                          disabled={
+                            gated ||
+                            !passActive ||
+                            cooldownLeft > 0 ||
+                            busy !== null
+                          }
+                          onClick={() => move(key, barrel)}
+                        >
+                          {busy === `${key}-${barrel}` ? "…" : `ABC`[barrel]}
+                        </button>
+                      );
+                    })}
+                    {cooldownLeft > 0 && (
+                      <span className="mw-panel-note">{cooldownLeft}s</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Step>
+      </ol>
+
+      {error && (
+        <p className="mw-auth-error" role="status">
+          {error}
+        </p>
+      )}
+    </section>
   );
 }

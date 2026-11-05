@@ -9,37 +9,43 @@ export const runtime = "nodejs";
 
 const DAY = 24 * 60 * 60 * 1000;
 
-/** Accepts only a public post URL on x.com or twitter.com. */
-function postUrl(value: unknown): string {
-  if (typeof value !== "string" || value.length > 300) {
-    throw new ApiError(400, "Paste the link of the post you published.");
-  }
+const CARDS = new Set(["a", "b", "c"]);
 
-  let url: URL;
+/**
+ * The player picks a card and the site opens X with the text ready, so the only
+ * thing to validate is the card. An optional post link is accepted when someone
+ * does paste one, and ignored otherwise: the review reads the account by hand.
+ */
+function cardKey(value: unknown): "a" | "b" | "c" {
+  if (typeof value !== "string" || !CARDS.has(value)) {
+    throw new ApiError(400, "Pick one of the three cards first.");
+  }
+  return value as "a" | "b" | "c";
+}
+
+function optionalLink(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  if (value.length > 300) throw new ApiError(400, "That link is too long.");
+
   try {
-    url = new URL(value.trim());
+    const url = new URL(value.trim());
+    const ok =
+      url.protocol === "https:" &&
+      /^(www\.)?(x|twitter)\.com$/.test(url.hostname) &&
+      /\/status\/\d+/.test(url.pathname);
+    return ok ? url.toString() : null;
   } catch {
-    throw new ApiError(400, "That is not a valid link.");
+    return null;
   }
-
-  const ok =
-    url.protocol === "https:" &&
-    /^(www\.)?(x|twitter)\.com$/.test(url.hostname) &&
-    /\/status\/\d+/.test(url.pathname);
-
-  if (!ok) {
-    throw new ApiError(400, "Use the link of a post on x.com.");
-  }
-
-  return url.toString();
 }
 
 /**
- * POST /api/mudwater/pass  { postUrl }
+ * POST /api/mudwater/pass  { card, postUrl? }
  *
- * Declares a post and grants the pass onchain. One row per activation, two
- * activations max. The second window adds 24 hours to the first expiry, it does
- * not restart the clock, so both posts up front cover the whole event.
+ * Records the card the player chose and grants the pass onchain. One row per
+ * activation, two activations max. The second window adds 24 hours to the first
+ * expiry, it does not restart the clock, so both posts up front cover the whole
+ * event.
  */
 export const POST = endpoint(async (request) => {
   const { user, db } = await requireUser(request);
@@ -51,7 +57,8 @@ export const POST = endpoint(async (request) => {
   }
 
   const input = await body(request);
-  const link = postUrl(input.postUrl);
+  const card = cardKey(input.card);
+  const link = optionalLink(input.postUrl);
 
   const player = await ensurePlayer(db, user);
   const wallet = await boundWallet(db, player.id);
@@ -104,6 +111,7 @@ export const POST = endpoint(async (request) => {
       {
         player_id: player.id,
         post_url: link,
+        card,
         activation,
         expiry: new Date(expiry).toISOString(),
         status: "pending",
