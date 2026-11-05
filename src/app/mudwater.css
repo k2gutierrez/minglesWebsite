@@ -268,7 +268,29 @@
    -------------------------------------------------------------------------- */
 
 .mw-stadium {
+  position: relative;
+  isolation: isolate;
   padding-bottom: clamp(40px, 5vw, 72px);
+}
+
+/* The cellar sits behind the two arenas, barely there. It gives the section
+   depth without competing with the numbers, and it is the only photographic
+   texture on the page. */
+.mw-stadium::before {
+  content: "";
+  position: absolute;
+  inset: -30px -5vw -50px;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/mudwater/cellar.webp") center / cover no-repeat;
+  opacity: 0.17;
+  filter: saturate(0.85) contrast(1.05);
+  -webkit-mask-image: radial-gradient(
+    130% 100% at 50% 42%,
+    #000 28%,
+    transparent 76%
+  );
+  mask-image: radial-gradient(130% 100% at 50% 42%, #000 28%, transparent 76%);
 }
 
 .mw-defs {
