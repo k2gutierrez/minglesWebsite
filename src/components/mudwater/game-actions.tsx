@@ -24,7 +24,7 @@ export interface GameState {
     handle: string;
     avatar: string | null;
     wallet: string | null;
-    passExpiry: number;
+    verified: boolean;
     isHolder?: boolean | null;
     holders: { barrel: number; entered: boolean; lastAction: number } | null;
     open: { barrel: number; entered: boolean; lastAction: number } | null;
@@ -196,7 +196,7 @@ export function GameActions({
   }
 
   const player = state.player;
-  const passActive = Boolean(player && player.passExpiry > now);
+  const passActive = Boolean(player?.verified);
 
   const current = !player ? 1 : !player.wallet ? 2 : !passActive ? 3 : 4;
   const stepState = (n: number) => (n < current ? "done" : n === current ? "now" : "next");

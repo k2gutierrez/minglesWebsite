@@ -100,7 +100,6 @@ export interface ArenaState {
 }
 
 export interface OnchainPlayer {
-  passExpiry: number;
   holders: ArenaState;
   open: ArenaState;
 }
@@ -111,14 +110,8 @@ export async function readPlayer(
 ): Promise<OnchainPlayer> {
   const client = mudwaterPublicClient();
 
-  const [passExpiry, positionH, enteredH, lastH, positionO, enteredO, lastO] =
+  const [positionH, enteredH, lastH, positionO, enteredO, lastO] =
     await Promise.all([
-      client.readContract({
-        address,
-        abi: gameAbi,
-        functionName: "s_passExpiry",
-        args: [wallet],
-      }),
       client.readContract({
         address,
         abi: gameAbi,
@@ -158,7 +151,6 @@ export async function readPlayer(
     ]);
 
   return {
-    passExpiry: Number(passExpiry),
     holders: {
       barrel: Number(positionH),
       entered: enteredH,

@@ -52,7 +52,7 @@ export async function GET(request: Request) {
           handle: player.handle,
           avatar: player.avatar_url,
           wallet: null,
-          passExpiry: 0,
+          verified: false,
           holders: null,
           open: null,
         },
@@ -66,9 +66,13 @@ export async function GET(request: Request) {
 
     const passes = await db
       .from("mw_passes")
-      .select("activation, status, tx_hash, expiry")
+      .select("status, tx_hash, expiry")
       .eq("player_id", player.id)
       .order("activation", { ascending: true });
+
+    const verified = Boolean(
+      passes.data?.some((row) => row.status === "granted"),
+    );
 
     return json({
       ...base,
@@ -76,7 +80,7 @@ export async function GET(request: Request) {
         handle: player.handle,
         avatar: player.avatar_url,
         wallet: wallet.address,
-        passExpiry: onchain.passExpiry,
+        verified,
         holders: onchain.holders,
         open: onchain.open,
         isHolder,

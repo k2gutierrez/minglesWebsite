@@ -13,9 +13,7 @@ export const gameAbi = parseAbi([
   "function s_position(uint8 arena, address wallet) view returns (uint8)",
   "function s_entered(uint8 arena, address wallet) view returns (bool)",
   "function s_lastAction(uint8 arena, address wallet) view returns (uint64)",
-  "function s_passExpiry(address wallet) view returns (uint64)",
   "function i_deadline() view returns (uint64)",
-  "function s_authorizer() view returns (address)",
 ]);
 
 export const ARENA = { holders: 0, open: 1 } as const;
