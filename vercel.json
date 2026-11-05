@@ -1,0 +1,3 @@
+{
+  "crons": [{ "path": "/api/mudwater/health", "schedule": "0 15 * * *" }]
+}
