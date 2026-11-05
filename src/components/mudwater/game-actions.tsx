@@ -61,14 +61,6 @@ const CARDS = [
 
 type CardKey = (typeof CARDS)[number]["key"];
 
-function hoursLeft(seconds: number) {
-  const diff = seconds * 1000 - Date.now();
-  if (diff <= 0) return "expired";
-  const h = Math.floor(diff / 3_600_000);
-  const m = Math.floor((diff % 3_600_000) / 60_000);
-  return `${h}h ${String(m).padStart(2, "0")}m`;
-}
-
 function Step({
   number,
   title,
@@ -227,7 +219,7 @@ export function GameActions({
             {player.wallet
               ? ` · ${player.wallet.slice(0, 6)}…${player.wallet.slice(-4)}`
               : ""}
-            {passActive ? ` · pass ${hoursLeft(player.passExpiry)}` : ""}
+            {passActive ? " · verified" : ""}
           </p>
         )}
       </div>
@@ -284,8 +276,8 @@ export function GameActions({
 
         <Step
           number={3}
-          title="Post your card"
-          hint="Pick what you want to say. X opens with the text ready; post it and come back."
+          title="Share your post"
+          hint="Pick what you want to say. X opens with the text ready. Post it, come back and confirm. One post is enough for the whole game."
           state={stepState(3)}
         >
           <div className="mw-cards">
@@ -310,7 +302,7 @@ export function GameActions({
               disabled={busy !== null || card === null}
               onClick={confirmPost}
             >
-              {busy === "pass" ? "Activating…" : "I posted it, activate my pass"}
+              {busy === "pass" ? "Checking…" : "I posted it"}
             </button>
           )}
         </Step>
@@ -318,7 +310,7 @@ export function GameActions({
         <Step
           number={4}
           title="Pick your barrel"
-          hint="Five minutes between moves in each arena. The emptiest barrel wins."
+          hint="Five minutes between moves in each arena. The emptiest barrel wins. Move as often as you like from here."
           state={stepState(4)}
         >
           <div className="mw-play-arenas">
@@ -369,6 +361,11 @@ export function GameActions({
           </div>
         </Step>
       </ol>
+
+      <p className="mw-play-rule">
+        One post is all we ask. If you win and it is no longer public at review,
+        the prize goes to the next candidate.
+      </p>
 
       {error && (
         <p className="mw-auth-error" role="status">

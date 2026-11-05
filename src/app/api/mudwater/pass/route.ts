@@ -7,8 +7,6 @@ import { boundWallet, ensurePlayer } from "@/lib/mudwater/session";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const DAY = 24 * 60 * 60 * 1000;
-
 const CARDS = new Set(["a", "b", "c"]);
 
 /**
@@ -42,10 +40,11 @@ function optionalLink(value: unknown): string | null {
 /**
  * POST /api/mudwater/pass  { card, postUrl? }
  *
- * Records the card the player chose and grants the pass onchain. One row per
- * activation, two activations max. The second window adds 24 hours to the first
- * expiry, it does not restart the clock, so both posts up front cover the whole
- * event.
+ * Records the card the player chose and opens the contract gate onchain, once,
+ * until the game closes. There is no 24 hour window and no second activation:
+ * one post, verified by the player, and then they move as often as the cooldown
+ * allows. If the post is gone at review time the prize passes to the next
+ * candidate, which is stated in the UI.
  */
 export const POST = endpoint(async (request) => {
   const { user, db } = await requireUser(request);
@@ -67,42 +66,38 @@ export const POST = endpoint(async (request) => {
     throw new ApiError(409, "Link a wallet before declaring a post.");
   }
 
+  // The chain is the authority on when the game closes, not an env var.
+  const deadline = await readDeadline(address);
+  const now = Date.now();
+  const until = deadline * 1000;
+
+  if (until <= now) {
+    throw new ApiError(409, "The game is closing, there is no time left.");
+  }
+
+  // There is exactly one verification, and it lasts until the close. Someone
+  // who already covers the rest of the game is not sent another transaction.
   const previous = await db
     .from("mw_passes")
-    .select("activation, expiry, status")
+    .select("expiry, status, tx_hash")
     .eq("player_id", player.id)
-    .order("activation", { ascending: false })
+    .eq("status", "granted")
+    .order("expiry", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (previous.error) {
-    throw new ApiError(502, "Could not read your passes.");
+    throw new ApiError(502, "Could not read your verification.");
   }
 
-  const last = previous.data as
-    | { activation: number; expiry: string; status: string }
-    | null;
-
-  if (last?.activation === 2) {
-    throw new ApiError(409, "You already used your two passes.");
-  }
-
-  const activation = last ? 2 : 1;
-
-  // The chain is the authority on when the game closes, not an env var.
-  const deadline = await readDeadline(address);
-  const now = Date.now();
-
-  // Activation one opens 24h from now. Activation two adds 24h to whatever the
-  // first one had, which is what the rules describe.
-  const base =
-    activation === 2 && last ? new Date(last.expiry).getTime() : now;
-  let expiry = base + DAY;
-
-  if (deadline > 0) expiry = Math.min(expiry, deadline * 1000);
-
-  if (expiry <= now) {
-    throw new ApiError(409, "The game is closing, there is no time left.");
+  if (previous.data && new Date(previous.data.expiry).getTime() >= until) {
+    return json({
+      ok: true,
+      expiry: deadline,
+      txHash: previous.data.tx_hash,
+      wallet: wallet.address,
+      alreadyVerified: true,
+    });
   }
 
   const row = await db
@@ -112,8 +107,8 @@ export const POST = endpoint(async (request) => {
         player_id: player.id,
         post_url: link,
         card,
-        activation,
-        expiry: new Date(expiry).toISOString(),
+        activation: 1,
+        expiry: new Date(until).toISOString(),
         status: "pending",
         tx_hash: null,
         failure: null,
@@ -128,14 +123,14 @@ export const POST = endpoint(async (request) => {
   }
 
   try {
-    const hash = await grantPass(wallet.address as Address, Math.floor(expiry / 1000));
+    const hash = await grantPass(wallet.address as Address, deadline);
 
     await db
       .from("mw_passes")
       .update({ status: "granted", tx_hash: hash })
       .eq("id", row.data.id);
 
-    return json({ ok: true, activation, expiry, txHash: hash, wallet: wallet.address });
+    return json({ ok: true, expiry: deadline, txHash: hash, wallet: wallet.address });
   } catch (error) {
     const message =
       error instanceof ApiError ? error.message : "The transaction failed.";

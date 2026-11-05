@@ -47,8 +47,8 @@ const STEPS = [
   },
   {
     label: "03",
-    title: "Declare a post",
-    body: "Pick card A, B or C, post it from your own account and paste the link. One post buys 24 hours of movement; a second one covers the full 48.",
+    title: "Share a post",
+    body: "Pick card A, B or C. The site writes the post and opens X with the text ready. Publish it, come back and confirm. One post covers the whole game.",
   },
   {
     label: "04",

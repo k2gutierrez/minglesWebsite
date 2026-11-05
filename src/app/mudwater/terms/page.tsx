@@ -110,10 +110,11 @@ export default function TermsPage() {
             costs no gas and creates no transaction.
           </li>
           <li>
-            <strong>Declare a post.</strong> Publish a public post from your own account
-            that references the Promotion, and paste its link. One declared post grants a
-            24-hour pass. A second, different post extends it up to the close. We do not
-            read your posts automatically; we check them manually at review.
+            <strong>Share a post.</strong> The site prepares a post for you and opens X
+            with the text ready. Publish it from your own account and confirm. One post is
+            enough for the whole Promotion. We do not read your posts automatically; we
+            check them manually at review, and a post that is no longer public at that
+            point makes you ineligible.
           </li>
           <li>
             <strong>Enter a barrel.</strong> With an active pass, enter or change barrel
