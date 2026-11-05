@@ -71,3 +71,24 @@ The wallet backend is implemented with ApeChain collection 0x6579cfd742d8982a7cd
 Activation, NFT migration transactions, and economic distributions remain disabled pending their actual contracts and approved rules. Browser/EIP-6963 wallets are supported; QR WalletConnect is not included. Email login precedes wallet linking. Some advanced CMS workflows still need extension: scheduling, video, full-page draft preview, and remaining secondary copy fields.
 
 The supplied assets contain logos only. Real bottle/cap photography, approved character art, event media, proof records, PVG URLs, and licensed Hogfish/GT Pressura Mono files remain required. The site stays noindex until launch review. No OpenAI API is used.
+
+## The Last Barrel (Mudwater x Mingles)
+
+`/mudwater` is the campaign page and the game itself. It runs on the same Next app as the rest of the site; the only external piece is the contract on ApeChain.
+
+- `/mudwater` live stadium, two arenas, three barrels each
+- `/mudwater/terms` and `/mudwater/privacy`, official rules and data notice
+- `/api/mudwater/state` counts from the contract, plus the caller's own position
+- `/api/mudwater/pass` declares a post and grants the pass onchain
+- `/api/mudwater/wallet` and `/api/mudwater/wallet/verify` link a wallet with SIWE
+- `/api/mudwater/health` authorizer balance, with an optional chat alert
+
+Set `MUDWATER_CONTRACT_ADDRESS` to turn the live mode on. Without it the page stays
+on the demo snapshot and no chain call is made. `MUDWATER_CHAIN_ID` picks the
+network: 33111 for Curtis, 33139 for mainnet. Leaving `MUDWATER_COLLECTION_ADDRESS`
+empty disables the holder gate, which is how Curtis runs.
+
+The authorizer key lives only in the server environment, never in a `NEXT_PUBLIC_`
+variable. `src/lib/mudwater/authorizer.ts` is the single module that reads it and it
+imports `server-only`, so a build fails if that module ever reaches a client
+component.
