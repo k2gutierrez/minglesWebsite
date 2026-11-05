@@ -8,6 +8,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { ApiError } from "@/lib/server/http";
+import { normalizePrivateKey } from "./key";
 import { mudwaterChain, mudwaterPublicClient } from "./chain";
 
 /**
@@ -28,23 +29,16 @@ const abi = parseAbi([
 ]);
 
 function authorizerKey(): `0x${string}` {
-  // A pasted value often arrives with quotes, a stray export prefix or trailing
-  // whitespace. Repair it instead of rejecting it: the same lesson we learned on
-  // the other project, where a quoted key cost an afternoon.
-  const raw = (process.env.MUDWATER_AUTHORIZER_KEY ?? "")
-    .trim()
-    .replace(/^export\s+/i, "")
-    .replace(/^["'`]|["'`]$/g, "")
-    .trim();
+  const { key, length } = normalizePrivateKey(process.env.MUDWATER_AUTHORIZER_KEY);
 
-  if (!/^0x[0-9a-fA-F]{64}$/.test(raw)) {
+  if (!key) {
     throw new ApiError(
       503,
-      "MUDWATER_AUTHORIZER_KEY is missing or not a 32 byte hex key. Set it in the deployment environment (Production) and redeploy.",
+      `MUDWATER_AUTHORIZER_KEY is not a 32 byte hex key (it has ${length} characters). It must be 66 characters starting with 0x.`,
     );
   }
 
-  return raw as `0x${string}`;
+  return key;
 }
 
 function contractAddress(): Address {
