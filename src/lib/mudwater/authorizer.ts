@@ -22,7 +22,10 @@ import { mudwaterChain, mudwaterPublicClient } from "./chain";
  * theirs stays in their extension, this one stays on the server.
  */
 
-const abi = parseAbi(["function grantPass(address wallet, uint64 expiry)"]);
+const abi = parseAbi([
+  "function grantPass(address wallet, uint64 expiry)",
+  "function s_authorizer() view returns (address)",
+]);
 
 function authorizerKey(): `0x${string}` {
   // A pasted value often arrives with quotes, a stray export prefix or trailing
@@ -67,6 +70,22 @@ function contractAddress(): Address {
 export async function grantPass(wallet: Address, expiry: number) {
   const { chain, rpc } = mudwaterChain();
   const account = privateKeyToAccount(authorizerKey());
+
+  // The contract is the authority on who may grant passes. If the configured
+  // key belongs to somebody else the transaction reverts with a bare
+  // NotAuthorizer, which tells nobody anything. Name the mismatch instead.
+  const onchain = await mudwaterPublicClient().readContract({
+    address: contractAddress(),
+    abi,
+    functionName: "s_authorizer",
+  });
+
+  if (account.address.toLowerCase() !== onchain.toLowerCase()) {
+    throw new ApiError(
+      503,
+      `The configured authorizer key belongs to ${account.address}, but the contract expects ${onchain}.`,
+    );
+  }
 
   const walletClient = createWalletClient({
     account,
