@@ -253,7 +253,12 @@ export function Stadium({
     );
   }, [remote, snapshot.arenas]);
 
-  const shown = liveArenas ?? arenas;
+  // Never paint the demo numbers on a live page, not even for one frame.
+  const shown =
+    liveArenas ??
+    (live
+      ? snapshot.arenas.map((arena) => applyCounts(arena, [0, 0, 0]))
+      : arenas);
 
   const total = useMemo(
     () => shown.reduce((sum, arena) => sum + arena.total, 0),

@@ -5,6 +5,8 @@ import { WalletProviders } from "@/components/wallet-providers";
 import { Stadium } from "@/components/mudwater/stadium";
 import { getStadiumSnapshot } from "@/lib/mudwater/stadium";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "The Last Barrel",
   description:
