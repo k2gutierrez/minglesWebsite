@@ -375,6 +375,14 @@ export function Stadium({
 
   return (
     <>
+      {live && !remote && (
+        <div className="mw-setup">
+          <p className="mw-setup-copy">
+            <b>Checking your session…</b> One moment.
+          </p>
+        </div>
+      )}
+
       {live && remote?.configured && (
         <PlaySetup player={player} refresh={() => void loadRemote()} />
       )}
@@ -396,7 +404,7 @@ export function Stadium({
         <div className="mw-hud">
           <div className="mw-hud-item">
             <span>Players</span>
-            <b>{total}</b>
+            <b>{remote?.configured ? total : "—"}</b>
           </div>
           <div className="mw-hud-item">
             <span>Closes in</span>
