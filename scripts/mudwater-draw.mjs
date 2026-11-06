@@ -59,7 +59,7 @@ const client = createPublicClient({
 });
 
 const latest = await client.getBlockNumber();
-const fromBlock = BigInt(arg("from-block") ?? latest - 50_000n);
+const fromBlock = BigInt(arg("from-block") ?? latest - 300_000n);
 
 console.log(`contract  ${contract}`);
 console.log(`chain     ${chain.id}`);

@@ -9,6 +9,8 @@ import { parseAbi } from "viem";
  */
 export const gameAbi = parseAbi([
   "function act(uint8 arena, uint8 barrel)",
+  "function seal(uint8 arena)",
+  "function s_isSealed(uint8 arena) view returns (bool)",
   "function counts(uint8 arena) view returns (uint256[3])",
   "function s_position(uint8 arena, address wallet) view returns (uint8)",
   "function s_entered(uint8 arena, address wallet) view returns (bool)",

@@ -163,6 +163,11 @@ export function Stadium({
   const [target, setTarget] = useState<{ arena: "holders" | "open"; barrel: number } | null>(
     null,
   );
+  const [sealTarget, setSealTarget] = useState<"holders" | "open" | null>(null);
+  const [draw, setDraw] = useState<{
+    arenas: { name: string; counts: number[]; winning: string[]; candidates: { wallet: string; barrel: string }[] }[];
+  } | null>(null);
+  const [revealing, setRevealing] = useState(false);
 
   const { address } = useAccount();
   const { writeContractAsync, data: hash } = useWriteContract();
@@ -234,6 +239,58 @@ export function Stadium({
     };
   }, [isSuccess, target, loadRemote]);
 
+  useEffect(() => {
+    if (!isSuccess || !sealTarget) return;
+
+    setToast(`${ARENA_TITLE[sealTarget]} sealed`);
+    setSealTarget(null);
+    void loadRemote();
+    const a = window.setTimeout(() => void loadRemote(), 1200);
+    const b = window.setTimeout(() => setToast(null), 3200);
+
+    return () => {
+      window.clearTimeout(a);
+      window.clearTimeout(b);
+    };
+  }, [isSuccess, sealTarget, loadRemote]);
+
+  const seal = useCallback(
+    async (arena: "holders" | "open") => {
+      if (!remote?.configured) return;
+      setError(null);
+      setSealTarget(arena);
+
+      try {
+        await writeContractAsync({
+          address: remote.contract as `0x${string}`,
+          abi: gameAbi,
+          functionName: "seal",
+          args: [ARENA[arena]],
+        });
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "The seal failed.";
+        setError(message.split("\n")[0].slice(0, 160));
+        setSealTarget(null);
+      }
+    },
+    [remote, writeContractAsync],
+  );
+
+  async function reveal() {
+    setRevealing(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/mudwater/draw", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "Could not read the log.");
+      setDraw(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not read the log.");
+    } finally {
+      setRevealing(false);
+    }
+  }
+
   const move = useCallback(
     async (arena: "holders" | "open", barrel: number) => {
       const p = remote?.player;
@@ -301,6 +358,8 @@ export function Stadium({
   }, [live, snapshot.phase]);
 
   const total = useMemo(() => shown.reduce((s, a) => s + a.total, 0), [shown]);
+  const closed = remaining !== null && remaining <= 0;
+  const bothSealed = Boolean(remote?.sealed?.holders && remote?.sealed?.open);
   const countdown = remaining === null ? "--:--:--" : formatCountdown(remaining);
   const player = remote?.player ?? null;
   const verified = Boolean(player?.verified);
@@ -424,7 +483,20 @@ export function Stadium({
                 </div>
 
                 <footer className="mw-arena-foot">
-                  {gated ? (
+                  {closed && !remote?.sealed?.[arena.id] ? (
+                    <button
+                      className="mw-button mw-seal"
+                      type="button"
+                      disabled={sealTarget !== null}
+                      onClick={() => void seal(arena.id)}
+                    >
+                      {sealTarget === arena.id
+                        ? "Sealing…"
+                        : "Close the game and publish the final counts"}
+                    </button>
+                  ) : remote?.sealed?.[arena.id] ? (
+                    <>Sealed. These counts are final and nobody can change them.</>
+                  ) : gated ? (
                     <>This arena is for Mingles holders. Your wallet holds none.</>
                   ) : !verified ? (
                     <>Finish the steps above to start playing.</>
@@ -445,6 +517,62 @@ export function Stadium({
             );
           })}
         </div>
+
+        {closed && (
+          <section className="mw-reveal" aria-label="Result">
+            <div className="mw-reveal-head">
+              <div>
+                <p className="mw-eyebrow">After the close</p>
+                <h3>The log is the record</h3>
+                <p className="mw-reveal-copy">
+                  Every entry and every move is an Action event. The draw reads
+                  that log, finds the least populated barrel and orders its
+                  players with the drand round announced before the close. The
+                  script is public, so anyone can reproduce the same order.
+                </p>
+              </div>
+              <button
+                className="mw-button"
+                type="button"
+                disabled={revealing}
+                onClick={() => void reveal()}
+              >
+                {revealing ? "Reading the log…" : "Read the log"}
+              </button>
+            </div>
+
+            {draw && (
+              <div className="mw-reveal-grid">
+                {draw.arenas.map((a) => (
+                  <div key={a.name} className="mw-reveal-card">
+                    <b>{a.name}</b>
+                    <p className="mw-reveal-counts">
+                      A {a.counts[0]} · B {a.counts[1]} · C {a.counts[2]}
+                    </p>
+                    <p className="mw-reveal-winning">
+                      {a.winning.length
+                        ? `Barrel ${a.winning.join(" + ")} qualifies`
+                        : "Nobody entered"}
+                    </p>
+                    <ul>
+                      {a.candidates.map((c) => (
+                        <li key={c.wallet}>
+                          <code>{c.wallet}</code>
+                          <span>{c.barrel}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {!bothSealed && (
+                      <p className="mw-reveal-warn">
+                        Seal both arenas before using this for the prize.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         <aside className="mw-feed" aria-label="Live movements">
           <h3>Live movements</h3>

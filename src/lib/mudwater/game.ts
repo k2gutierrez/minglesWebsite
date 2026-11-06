@@ -59,6 +59,30 @@ export interface Counts {
   open: [number, number, number];
 }
 
+/** Whether each arena has already published its final counts. */
+export async function readSealed(
+  address: Address,
+): Promise<{ holders: boolean; open: boolean }> {
+  const client = mudwaterPublicClient();
+
+  const [holders, open] = await Promise.all([
+    client.readContract({
+      address,
+      abi: gameAbi,
+      functionName: "s_isSealed",
+      args: [0],
+    }),
+    client.readContract({
+      address,
+      abi: gameAbi,
+      functionName: "s_isSealed",
+      args: [1],
+    }),
+  ]);
+
+  return { holders, open };
+}
+
 export async function readCounts(address: Address): Promise<Counts> {
   const client = mudwaterPublicClient();
 
@@ -91,6 +115,11 @@ export async function readDeadline(address: Address): Promise<number> {
     functionName: "i_deadline",
   });
   return Number(deadline);
+}
+
+export interface SealedState {
+  holders: boolean;
+  open: boolean;
 }
 
 export interface ArenaState {
