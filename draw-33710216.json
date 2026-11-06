@@ -1,0 +1,66 @@
+{
+  "contract": "0x65bb08697Ba8682b9c9FcfE4a7485fd1b9135612",
+  "chain": 33111,
+  "round": 33710216,
+  "seed": "761f0451abdc18e3211b3d827f401a7f042b6968bec8bfdd27a90b6ae9441be3",
+  "arenas": [
+    {
+      "id": 0,
+      "name": "Mingles Arena",
+      "sub": "Mingles Holders",
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "winning": [
+        0,
+        1
+      ],
+      "candidates": 2,
+      "order": [
+        {
+          "position": 1,
+          "wallet": "0x0043ffc8858b92d7133440994fc6ea1fa022c31b",
+          "barrel": 0,
+          "key": "39c5593bab51120b76a3468782ef1fc4d1da716128ee6d33bc5897ba8caacd83"
+        },
+        {
+          "position": 2,
+          "wallet": "0x051d3f8840a437ef2c43b2fa05e797db0176a0ce",
+          "barrel": 1,
+          "key": "cefad90a74f6f4baa66ad001cd9029f9434f9ca6d8ff0ece4641819d407c23a7"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "ApeChain Arena",
+      "sub": "Open Swamp",
+      "counts": [
+        0,
+        1,
+        1
+      ],
+      "winning": [
+        1,
+        2
+      ],
+      "candidates": 2,
+      "order": [
+        {
+          "position": 1,
+          "wallet": "0x0043ffc8858b92d7133440994fc6ea1fa022c31b",
+          "barrel": 1,
+          "key": "1478e3a3f2764a90f601935f8460fff95a1d45d9b7459a56191c31d8df8e71e3"
+        },
+        {
+          "position": 2,
+          "wallet": "0x051d3f8840a437ef2c43b2fa05e797db0176a0ce",
+          "barrel": 2,
+          "key": "ec1a13831cb8b280f4a87214df664bea7e618d5ad8abe080a6403db9fc7776e6"
+        }
+      ]
+    }
+  ]
+}

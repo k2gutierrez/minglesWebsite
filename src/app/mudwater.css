@@ -1161,298 +1161,209 @@
 }
 
 /* --------------------------------------------------------------------------
-   PANEL DE JUEGO
+   HUD, SETUP Y MESA DE JUEGO
    -------------------------------------------------------------------------- */
 
-.mw-play {
-  margin-top: 20px;
+.mw-hud {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mw-hud-item {
   border: 1px solid var(--mw-line);
   border-radius: 3px;
-  padding: 18px 20px 20px;
-  background:
-    radial-gradient(120% 80% at 50% -20%, rgba(174, 163, 93, 0.07), transparent 60%),
-    linear-gradient(180deg, rgba(174, 163, 93, 0.05), transparent);
-}
-
-.mw-play-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-
-.mw-play-id {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--mw-champagne);
-}
-
-/* --- pasos --- */
-
-.mw-steps-live {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.mw-step {
-  display: flex;
-  gap: 14px;
-  padding: 14px 0;
-  border-top: 1px solid var(--mw-line-soft);
-}
-
-.mw-step.is-done {
-  opacity: 0.45;
-}
-
-.mw-step.is-next {
-  opacity: 0.3;
-}
-
-.mw-step-n {
-  flex: none;
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--mw-line);
-  border-radius: 50%;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--mw-fog-text);
-}
-
-.mw-step.is-now .mw-step-n {
-  border-color: var(--mw-champagne);
-  background: var(--mw-champagne);
-  color: #0b0a05;
-  font-weight: 600;
-}
-
-.mw-step.is-done .mw-step-n {
-  border-color: rgba(143, 208, 160, 0.6);
-  color: #8fd0a0;
-}
-
-.mw-step-body {
-  flex: 1;
+  padding: 9px 12px;
+  background: linear-gradient(180deg, rgba(174, 163, 93, 0.05), transparent);
   min-width: 0;
 }
 
-.mw-step-title {
-  margin: 2px 0 0;
-  font-family: var(--mw-title);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+.mw-hud-item span {
+  display: block;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--mw-mist);
-}
-
-.mw-step.is-next .mw-step-title,
-.mw-step.is-done .mw-step-title {
   color: var(--mw-fog-text);
+  margin-bottom: 2px;
 }
 
-.mw-step-hint {
-  margin: 6px 0 0;
+.mw-hud-item b {
+  display: block;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--mw-mist);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mw-hud-clock {
+  color: var(--mw-champagne) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.mw-hud-you b {
+  font-family: var(--mw-copy);
   font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--mw-champagne);
+}
+
+/* --- setup: solo mientras faltan pasos --- */
+
+.mw-setup {
+  border: 1px solid var(--mw-line);
+  border-radius: 3px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  background:
+    radial-gradient(120% 140% at 0% -20%, rgba(174, 163, 93, 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(174, 163, 93, 0.05), transparent);
+}
+
+.mw-setup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.mw-setup-copy {
+  margin: 0;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--mw-fog-text);
   max-width: 560px;
 }
 
-.mw-step-action {
-  margin-top: 12px;
-}
-
-.mw-step-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.mw-button-lg {
-  padding: 17px 30px;
-  font-size: 12px;
-}
-
-/* --- tarjetas --- */
-
-.mw-cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.mw-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: left;
-  padding: 12px 13px;
-  border: 1px solid var(--mw-line);
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.35);
-  color: var(--mw-prose);
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
-}
-
-.mw-card:hover:not(:disabled) {
-  border-color: var(--mw-champagne);
-  background: rgba(174, 163, 93, 0.08);
-}
-
-.mw-card.is-picked {
-  border-color: var(--mw-champagne);
-  background: rgba(174, 163, 93, 0.12);
-}
-
-.mw-card-letter {
-  font-family: var(--mw-display);
-  font-size: 22px;
-  line-height: 1;
-  color: var(--mw-champagne);
-}
-
-.mw-card-text {
-  font-family: var(--mw-copy);
-  font-size: 12.5px;
-  line-height: 1.45;
-}
-
-/* --- arenas del paso 4 --- */
-
-.mw-play-rule {
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--mw-line-soft);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  line-height: 1.8;
-  text-transform: uppercase;
-  color: var(--mw-fog-text);
-  max-width: 620px;
-}
-
-.mw-play-arenas {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.mw-play-arena {
-  border: 1px solid var(--mw-line-soft);
-  border-radius: 2px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.mw-play-arena.is-gated {
-  opacity: 0.5;
-}
-
-.mw-play-arena-head {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.mw-play-arena-head b {
-  font-family: var(--mw-title);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.mw-setup-copy b {
   color: var(--mw-mist);
+  font-weight: 600;
 }
 
-.mw-play-arena-head span {
+.mw-setup-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mw-setup-post {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- barriles jugables --- */
+
+.mw-barrel {
+  background: none;
+  border: 0;
+  padding: 10px 0 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.mw-barrel:disabled {
+  cursor: default;
+}
+
+.mw-barrel.is-blocked {
+  opacity: 0.55;
+}
+
+.mw-barrel:not(.is-blocked):hover {
+  transform: translateY(-2px);
+}
+
+.mw-barrel:not(.is-blocked):hover .mw-barrel-ring {
+  stroke: var(--mw-champagne);
+  stroke-width: 1.8;
+}
+
+.mw-barrel:focus-visible {
+  outline: 2px solid var(--mw-coral);
+  outline-offset: 4px;
+}
+
+.mw-barrel.is-mine .mw-barrel-ring {
+  stroke: var(--mw-coral);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 10px rgba(225, 81, 98, 0.5));
+}
+
+.mw-barrel.is-pending .mw-barrel-ring {
+  stroke: var(--mw-champagne);
+  stroke-width: 2.4;
+  animation: mw-wait 0.9s ease-in-out infinite;
+}
+
+@keyframes mw-wait {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.mw-barrel-you {
+  margin-top: 4px;
   font-family: var(--mono);
   font-size: 8px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mw-coral);
+}
+
+/* --- aviso de movimiento confirmado --- */
+
+.mw-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 60;
+  background: var(--mw-champagne);
+  color: #0b0a05;
+  font-family: var(--mw-copy);
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--mw-fog-text);
-}
-
-.mw-play-arena-head em {
-  font-style: normal;
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  color: var(--mw-champagne);
-}
-
-.mw-play-buttons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.mw-mini {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--mw-line);
-  background: transparent;
-  color: var(--mw-mist);
-  font-family: var(--mono);
-  font-size: 11px;
+  padding: 12px 22px;
   border-radius: 2px;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  animation: mw-toast-in 0.24s ease;
 }
 
-.mw-mini:hover:not(:disabled) {
-  border-color: var(--mw-champagne);
-  color: var(--mw-champagne);
-}
-
-.mw-mini.is-mine {
-  background: var(--mw-champagne);
-  border-color: var(--mw-champagne);
-  color: #0b0a05;
-}
-
-.mw-mini:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.mw-panel-title {
-  margin: 0;
-  font-family: var(--mw-title);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--mw-mist);
-}
-
-.mw-panel-note {
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--mw-champagne);
-  min-width: 34px;
+@keyframes mw-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 /* --------------------------------------------------------------------------
+   RESPONSIVE/* --------------------------------------------------------------------------
    RESPONSIVE
    -------------------------------------------------------------------------- */
 
@@ -1532,11 +1443,20 @@
     display: flex;
   }
 
-  .mw-arena-wrap {
+  .mw-hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mw-setup-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mw-arena {
     display: none;
   }
 
-  .mw-arena-wrap.is-active {
+  .mw-arena.is-active {
     display: block;
   }
 
@@ -1607,7 +1527,8 @@
   }
 
   .mw-barrel-lamp,
-  .mw-barrel-badge {
+  .mw-barrel-badge,
+  .mw-barrel.is-pending .mw-barrel-ring {
     animation: none;
   }
 }
