@@ -131,6 +131,27 @@ export default function MudwaterPage() {
       </div>
 
       <div className="mw-shell">
+        <section className="mw-section" id="how">
+          <div className="mw-section-head">
+            <h2>From login to the last move</h2>
+            <p>
+              Four steps, one wallet, no entry fee. Every entry and every change
+              of barrel is a confirmed ApeChain transaction.
+            </p>
+          </div>
+          <ol className="mw-steps">
+            {STEPS.map((step) => (
+              <li key={step.label}>
+                <b>{step.label}</b>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+
+      <div className="mw-shell">
         <WalletProviders chainId={chainId}>
           <Stadium snapshot={snapshot} live={live} />
         </WalletProviders>
@@ -168,27 +189,6 @@ export default function MudwaterPage() {
               </p>
             </div>
           </div>
-        </section>
-      </div>
-
-      <div className="mw-shell">
-        <section className="mw-section" id="how">
-          <div className="mw-section-head">
-            <h2>From login to the last move</h2>
-            <p>
-              Four steps, one wallet, no entry fee. Every entry and every change
-              of barrel is a confirmed ApeChain transaction.
-            </p>
-          </div>
-          <ol className="mw-steps">
-            {STEPS.map((step) => (
-              <li key={step.label}>
-                <b>{step.label}</b>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
-              </li>
-            ))}
-          </ol>
         </section>
       </div>
 

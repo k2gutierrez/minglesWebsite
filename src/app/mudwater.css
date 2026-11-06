@@ -1321,6 +1321,39 @@
   }
 }
 
+.mw-barrel-cta {
+  margin-top: 5px;
+  padding: 3px 10px;
+  border: 1px solid var(--mw-line);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mw-champagne);
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.mw-barrel:hover .mw-barrel-cta,
+.mw-barrel:focus-visible .mw-barrel-cta {
+  opacity: 1;
+  transform: translateY(0);
+  border-color: var(--mw-champagne);
+}
+
+/* On touch there is no hover, so the control is always visible. */
+@media (hover: none) {
+  .mw-barrel-cta {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .mw-barrel-you {
   margin-top: 4px;
   font-family: var(--mono);

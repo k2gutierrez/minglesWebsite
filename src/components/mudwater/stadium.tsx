@@ -55,6 +55,7 @@ function Barrel({
   mine,
   pending,
   blocked,
+  cta,
   onClick,
 }: {
   arenaName: string;
@@ -66,6 +67,7 @@ function Barrel({
   mine: boolean;
   pending: boolean;
   blocked: boolean;
+  cta: string | null;
   onClick: () => void;
 }) {
   const filled = Math.min(
@@ -124,7 +126,11 @@ function Barrel({
         <b>{players}</b>
         <span>{formatShare(share)}</span>
       </span>
-      {mine && <span className="mw-barrel-you">you</span>}
+      {mine ? (
+        <span className="mw-barrel-you">you</span>
+      ) : (
+        cta && <span className="mw-barrel-cta">{cta}</span>
+      )}
     </button>
   );
 }
@@ -404,6 +410,13 @@ export function Stadium({
                         mine={mine}
                         pending={pending}
                         blocked={blocked}
+                        cta={
+                          blocked
+                            ? null
+                            : own?.entered
+                              ? "Move here"
+                              : "Enter"
+                        }
                         onClick={() => void move(arena.id, index)}
                       />
                     );
