@@ -83,6 +83,15 @@ export async function readSealed(
   return { holders, open };
 }
 
+/** The wallet that owns the contract. It has no powers, it is a label. */
+export async function readOwner(address: Address): Promise<string> {
+  return mudwaterPublicClient().readContract({
+    address,
+    abi: gameAbi,
+    functionName: "owner",
+  });
+}
+
 export async function readCounts(address: Address): Promise<Counts> {
   const client = mudwaterPublicClient();
 

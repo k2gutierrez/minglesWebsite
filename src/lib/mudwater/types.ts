@@ -23,5 +23,6 @@ export interface GameState {
   deadline: number;
   counts: { holders: number[]; open: number[] };
   sealed: { holders: boolean; open: boolean };
+  owner: string;
   player: PlayerState | null;
 }

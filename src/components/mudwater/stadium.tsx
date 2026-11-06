@@ -359,6 +359,9 @@ export function Stadium({
 
   const total = useMemo(() => shown.reduce((s, a) => s + a.total, 0), [shown]);
   const closed = remaining !== null && remaining <= 0;
+  const isOwner = Boolean(
+    address && remote?.owner && address.toLowerCase() === remote.owner.toLowerCase(),
+  );
   const bothSealed = Boolean(remote?.sealed?.holders && remote?.sealed?.open);
   const countdown = remaining === null ? "--:--:--" : formatCountdown(remaining);
   const player = remote?.player ?? null;
@@ -407,6 +410,48 @@ export function Stadium({
             </div>
           )}
         </div>
+
+        {isOwner && (
+          <section className="mw-operator" aria-label="Operator">
+            <div className="mw-operator-head">
+              <p className="mw-eyebrow">Operator</p>
+              <b>@{player?.handle ?? "owner"} · this wallet owns the contract</b>
+            </div>
+            <p className="mw-operator-note">
+              Ownership gives no powers here: the counts are the counts and the
+              draw reads the log. Sealing is open to anyone, so this panel is
+              only a shortcut.
+            </p>
+            <div className="mw-operator-actions">
+              {(["holders", "open"] as const).map((key) => (
+                <button
+                  key={key}
+                  className="mw-button"
+                  type="button"
+                  disabled={!closed || Boolean(remote?.sealed?.[key]) || sealTarget !== null}
+                  onClick={() => void seal(key)}
+                >
+                  {remote?.sealed?.[key]
+                    ? `${ARENA_TITLE[key]} sealed`
+                    : closed
+                      ? `Seal ${ARENA_TITLE[key]}`
+                      : `Seals at the close`}
+                </button>
+              ))}
+              <button
+                className="mw-button"
+                type="button"
+                disabled={revealing}
+                onClick={() => void reveal()}
+              >
+                {revealing ? "Reading…" : "Read the log"}
+              </button>
+            </div>
+            <p className="mw-operator-meta">
+              {remote?.contract}
+            </p>
+          </section>
+        )}
 
         <div className="mw-switch" role="group" aria-label="Choose arena">
           {shown.map((arena) => (

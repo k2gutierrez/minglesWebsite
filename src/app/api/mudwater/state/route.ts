@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { ApiError, json, requireUser } from "@/lib/server/http";
-import { chainId, contractAddress, readCounts, readDeadline, readIsHolder, readPlayer, readSealed } from "@/lib/mudwater/game";
+import { chainId, contractAddress, readCounts, readDeadline, readIsHolder, readPlayer, readSealed, readOwner } from "@/lib/mudwater/game";
 import { boundWallet, ensurePlayer } from "@/lib/mudwater/session";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +22,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [counts, deadline, sealed] = await Promise.all([
+    const [counts, deadline, sealed, owner] = await Promise.all([
       readCounts(address),
       readDeadline(address),
       readSealed(address),
+      readOwner(address),
     ]);
 
     const base = {
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
       deadline,
       counts,
       sealed,
+      owner,
       player: null as unknown,
     };
 
