@@ -1402,6 +1402,26 @@
   flex-wrap: wrap;
 }
 
+.mw-setup-switch {
+  margin: 12px 0 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mw-fog-text);
+}
+
+.mw-setup-switch button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--mw-champagne);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .mw-setup-post {
   display: flex;
   flex-direction: column;

@@ -169,7 +169,7 @@ export function Stadium({
   } | null>(null);
   const [revealing, setRevealing] = useState(false);
 
-  const { address } = useAccount();
+  const { address, connector } = useAccount();
   const { writeContractAsync, data: hash } = useWriteContract();
   const { isSuccess, isLoading: confirming } = useWaitForTransactionReceipt({ hash });
 
@@ -304,6 +304,8 @@ export function Stadium({
       setTarget({ arena, barrel });
 
       try {
+        await connector?.getAccounts?.().catch(() => undefined);
+
         await writeContractAsync({
           address: remote.contract as `0x${string}`,
           abi: gameAbi,
@@ -311,12 +313,16 @@ export function Stadium({
           args: [ARENA[arena], barrel],
         });
       } catch (e) {
-        const message = e instanceof Error ? e.message : "The move failed.";
-        setError(message.split("\n")[0].slice(0, 160));
+        const message = e instanceof Error ? e.message : "";
+        setError(
+          /not been authorized|4100|rejected|denied/i.test(message)
+            ? "Your wallet didn't approve the move. Unlock it and try again."
+            : message.split("\n")[0].slice(0, 160) || "The move failed.",
+        );
         setTarget(null);
       }
     },
-    [remote, now, writeContractAsync],
+    [remote, now, writeContractAsync, connector],
   );
 
   const liveArenas = useMemo(() => {

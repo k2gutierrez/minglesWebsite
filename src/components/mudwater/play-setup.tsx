@@ -28,6 +28,8 @@ export interface SetupPlayer {
   verified: boolean;
 }
 
+const name = (handle: string) => (/^x[0-9a-f]{6}$/i.test(handle) ? "your account" : `@${handle}`);
+
 export function PlaySetup({
   player,
   refresh,
@@ -40,7 +42,7 @@ export function PlaySetup({
   const [card, setCard] = useState<CardKey | null>(null);
   const [opened, setOpened] = useState(false);
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, connector } = useAccount();
   const { signMessageAsync } = useSignMessage();
 
   const call = useCallback(async (path: string, payload: unknown) => {
@@ -62,11 +64,30 @@ export function PlaySetup({
     return parsed;
   }, []);
 
+  /** viem surfaces provider errors raw; a 4100 is always the same thing. */
+  function walletMessage(e: unknown) {
+    const text = e instanceof Error ? e.message : "";
+    if (/not been authorized|4100|User rejected|denied/i.test(text)) {
+      return "Your wallet didn't approve the signature. Unlock it, make sure the right account is selected, and try again.";
+    }
+    return text.split("\n")[0].slice(0, 180) || "Could not link the wallet.";
+  }
+
+  async function signOut() {
+    await getSupabase()?.auth.signOut();
+    window.location.reload();
+  }
+
   async function link() {
     if (!address) return;
     setBusy("link");
     setError(null);
     try {
+      // Ask the wallet to authorise the account before signing. Without this a
+      // reloaded tab can hold a connection the wallet no longer trusts, and the
+      // signature comes back as a bare 4100.
+      await connector?.getAccounts?.().catch(() => undefined);
+
       const challenge = await call("/api/mudwater/wallet", { address });
       const signature = await signMessageAsync({ message: challenge.message });
       await call("/api/mudwater/wallet/verify", {
@@ -76,7 +97,7 @@ export function PlaySetup({
       });
       refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not link the wallet.");
+      setError(walletMessage(e));
     } finally {
       setBusy(null);
     }
@@ -144,8 +165,8 @@ export function PlaySetup({
       {player && !player.wallet && (
         <div className="mw-setup-row">
           <p className="mw-setup-copy">
-            <b>Almost there, @{player.handle}.</b> Link the wallet that will
-            play. It is a free signature, no gas.
+            <b>Almost there, {name(player.handle)}.</b> Link the wallet that
+            will play. It is a free signature, no gas.
           </p>
           <div className="mw-setup-actions">
             <ConnectButton
@@ -168,7 +189,7 @@ export function PlaySetup({
       {player && player.wallet && !player.verified && (
         <div className="mw-setup-post">
           <p className="mw-setup-copy">
-            <b>Last step, @{player.handle}.</b> Pick what you want to say. X
+            <b>Last step, {name(player.handle)}.</b> Pick what you want to say. X
             opens with the text ready. Post it and come back.
           </p>
 
@@ -198,6 +219,15 @@ export function PlaySetup({
             </button>
           )}
         </div>
+      )}
+
+      {player && (
+        <p className="mw-setup-switch">
+          Not you?{" "}
+          <button type="button" onClick={() => void signOut()}>
+            Sign out and use another account
+          </button>
+        </p>
       )}
 
       {error && (

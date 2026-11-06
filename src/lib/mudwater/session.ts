@@ -28,9 +28,23 @@ export function xIdentity(user: User): {
     identity?.id ?? meta.sub ?? user.id,
   );
 
-  const handle = String(
-    meta.user_name ?? meta.preferred_username ?? meta.name ?? "unknown",
-  ).replace(/^@/, "");
+  // X puts the handle in user_name, but the field has moved around across
+  // provider versions, and an account created before the scope was right is
+  // still carrying "unknown". Check every place it can be and fall back to
+  // something stable rather than the word unknown.
+  const identityMeta = (identity?.identity_data ?? {}) as Record<string, unknown>;
+
+  const rawHandle = [
+    meta.user_name,
+    meta.preferred_username,
+    identityMeta.user_name,
+    meta.nickname,
+    meta.name,
+  ].find((value) => typeof value === "string" && value.trim().length > 0);
+
+  const handle = rawHandle
+    ? String(rawHandle).trim().replace(/^@/, "")
+    : `x${String(xUserId).slice(0, 6)}`;
 
   const avatar =
     typeof meta.avatar_url === "string"
@@ -56,7 +70,25 @@ export async function ensurePlayer(
     .maybeSingle();
 
   if (existing.error) throw new ApiError(502, "Could not read the player.");
-  if (existing.data) return existing.data as PlayerRow;
+
+  if (existing.data) {
+    const row = existing.data as PlayerRow;
+
+    // A row created before the handle was readable keeps saying "unknown"
+    // forever unless it is repaired on the next sign in.
+    if (row.handle !== handle || row.avatar_url !== avatar) {
+      const fixed = await db
+        .from("mw_players")
+        .update({ handle, avatar_url: avatar })
+        .eq("id", user.id)
+        .select("id, x_user_id, handle, avatar_url")
+        .single();
+
+      if (!fixed.error) return fixed.data as PlayerRow;
+    }
+
+    return row;
+  }
 
   const inserted = await db
     .from("mw_players")
