@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { json, ApiError } from "@/lib/server/http";
 import { contractAddress } from "@/lib/mudwater/game";
 import { mudwaterPublicClient } from "@/lib/mudwater/chain";
@@ -18,6 +19,28 @@ const ACTION = {
 } as const;
 
 const LETTERS = ["A", "B", "C"];
+
+const DRAND = "https://api.drand.sh";
+const QUICKNET =
+  "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971";
+
+/** The announced round decides the order. Same round, same order, for anyone. */
+async function seed(round: number): Promise<string | null> {
+  try {
+    const response = await fetch(`${DRAND}/${QUICKNET}/public/${round}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    const data = (await response.json()) as { randomness?: string };
+    return data.randomness ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function score(randomness: string, arena: number, wallet: string) {
+  return createHash("sha256").update(`${randomness}:${arena}:${wallet}`).digest("hex");
+}
 
 /**
  * GET /api/mudwater/draw
@@ -56,6 +79,9 @@ export async function GET() {
       : Number(a.blockNumber - b.blockNumber),
   );
 
+  const announced = Number(process.env.MUDWATER_DRAND_ROUND ?? 0);
+  const randomness = announced > 0 ? await seed(announced) : null;
+
   const arenas = [0, 1].map((arena) => {
     const final = new Map<string, number>();
     for (const log of logs) {
@@ -77,14 +103,31 @@ export async function GET() {
       .filter(([, barrel]) => winning.includes(barrel))
       .map(([wallet, barrel]) => ({ wallet, barrel: LETTERS[barrel] }));
 
+    // With the announced round the candidates become a fixed order. Without
+    // it they are just the people in the qualifying barrel.
+    const ordered = randomness
+      ? candidates
+          .map((c) => ({ ...c, key: score(randomness, arena, c.wallet) }))
+          .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+          .map((c, index) => ({ position: index + 1, wallet: c.wallet, barrel: c.barrel }))
+      : candidates.map((c, index) => ({ position: index + 1, wallet: c.wallet, barrel: c.barrel }));
+
     return {
       arena,
       name: arena === 0 ? "Mingles Arena" : "ApeChain Arena",
       counts,
       winning: winning.map((b) => LETTERS[b]),
-      candidates,
+      candidates: ordered.slice(0, 5),
+      total: ordered.length,
     };
   });
 
-  return json({ contract, actions: logs.length, fromBlock: Number(fromBlock), arenas });
+  return json({
+    contract,
+    actions: logs.length,
+    fromBlock: Number(fromBlock),
+    round: randomness ? announced : null,
+    seed: randomness,
+    arenas,
+  });
 }

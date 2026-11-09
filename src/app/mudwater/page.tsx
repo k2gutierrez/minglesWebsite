@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PixelBarrel } from "@/components/mudwater/barrel-art";
 import { SignInButton } from "@/components/mudwater/sign-in-button";
 import { WalletProviders } from "@/components/wallet-providers";
 import { Stadium } from "@/components/mudwater/stadium";
@@ -33,29 +34,6 @@ export const metadata: Metadata = {
   },
   robots: { index: false, follow: false },
 };
-
-const STEPS = [
-  {
-    label: "01",
-    title: "Sign in with X",
-    body: "One X account per player. We keep the stable account ID, not just the handle, so a rename never breaks your entry.",
-  },
-  {
-    label: "02",
-    title: "Bind a wallet",
-    body: "Sign a message to link one ApeChain wallet to that account. No gas, no transaction, one wallet for the whole event.",
-  },
-  {
-    label: "03",
-    title: "Share a post",
-    body: "Pick card A, B or C. The site writes the post and opens X with the text ready. Publish it, come back and confirm. One post covers the whole game.",
-  },
-  {
-    label: "04",
-    title: "Enter and move",
-    body: "One transaction per move, five minutes of cooldown per arena. Bluff as much as you like — the chain does not.",
-  },
-];
 
 const FACTS = [
   ["48H", "One finite game"],
@@ -104,18 +82,20 @@ export default function MudwaterPage() {
               </p>
 
               <div className="mw-actions">
-                {!live && <SignInButton enabled={isOpen} />}
-                <a className="mw-button mw-button-ghost" href="#how">
-                  How it works
+                <a className="mw-button mw-button-lg" href="#play">
+                  Play the game ↓
                 </a>
               </div>
 
               {!isOpen && (
                 <p className="mw-preview-note">
-                  Preview build · account flow and onchain moves ship with the
-                  contract
+                  Preview build · the onchain game opens with the contract
                 </p>
               )}
+            </div>
+
+            <div className="mw-hero-barrel" aria-hidden="true">
+              <PixelBarrel className="mw-hero-cask" fill={0.66} />
             </div>
           </div>
 
@@ -128,33 +108,6 @@ export default function MudwaterPage() {
             ))}
           </ul>
         </section>
-      </div>
-
-      <div className="mw-shell">
-        <section className="mw-section" id="how">
-          <div className="mw-section-head">
-            <h2>From login to the last move</h2>
-            <p>
-              Four steps, one wallet, no entry fee. Every entry and every change
-              of barrel is a confirmed ApeChain transaction.
-            </p>
-          </div>
-          <ol className="mw-steps">
-            {STEPS.map((step) => (
-              <li key={step.label}>
-                <b>{step.label}</b>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
-
-      <div className="mw-shell">
-        <WalletProviders chainId={chainId}>
-          <Stadium snapshot={snapshot} live={live} />
-        </WalletProviders>
       </div>
 
       <div className="mw-shell">
@@ -193,12 +146,18 @@ export default function MudwaterPage() {
       </div>
 
       <div className="mw-shell">
+        <WalletProviders chainId={chainId}>
+          <Stadium snapshot={snapshot} live={live} />
+        </WalletProviders>
+      </div>
+
+      <div className="mw-shell">
         <section className="mw-section">
           <div className="mw-section-head">
             <h2>How it ends</h2>
             <p>
-              Two arenas, two winners, one published draw. The same wallet can
-              take both packs.
+              Two arenas, two winners, one published draw. The five candidates
+              per arena are reviewed on a livestream before the pack is sent.
             </p>
           </div>
 
@@ -213,12 +172,12 @@ export default function MudwaterPage() {
               </p>
             </div>
             <div>
-              <h3>The draw</h3>
+              <h3>The five and the livestream</h3>
               <p>
-                A public random round is committed before the game opens. It
-                produces one fixed order per arena — no rerolls, no redraw after
-                a disqualification. The top five go public; the rest of the
-                order stays on record.
+                When the clock stops, the five candidates of each arena go
+                public. They are checked by hand on a livestream: the post has
+                to be live, the wallet has to be real. If a winner is not
+                eligible, the prize moves to the next name on the list.
               </p>
             </div>
             <div>

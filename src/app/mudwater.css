@@ -88,6 +88,30 @@
   align-items: end;
 }
 
+.mw-hero-barrel {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .mw-hero-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.7fr) 190px;
+    align-items: center;
+  }
+
+  .mw-hero-barrel {
+    display: block;
+    justify-self: end;
+    align-self: center;
+    filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.7));
+  }
+
+  .mw-hero-cask {
+    width: 190px;
+    height: 190px;
+    display: block;
+  }
+}
+
 .mw-hero-side {
   padding-bottom: 6px;
 }
@@ -428,6 +452,18 @@
   border-color: var(--mw-champagne);
 }
 
+.mw-arena::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/mudwater/cellar.webp") center / cover no-repeat;
+  opacity: 0.14;
+  filter: saturate(0.8) contrast(1.05);
+  border-radius: 3px;
+}
+
 .mw-arena {
   border: 1px solid var(--mw-line);
   border-radius: 3px;
@@ -628,7 +664,7 @@
 
 .mw-cell {
   fill: url(#mw-liquid);
-  opacity: 0.07;
+  opacity: 0.16;
   transition: opacity 0.42s ease;
 }
 
@@ -1311,6 +1347,145 @@
 }
 
 /* --------------------------------------------------------------------------
+   EL RECORRIDO: CUATRO PASOS QUE SON ACCIONES
+   -------------------------------------------------------------------------- */
+
+.mw-journey {
+  margin-bottom: 16px;
+}
+
+.mw-journey-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.mw-journey-head h2 {
+  margin: 0;
+  font-family: var(--mw-title);
+  font-size: clamp(20px, 2.2vw, 27px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mw-mist);
+}
+
+.mw-journey-head p {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mw-fog-text);
+}
+
+.mw-steps-live {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mw-step {
+  display: flex;
+  gap: 10px;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--mw-line);
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(174, 163, 93, 0.04), transparent);
+}
+
+.mw-step.is-next {
+  opacity: 0.42;
+}
+
+.mw-step.is-now {
+  border-color: rgba(174, 163, 93, 0.65);
+  background: linear-gradient(180deg, rgba(174, 163, 93, 0.1), transparent);
+}
+
+.mw-step.is-done .mw-step-n {
+  border-color: rgba(143, 208, 160, 0.6);
+  color: #8fd0a0;
+}
+
+.mw-step-n {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--mw-line);
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--mw-fog-text);
+}
+
+.mw-step.is-now .mw-step-n {
+  border-color: var(--mw-champagne);
+  color: var(--mw-champagne);
+}
+
+.mw-step-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mw-step-title {
+  margin: 0;
+  font-family: var(--mw-title);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mw-mist);
+}
+
+.mw-step.is-next .mw-step-title {
+  color: var(--mw-fog-text);
+}
+
+.mw-step-done {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--mw-champagne);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mw-step-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.mw-button-play {
+  width: 100%;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--mw-champagne);
+  color: var(--mw-champagne);
+}
+
+.mw-button-play:hover:not(:disabled) {
+  background: var(--mw-champagne);
+  color: #0b0a05;
+}
+
+/* --------------------------------------------------------------------------
    HUD, SETUP Y MESA DE JUEGO
    -------------------------------------------------------------------------- */
 
@@ -1733,7 +1908,31 @@
     align-items: start;
   }
 
-  .mw-hero-side {
+  .mw-hero-barrel {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .mw-hero-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.7fr) 190px;
+    align-items: center;
+  }
+
+  .mw-hero-barrel {
+    display: block;
+    justify-self: end;
+    align-self: center;
+    filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.7));
+  }
+
+  .mw-hero-cask {
+    width: 190px;
+    height: 190px;
+    display: block;
+  }
+}
+
+.mw-hero-side {
     padding-bottom: 0;
   }
 }
@@ -1805,7 +2004,19 @@
     align-items: flex-start;
   }
 
-  .mw-arena {
+  .mw-arena::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/mudwater/cellar.webp") center / cover no-repeat;
+  opacity: 0.14;
+  filter: saturate(0.8) contrast(1.05);
+  border-radius: 3px;
+}
+
+.mw-arena {
     display: none;
   }
 
@@ -1829,7 +2040,19 @@
     font-size: 16px;
   }
 
-  .mw-arena {
+  .mw-arena::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/mudwater/cellar.webp") center / cover no-repeat;
+  opacity: 0.14;
+  filter: saturate(0.8) contrast(1.05);
+  border-radius: 3px;
+}
+
+.mw-arena {
     padding: 14px 13px 12px;
   }
 

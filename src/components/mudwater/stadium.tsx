@@ -5,7 +5,10 @@ import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagm
 import { getSupabase } from "@/lib/supabase";
 import { ARENA, gameAbi } from "@/lib/mudwater/abi";
 import type { ArenaPlayerState, GameState } from "@/lib/mudwater/types";
-import { PlaySetup } from "./play-setup";
+import { Journey } from "./journey";
+import { CELL_FIELD, RADIUS, SIDE, SIZE } from "./barrel-art";
+
+const COOLDOWN = 300;
 import {
   applyCounts,
   countsOf,
@@ -21,29 +24,6 @@ import {
  * pixel identical at any total. The fill is a share of the arena, not an
  * absolute count: that is what keeps 100 and 1,000 players readable.
  * ------------------------------------------------------------------ */
-
-const SIZE = 240;
-const GRID = 20;
-const CELL = SIZE / GRID;
-const RADIUS = SIZE / 2 - 6;
-const COOLDOWN = 300;
-
-const CELL_FIELD: { x: number; y: number }[] = (() => {
-  const cells: { x: number; y: number }[] = [];
-  for (let row = 0; row <= GRID; row += 1) {
-    const y = row * CELL + CELL / 2;
-    for (let column = -1; column <= GRID; column += 1) {
-      const x = column * CELL + CELL / 2 + (row % 2 ? CELL * 0.5 : 0);
-      if (Math.hypot(x - SIZE / 2, y - SIZE / 2) <= RADIUS - CELL * 0.38) {
-        cells.push({ x, y });
-      }
-    }
-  }
-  cells.sort((a, b) => b.y - a.y || a.x - b.x);
-  return cells;
-})();
-
-const SIDE = CELL * 0.88;
 
 function Barrel({
   arenaName,
@@ -165,7 +145,14 @@ export function Stadium({
   );
   const [sealTarget, setSealTarget] = useState<"holders" | "open" | null>(null);
   const [draw, setDraw] = useState<{
-    arenas: { name: string; counts: number[]; winning: string[]; candidates: { wallet: string; barrel: string }[] }[];
+    round: number | null;
+    arenas: {
+      name: string;
+      counts: number[];
+      winning: string[];
+      total: number;
+      candidates: { position: number; wallet: string; barrel: string }[];
+    }[];
   } | null>(null);
   const [revealing, setRevealing] = useState(false);
 
@@ -375,19 +362,20 @@ export function Stadium({
 
   return (
     <>
-      {live && !remote && (
-        <div className="mw-setup">
-          <p className="mw-setup-copy">
-            <b>Checking your session…</b> One moment.
-          </p>
-        </div>
-      )}
-
-      {live && remote?.configured && (
-        <PlaySetup player={player} refresh={() => void loadRemote()} />
+      {live && (
+        <Journey
+          player={player}
+          live={Boolean(remote?.configured)}
+          onPlay={() =>
+            document
+              .getElementById("stadium")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        />
       )}
 
       <section
+        id="stadium"
         className={`mw-stadium${verified ? " is-playing" : ""}`}
         aria-label="Live stadium"
       >
@@ -542,19 +530,10 @@ export function Stadium({
                 </div>
 
                 <footer className="mw-arena-foot">
-                  {closed && !remote?.sealed?.[arena.id] ? (
-                    <button
-                      className="mw-button mw-seal"
-                      type="button"
-                      disabled={sealTarget !== null}
-                      onClick={() => void seal(arena.id)}
-                    >
-                      {sealTarget === arena.id
-                        ? "Sealing…"
-                        : "Close the game and publish the final counts"}
-                    </button>
-                  ) : remote?.sealed?.[arena.id] ? (
+                  {remote?.sealed?.[arena.id] ? (
                     <>Sealed. These counts are final and nobody can change them.</>
+                  ) : closed ? (
+                    <>The game is closed. The final counts are published by the operator.</>
                   ) : gated ? (
                     <>This arena is for Mingles holders. Your wallet holds none.</>
                   ) : !verified ? (
@@ -582,12 +561,12 @@ export function Stadium({
             <div className="mw-reveal-head">
               <div>
                 <p className="mw-eyebrow">After the close</p>
-                <h3>The log is the record</h3>
+                <h3>The five of each arena</h3>
                 <p className="mw-reveal-copy">
-                  Every entry and every move is an Action event. The draw reads
-                  that log, finds the least populated barrel and orders its
-                  players with the drand round announced before the close. The
-                  script is public, so anyone can reproduce the same order.
+                  The five candidates go to a livestream for review. If a post
+                  is not live or a wallet is not eligible, the prize moves to
+                  the next name. The order comes from the drand round announced
+                  before the close, so anyone can reproduce it.
                 </p>
               </div>
               <button
@@ -616,14 +595,25 @@ export function Stadium({
                     <ul>
                       {a.candidates.map((c) => (
                         <li key={c.wallet}>
-                          <code>{c.wallet}</code>
+                          <code>
+                            #{c.position} {c.wallet.slice(0, 6)}…{c.wallet.slice(-4)}
+                          </code>
                           <span>{c.barrel}</span>
                         </li>
                       ))}
                     </ul>
+                    {a.total > 5 && (
+                      <p className="mw-reveal-counts">+{a.total - 5} more on record</p>
+                    )}
                     {!bothSealed && (
                       <p className="mw-reveal-warn">
                         Seal both arenas before using this for the prize.
+                      </p>
+                    )}
+                    {!draw.round && (
+                      <p className="mw-reveal-warn">
+                        No drand round configured, so this is the barrel order,
+                        not the draw order.
                       </p>
                     )}
                   </div>
