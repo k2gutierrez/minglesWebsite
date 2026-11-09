@@ -365,7 +365,7 @@ export function Stadium({
       {live && (
         <Journey
           player={player}
-          live={Boolean(remote?.configured)}
+          live={live}
           onPlay={() =>
             document
               .getElementById("stadium")
