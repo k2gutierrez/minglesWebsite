@@ -21,6 +21,23 @@ export function mudwaterChain() {
   return { chain, rpc };
 }
 
+/**
+ * A client for `eth_getLogs`.
+ *
+ * Some providers, Alchemy among them, answer the configured RPC for calls and
+ * block numbers but refuse log queries. The draw only reads logs, so it gets
+ * its own transport and falls back to the chain's public endpoint.
+ */
+export function mudwaterLogClient() {
+  const { chain } = mudwaterChain();
+  const rpc = process.env.MUDWATER_LOG_RPC || chain.rpcUrls.default.http[0];
+
+  return createPublicClient({
+    chain,
+    transport: http(rpc, { timeout: 20_000, retryCount: 2 }),
+  });
+}
+
 export function mudwaterPublicClient() {
   const { chain, rpc } = mudwaterChain();
 

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { json, ApiError } from "@/lib/server/http";
 import { contractAddress } from "@/lib/mudwater/game";
-import { mudwaterPublicClient } from "@/lib/mudwater/chain";
+import { mudwaterLogClient as logClientFor } from "@/lib/mudwater/chain";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -65,7 +65,7 @@ async function read() {
   const contract = contractAddress();
   if (!contract) throw new ApiError(503, "The game contract is not configured.");
 
-  const client = mudwaterPublicClient();
+  const client = logClientFor();
   const head = await client.getBlockNumber();
   const configured = Number(process.env.MUDWATER_FROM_BLOCK ?? 0);
   const fromBlock = configured > 0 ? BigInt(configured) : head - 300_000n;
