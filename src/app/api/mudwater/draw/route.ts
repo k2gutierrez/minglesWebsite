@@ -51,6 +51,17 @@ function score(randomness: string, arena: number, wallet: string) {
  * which anybody can run and check.
  */
 export async function GET() {
+  try {
+    return await read();
+  } catch (error) {
+    return json(
+      { error: error instanceof Error ? error.message : String(error) },
+      500,
+    );
+  }
+}
+
+async function read() {
   const contract = contractAddress();
   if (!contract) throw new ApiError(503, "The game contract is not configured.");
 
