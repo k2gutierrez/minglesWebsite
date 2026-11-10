@@ -146,6 +146,7 @@ export function Stadium({
   const [sealTarget, setSealTarget] = useState<"holders" | "open" | null>(null);
   const [draw, setDraw] = useState<{
     round: number | null;
+    pendingRound: number | null;
     arenas: {
       name: string;
       counts: number[];
@@ -610,7 +611,14 @@ export function Stadium({
                         Seal both arenas before using this for the prize.
                       </p>
                     )}
-                    {!draw.round && (
+                    {draw.pendingRound && (
+                      <p className="mw-reveal-warn">
+                        Round {draw.pendingRound} is not published yet. The order
+                        appears here as soon as drand releases it, minutes after
+                        the close.
+                      </p>
+                    )}
+                    {!draw.round && !draw.pendingRound && (
                       <p className="mw-reveal-warn">
                         No drand round configured, so this is the barrel order,
                         not the draw order.

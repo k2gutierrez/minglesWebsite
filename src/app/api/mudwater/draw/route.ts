@@ -138,6 +138,7 @@ async function read() {
     actions: logs.length,
     fromBlock: Number(fromBlock),
     round: randomness ? announced : null,
+    pendingRound: announced > 0 && !randomness ? announced : null,
     seed: randomness,
     arenas,
   });

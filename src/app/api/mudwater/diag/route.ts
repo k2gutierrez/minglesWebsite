@@ -34,6 +34,8 @@ export async function GET() {
       reachable: true,
       deadline: Number(deadline),
       closed: Date.now() / 1000 >= Number(deadline),
+      drandRound: process.env.MUDWATER_DRAND_ROUND ?? null,
+      fromBlock: process.env.MUDWATER_FROM_BLOCK ?? null,
     });
   } catch {
     return json({ chainId: chainId(), contract, reachable: false });
