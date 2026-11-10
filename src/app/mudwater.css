@@ -1465,6 +1465,24 @@
   white-space: nowrap;
 }
 
+.mw-step-out {
+  margin-left: 10px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--mw-fog-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+.mw-step-out:hover {
+  color: var(--mw-coral);
+}
+
 .mw-step-row {
   display: flex;
   flex-direction: column;

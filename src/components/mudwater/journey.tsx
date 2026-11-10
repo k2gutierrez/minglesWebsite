@@ -68,6 +68,11 @@ export function Journey({
     return parsed;
   }, []);
 
+  async function signOut() {
+    await getSupabase()?.auth.signOut();
+    window.location.reload();
+  }
+
   function walletMessage(e: unknown) {
     const text = e instanceof Error ? e.message : "";
     if (/not been authorized|4100|rejected|denied/i.test(text)) {
@@ -147,7 +152,16 @@ export function Journey({
           <div className="mw-step-body">
             <p className="mw-step-title">Sign in with X</p>
             {signedIn ? (
-              <p className="mw-step-done">@{player?.handle}</p>
+              <p className="mw-step-done">
+                @{player?.handle}
+                <button
+                  className="mw-step-out"
+                  type="button"
+                  onClick={() => void signOut()}
+                >
+                  sign out
+                </button>
+              </p>
             ) : (
               <button
                 className="mw-button"
