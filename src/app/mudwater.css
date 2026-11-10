@@ -464,6 +464,13 @@
   border-radius: 3px;
 }
 
+/* Each arena gets its own cask hall, so they do not look like the same room. */
+.mw-arena[data-arena="holders"]::before {
+  background-image: url("/mudwater/cellar-mingles.webp");
+  opacity: 0.3;
+  filter: saturate(0.9) contrast(1.06) brightness(1.2);
+}
+
 .mw-arena {
   border: 1px solid var(--mw-line);
   border-radius: 3px;
@@ -2034,6 +2041,13 @@
   border-radius: 3px;
 }
 
+/* Each arena gets its own cask hall, so they do not look like the same room. */
+.mw-arena[data-arena="holders"]::before {
+  background-image: url("/mudwater/cellar-mingles.webp");
+  opacity: 0.3;
+  filter: saturate(0.9) contrast(1.06) brightness(1.2);
+}
+
 .mw-arena {
     display: none;
   }
@@ -2068,6 +2082,13 @@
   opacity: 0.14;
   filter: saturate(0.8) contrast(1.05);
   border-radius: 3px;
+}
+
+/* Each arena gets its own cask hall, so they do not look like the same room. */
+.mw-arena[data-arena="holders"]::before {
+  background-image: url("/mudwater/cellar-mingles.webp");
+  opacity: 0.3;
+  filter: saturate(0.9) contrast(1.06) brightness(1.2);
 }
 
 .mw-arena {

@@ -483,6 +483,7 @@ export function Stadium({
               <section
                 key={arena.id}
                 className={`mw-arena${activeArena === arena.id ? " is-active" : ""}`}
+                data-arena={arena.id}
                 aria-label={`${ARENA_TITLE[arena.id]}, ${arena.name}`}
               >
                 <header className="mw-arena-head">
