@@ -71,8 +71,14 @@ export default function TermsPage() {
             account, for the duration of the Promotion;
           </li>
           <li>
-            for the Mingles Holders arena, hold at least one eligible Mingles NFT at the
-            moment the Promotion closes;
+            for the Mingles Arena, hold at least one Mingles NFT at the moment of each
+            move. The game contract checks the balance itself on every entry and every
+            change of barrel, so the arena is closed to a wallet holding none. The
+            collection is{" "}
+            <a href={LEGAL.collectionExplorer} target="_blank" rel="noopener noreferrer">
+              {LEGAL.collection}
+            </a>{" "}
+            on ApeChain;
           </li>
           <li>
             not be an employee, contractor or immediate family member of the Organiser or
