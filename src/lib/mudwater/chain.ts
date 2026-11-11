@@ -1,5 +1,5 @@
 import "server-only";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, fallback, http } from "viem";
 import { COLLECTION } from "@/lib/web3/collection";
 import { apeChainCurtis } from "@/lib/web3/chains";
 
@@ -32,24 +32,20 @@ export function mudwaterChain() {
  * its own transport and falls back to the chain's public endpoint.
  */
 export function mudwaterLogClient() {
-  const { chain, rpc } = mudwaterChain();
+  const { chain } = mudwaterChain();
 
-  // A dashboard variable set to an empty string, or to spaces, is truthy in a
-  // plain `||`, and viem then chokes on a URL that is not one. Every candidate
-  // is checked to look like a URL before it is used.
-  const candidates = [
-    (process.env.MUDWATER_LOG_RPC ?? "").trim(),
-    (rpc ?? "").trim(),
-    ...chain.rpcUrls.default.http,
-  ];
-
-  const url =
-    candidates.find((value) => /^https?:\/\//i.test(value)) ??
-    chain.rpcUrls.default.http[0];
+  // Log queries do not work everywhere. The configured RPC happily serves
+  // eth_call and eth_blockNumber and then rejects eth_getLogs with a payload
+  // error, which is exactly what happened with the Alchemy endpoint. The chain
+  // public endpoints do answer it, and viem tries them in order, so the log
+  // read never depends on a provider that may refuse it.
+  const urls = chain.rpcUrls.default.http;
 
   return createPublicClient({
     chain,
-    transport: http(url, { timeout: 20_000, retryCount: 2 }),
+    transport: fallback(
+      urls.map((url) => http(url, { timeout: 20_000, retryCount: 1 })),
+    ),
   });
 }
 
