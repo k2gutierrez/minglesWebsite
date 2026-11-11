@@ -28,9 +28,16 @@ export default function TermsPage() {
         <h2>1. The promotion</h2>
         <p>
           The Last Barrel (the “Promotion”) is organised by{" "}
-          <Fill value={LEGAL.sponsorLegalName} /> (“the Organiser”, “we”, “us”), whose
-          registered address is <Fill value={LEGAL.sponsorAddress} />. Mudwater supplies
-          the prizes.
+          <Fill value={LEGAL.sponsorLegalName} />, {LEGAL.sponsorType} registered in
+          Wyoming on {LEGAL.sponsorIncorporated} under registration number{" "}
+          {LEGAL.sponsorRegistration} (“the Organiser”, “we”, “us”), whose registered
+          address is <Fill value={LEGAL.sponsorAddress} />. Its president is{" "}
+          {LEGAL.sponsorPresident}. Mudwater supplies the prizes.
+        </p>
+        <p>
+          Day to day operation of the Promotion, including verification and delivery of
+          the prize, is carried out by {LEGAL.operatorName} ({LEGAL.operatorHandle}) on
+          behalf of the Organiser.
         </p>
         <p>
           The Promotion is not sponsored, endorsed, administered by, or associated with X
@@ -117,9 +124,10 @@ export default function TermsPage() {
             point makes you ineligible.
           </li>
           <li>
-            <strong>Enter a barrel.</strong> With an active pass, enter or change barrel
-            with a confirmed ApeChain transaction. There is a five-minute cooldown per
-            arena between your own barrel actions.
+            <strong>Enter a barrel.</strong> Enter or change barrel with a confirmed
+            ApeChain transaction. You pay the network fee for your own moves. There is a
+            five-minute cooldown per arena between your own barrel actions, and no limit
+            on how many times you move.
           </li>
         </ul>
         <p>
@@ -133,8 +141,9 @@ export default function TermsPage() {
         <h2>5. Game window</h2>
         <p>
           The Promotion opens on <Fill value={LEGAL.startAt} /> UTC and closes on{" "}
-          <Fill value={LEGAL.closeAt} /> UTC. All times are stated in UTC; no other
-          timezone is authoritative.
+          <Fill value={LEGAL.closeAt} /> UTC, which is{" "}
+          {LEGAL.startAtLocal} to {LEGAL.closeAtLocal} in Mexico City time (UTC-6). All
+          times are stated in UTC; no other timezone is authoritative.
         </p>
         <p>
           There is no lockout period at the end. Any transaction confirmed before the
@@ -166,14 +175,14 @@ export default function TermsPage() {
           The winner is chosen from the qualifying barrel by a public random draw. The
           randomness source is a future <strong>drand</strong> round, named publicly before
           the Promotion opens, and the method is deterministic and published. The draw
-          produces one fixed order per arena without replacement. Positions 1 to 5 are
-          published; the rest of the order is kept on record.
+          produces one fixed order per arena without replacement. The order is kept on
+          record and is reproducible by anyone from the published random round and the
+          public chain history.
         </p>
         <p>
           The first position is verified first. If it does not qualify under section 7,
           the opportunity passes to the second, then the third, and so on down the same
-          fixed order. The draw is never repeated with a new seed. Anyone can recompute
-          the order from the published random round and the public chain history.
+          fixed order. The draw is never repeated with a new seed.
         </p>
       </section>
 
@@ -194,8 +203,9 @@ export default function TermsPage() {
           reason is available to the person concerned on request.
         </p>
         <p>
-          Publication of the first five positions is a provisional list of candidates. It
-          is not an announcement of winners, and we will not describe it as one.
+          The review is documented at the Organiser's discretion, including by
+          livestream. No list published during that review is an announcement of a
+          winner; only the Organiser's final statement is.
         </p>
       </section>
 
@@ -206,7 +216,8 @@ export default function TermsPage() {
           <Fill value={LEGAL.prizeDescription} />.
         </p>
         <p>
-          The approximate retail value of each prize is <Fill value={LEGAL.prizeArv} />.
+          <Fill value={LEGAL.prizeArv} />. Each prize is a digital asset, not a bottle or
+          any other physical good, and it carries no right to any alcoholic product.
           A prize is personal to the winner, cannot be exchanged for cash, and cannot be
           transferred. If a prize becomes unavailable for reasons outside our control, we
           may substitute it with one of equal or greater value.
@@ -221,12 +232,14 @@ export default function TermsPage() {
         <h2>9. Claiming and delivery</h2>
         <p>
           We contact candidates from the official Mingles account. To claim, you must
-          reply within 24 hours with a Solana wallet address to receive the prize, and, if
-          the prize includes physical delivery, a shipping address.
+          reply within {LEGAL.claimHours} hours with a Solana wallet address able to
+          receive the prize. The Organiser then transfers the prize from{" "}
+          {LEGAL.deliveryWallet} within {LEGAL.deliveryHours} hours of validating that
+          address.
         </p>
         <p>
-          If a candidate does not claim within the window, the opportunity passes down the
-          fixed order. If no candidate in the order qualifies or claims, the prize is
+          If a candidate does not claim within the window, or gives an address that
+          cannot receive the prize, the opportunity passes down the fixed order. If no candidate in the order qualifies or claims, the prize is
           declared un-awarded and its treatment is published.
         </p>
       </section>

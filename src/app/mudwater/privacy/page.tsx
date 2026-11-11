@@ -28,7 +28,9 @@ export default function PrivacyPage() {
         <h2>1. Who is responsible</h2>
         <p>
           The controller of your personal data is <Fill value={LEGAL.sponsorLegalName} />,
-          registered at <Fill value={LEGAL.sponsorAddress} /> (“we”, “us”). For any
+          registered at <Fill value={LEGAL.sponsorAddress} /> (“we”, “us”). The person
+          responsible for privacy is {LEGAL.operatorName}, reachable at{" "}
+          {LEGAL.privacyEmail}. For any
           question about this policy or to exercise your rights, write to{" "}
           <Fill value={LEGAL.contactEmail} />.
         </p>
@@ -62,9 +64,14 @@ export default function PrivacyPage() {
               <td>Know which wallet plays as you, and enforce one account per wallet</td>
             </tr>
             <tr>
-              <td>Links to the posts you declare</td>
-              <td>You, when you paste them</td>
-              <td>Activate your Barrel Pass and allow manual review later</td>
+              <td>The post you publish for the Promotion</td>
+              <td>You, on X. We record which card you chose and when</td>
+              <td>Confirm you took part and allow manual review later</td>
+            </tr>
+            <tr>
+              <td>Your Solana wallet address, if you win</td>
+              <td>You, when you claim the prize</td>
+              <td>Deliver the prize</td>
             </tr>
             <tr>
               <td>
@@ -179,12 +186,18 @@ export default function PrivacyPage() {
             <strong>X</strong> — as the identity provider, when you sign in.
           </li>
           <li>
-            <strong>Mudwater</strong> — receives the winner’s details to the extent needed
-            to ship a physical prize.
+            <strong>Mudwater</strong> — supplies the prizes and receives the winner’s
+            Solana address to the extent needed to deliver one.
+          </li>
+          <li>
+            <strong>drand</strong> — the public randomness beacon that orders the draw. It
+            receives no personal data.
           </li>
         </ul>
         <p>
-          We may also disclose data if required by law or to defend a legal claim.
+          We do not use advertising networks or third party analytics, and we do not sell
+          personal data. We may disclose data if required by law or to defend a legal
+          claim.
         </p>
       </section>
 

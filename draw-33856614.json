@@ -1,0 +1,52 @@
+{
+  "contract": "0xd086Cf8Ce946892A47A57ACF512Caf96D65D1FD2",
+  "chain": 33111,
+  "round": 33856614,
+  "seed": "d6edb2448110876d00f563051cf4786751a2895a3f20a1fc1c6d33ca25c01f21",
+  "arenas": [
+    {
+      "id": 0,
+      "name": "Mingles Arena",
+      "sub": "Mingles Holders",
+      "counts": [
+        0,
+        1,
+        0
+      ],
+      "winning": [
+        1
+      ],
+      "candidates": 1,
+      "order": [
+        {
+          "position": 1,
+          "wallet": "0x051d3f8840a437ef2c43b2fa05e797db0176a0ce",
+          "barrel": 1,
+          "key": "8f2ef41e591af194074147fe9432aa844c331de3f0fdf7aaaa963f5ac437b0e9"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "ApeChain Arena",
+      "sub": "Open Swamp",
+      "counts": [
+        0,
+        1,
+        0
+      ],
+      "winning": [
+        1
+      ],
+      "candidates": 1,
+      "order": [
+        {
+          "position": 1,
+          "wallet": "0x051d3f8840a437ef2c43b2fa05e797db0176a0ce",
+          "barrel": 1,
+          "key": "8016d457bfbcece4a82141c8e2889a33c806355fa3a2c2eb80f630642600bfbc"
+        }
+      ]
+    }
+  ]
+}
