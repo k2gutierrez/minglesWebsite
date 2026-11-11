@@ -172,12 +172,12 @@ export default function MudwaterPage() {
               </p>
             </div>
             <div>
-              <h3>The five and the livestream</h3>
+              <h3>The review and the livestream</h3>
               <p>
-                When the clock stops, the five candidates of each arena go
-                public. They are checked by hand on a livestream: the post has
-                to be live, the wallet has to be real. If a winner is not
-                eligible, the prize moves to the next name on the list.
+                When the clock stops, the candidates of each arena are checked
+                by hand in a livestream: the post has to be live, the wallet has
+                to be real. If a winner is not eligible, the prize moves to the
+                next name. The result is announced by Mingles.
               </p>
             </div>
             <div>

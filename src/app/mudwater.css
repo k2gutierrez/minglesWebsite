@@ -695,6 +695,12 @@
   justify-content: center;
 }
 
+.mw-operator-draw {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(225, 81, 98, 0.3);
+}
+
 .mw-reveal {
   margin-top: 16px;
   border: 1px solid var(--mw-line);
@@ -1814,6 +1820,12 @@
   .mw-seal {
   width: 100%;
   justify-content: center;
+}
+
+.mw-operator-draw {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(225, 81, 98, 0.3);
 }
 
 .mw-reveal {

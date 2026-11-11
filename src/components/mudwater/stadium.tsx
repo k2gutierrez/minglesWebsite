@@ -474,9 +474,65 @@ export function Stadium({
                 {revealing ? "Reading…" : "Read the log"}
               </button>
             </div>
-            <p className="mw-operator-meta">
-              {remote?.contract}
-            </p>
+            <p className="mw-operator-meta">{remote?.contract}</p>
+
+            {draw && (
+              <div className="mw-operator-draw">
+                <p className="mw-eyebrow">
+                  {draw.round
+                    ? `Draw order · round ${draw.round}`
+                    : draw.pendingRound
+                      ? `Round ${draw.pendingRound} not published yet`
+                      : "Barrel order, no round configured"}
+                </p>
+                <div className="mw-reveal-grid">
+                  {draw.arenas.map((a) => (
+                    <div key={a.name} className="mw-reveal-card">
+                      <b>{a.name}</b>
+                      <p className="mw-reveal-counts">
+                        A {a.counts[0]} · B {a.counts[1]} · C {a.counts[2]}
+                      </p>
+                      <p className="mw-reveal-winning">
+                        {a.winning.length
+                          ? `Barrel ${a.winning.join(" + ")} qualifies`
+                          : "Nobody entered"}
+                      </p>
+                      <ul>
+                        {a.candidates.map((c) => (
+                          <li key={c.wallet}>
+                            <code>
+                              #{c.position} {c.wallet.slice(0, 6)}…{c.wallet.slice(-4)}
+                            </code>
+                            <span>{c.barrel}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {a.total > 5 && (
+                        <p className="mw-reveal-counts">+{a.total - 5} more on record</p>
+                      )}
+                      {!bothSealed && (
+                        <p className="mw-reveal-warn">
+                          Seal both arenas before using this for the prize.
+                        </p>
+                      )}
+                      {draw.pendingRound && (
+                        <p className="mw-reveal-warn">
+                          Round {draw.pendingRound} is not published yet. The order
+                          appears here as soon as drand releases it, minutes after
+                          the close.
+                        </p>
+                      )}
+                      {!draw.round && !draw.pendingRound && (
+                        <p className="mw-reveal-warn">
+                          No drand round configured, so this is the barrel order,
+                          not the draw order.
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -581,80 +637,6 @@ export function Stadium({
             );
           })}
         </div>
-
-        {closed && (
-          <section className="mw-reveal" aria-label="Result">
-            <div className="mw-reveal-head">
-              <div>
-                <p className="mw-eyebrow">After the close</p>
-                <h3>The five of each arena</h3>
-                <p className="mw-reveal-copy">
-                  The five candidates go to a livestream for review. If a post
-                  is not live or a wallet is not eligible, the prize moves to
-                  the next name. The order comes from the drand round announced
-                  before the close, so anyone can reproduce it.
-                </p>
-              </div>
-              <button
-                className="mw-button"
-                type="button"
-                disabled={revealing}
-                onClick={() => void reveal()}
-              >
-                {revealing ? "Reading the log…" : "Read the log"}
-              </button>
-            </div>
-
-            {draw && (
-              <div className="mw-reveal-grid">
-                {draw.arenas.map((a) => (
-                  <div key={a.name} className="mw-reveal-card">
-                    <b>{a.name}</b>
-                    <p className="mw-reveal-counts">
-                      A {a.counts[0]} · B {a.counts[1]} · C {a.counts[2]}
-                    </p>
-                    <p className="mw-reveal-winning">
-                      {a.winning.length
-                        ? `Barrel ${a.winning.join(" + ")} qualifies`
-                        : "Nobody entered"}
-                    </p>
-                    <ul>
-                      {a.candidates.map((c) => (
-                        <li key={c.wallet}>
-                          <code>
-                            #{c.position} {c.wallet.slice(0, 6)}…{c.wallet.slice(-4)}
-                          </code>
-                          <span>{c.barrel}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {a.total > 5 && (
-                      <p className="mw-reveal-counts">+{a.total - 5} more on record</p>
-                    )}
-                    {!bothSealed && (
-                      <p className="mw-reveal-warn">
-                        Seal both arenas before using this for the prize.
-                      </p>
-                    )}
-                    {draw.pendingRound && (
-                      <p className="mw-reveal-warn">
-                        Round {draw.pendingRound} is not published yet. The order
-                        appears here as soon as drand releases it, minutes after
-                        the close.
-                      </p>
-                    )}
-                    {!draw.round && !draw.pendingRound && (
-                      <p className="mw-reveal-warn">
-                        No drand round configured, so this is the barrel order,
-                        not the draw order.
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
 
         <aside className="mw-feed" aria-label="Live movements">
           <h3>Live movements</h3>
