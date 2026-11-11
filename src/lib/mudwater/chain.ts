@@ -14,9 +14,12 @@ export function mudwaterChain() {
   const testnet =
     Number(process.env.MUDWATER_CHAIN_ID ?? 33139) === apeChainCurtis.id;
   const chain = testnet ? apeChainCurtis : COLLECTION.chain;
-  const rpc =
-    (testnet ? process.env.CURTIS_RPC_URL : process.env.APECHAIN_RPC_URL) ||
-    chain.rpcUrls.default.http[0];
+  const configured =
+    (testnet ? process.env.CURTIS_RPC_URL : process.env.APECHAIN_RPC_URL) ?? "";
+
+  const rpc = /^https?:\/\//i.test(configured.trim())
+    ? configured.trim()
+    : chain.rpcUrls.default.http[0];
 
   return { chain, rpc };
 }
@@ -29,12 +32,24 @@ export function mudwaterChain() {
  * its own transport and falls back to the chain's public endpoint.
  */
 export function mudwaterLogClient() {
-  const { chain } = mudwaterChain();
-  const rpc = process.env.MUDWATER_LOG_RPC || chain.rpcUrls.default.http[0];
+  const { chain, rpc } = mudwaterChain();
+
+  // A dashboard variable set to an empty string, or to spaces, is truthy in a
+  // plain `||`, and viem then chokes on a URL that is not one. Every candidate
+  // is checked to look like a URL before it is used.
+  const candidates = [
+    (process.env.MUDWATER_LOG_RPC ?? "").trim(),
+    (rpc ?? "").trim(),
+    ...chain.rpcUrls.default.http,
+  ];
+
+  const url =
+    candidates.find((value) => /^https?:\/\//i.test(value)) ??
+    chain.rpcUrls.default.http[0];
 
   return createPublicClient({
     chain,
-    transport: http(rpc, { timeout: 20_000, retryCount: 2 }),
+    transport: http(url, { timeout: 20_000, retryCount: 2 }),
   });
 }
 
