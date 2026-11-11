@@ -34,10 +34,12 @@ function short(address: string) {
 
 export function Journey({
   player,
+  gate,
   live,
   onPlay,
 }: {
   player: PlayerState | null;
+  gate: boolean;
   live: boolean;
   onPlay: () => void;
 }) {
@@ -190,7 +192,24 @@ export function Journey({
           <div className="mw-step-body">
             <p className="mw-step-title">Bind a wallet</p>
             {bound ? (
-              <p className="mw-step-done">{short(player?.wallet ?? "")}</p>
+              <>
+                <p className="mw-step-done">{short(player?.wallet ?? "")}</p>
+                <p
+                  className={
+                    !gate
+                      ? "mw-eligible is-open"
+                      : player?.isHolder
+                        ? "mw-eligible is-yes"
+                        : "mw-eligible is-no"
+                  }
+                >
+                  {!gate
+                    ? "Holder gate is off on this network · both arenas open"
+                    : player?.isHolder
+                      ? "Eligible · you can play both arenas"
+                      : "Not eligible · Mingles Arena is holders only"}
+                </p>
+              </>
             ) : (
               <div className="mw-step-row">
                 <ConnectButton

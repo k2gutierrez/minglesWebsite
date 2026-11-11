@@ -36,7 +36,7 @@ export function collectionAddress(): Address | null {
  * the Curtis setup, so the arena stays open.
  */
 export async function readIsHolder(wallet: Address): Promise<boolean | null> {
-  const nft = collectionAddress();
+  const nft = await readCollection();
   if (!nft) return null;
 
   const balance = await mudwaterPublicClient().readContract({
@@ -47,6 +47,30 @@ export async function readIsHolder(wallet: Address): Promise<boolean | null> {
   });
 
   return balance > 0n;
+}
+
+/**
+ * The collection the contract gates on. Read from the contract, never from an
+ * env var: the chain decides who is eligible, and the badge has to say the same
+ * thing the move would.
+ */
+export async function readCollection(): Promise<Address | null> {
+  const address = contractAddress();
+  if (!address) return null;
+
+  try {
+    const value = await mudwaterPublicClient().readContract({
+      address,
+      abi: gameAbi,
+      functionName: "i_collection",
+    });
+
+    return value === "0x0000000000000000000000000000000000000000"
+      ? null
+      : (value as Address);
+  } catch {
+    return null;
+  }
 }
 
 export function contractAddress(): Address | null {

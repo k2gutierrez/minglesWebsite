@@ -352,6 +352,7 @@ export function Stadium({
   }, [live, snapshot.phase]);
 
   const total = useMemo(() => shown.reduce((s, a) => s + a.total, 0), [shown]);
+  const gateOn = Boolean(remote?.collection);
   const closed = remaining !== null && remaining <= 0;
   const isOwner = Boolean(
     address && remote?.owner && address.toLowerCase() === remote.owner.toLowerCase(),
@@ -366,6 +367,7 @@ export function Stadium({
       {live && (
         <Journey
           player={player}
+          gate={gateOn}
           live={live}
           onPlay={() =>
             document
@@ -403,6 +405,28 @@ export function Stadium({
             <span>Prize</span>
             <b>2 packs</b>
           </div>
+          {player && (
+            <div
+              className={[
+                "mw-hud-item",
+                "mw-hud-access",
+                gateOn ? (player.isHolder ? "is-yes" : "is-no") : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <span>Access</span>
+              <b>
+                {!gateOn
+                  ? "Open to all"
+                  : player.isHolder === null
+                    ? "Checking…"
+                    : player.isHolder
+                      ? "Eligible"
+                      : "Not eligible"}
+              </b>
+            </div>
+          )}
           {player && (
             <div className="mw-hud-item mw-hud-you">
               <span>You</span>

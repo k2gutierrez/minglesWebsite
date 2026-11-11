@@ -1449,6 +1449,42 @@
   white-space: nowrap;
 }
 
+.mw-eligible {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+
+.mw-eligible.is-yes {
+  color: #8fd0a0;
+}
+
+.mw-eligible.is-no {
+  color: var(--mw-coral);
+}
+
+.mw-eligible.is-open {
+  color: var(--mw-fog-text);
+}
+
+.mw-hud-access b {
+  font-family: var(--mw-copy) !important;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mw-hud-access.is-yes b {
+  color: #8fd0a0;
+}
+
+.mw-hud-access.is-no b {
+  color: var(--mw-coral);
+}
+
 .mw-step-out {
   margin-left: 10px;
   background: none;

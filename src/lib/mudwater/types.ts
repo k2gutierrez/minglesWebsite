@@ -24,5 +24,7 @@ export interface GameState {
   counts: { holders: number[]; open: number[] };
   sealed: { holders: boolean; open: boolean };
   owner: string;
+  /** The NFT the holders arena gates on, or null when the gate is off. */
+  collection: string | null;
   player: PlayerState | null;
 }
