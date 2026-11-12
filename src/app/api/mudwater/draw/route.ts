@@ -128,7 +128,7 @@ async function read() {
       name: arena === 0 ? "Mingles Arena" : "ApeChain Arena",
       counts,
       winning: winning.map((b) => LETTERS[b]),
-      candidates: ordered.slice(0, 5),
+      candidates: ordered,
       total: ordered.length,
     };
   });

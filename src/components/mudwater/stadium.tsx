@@ -479,11 +479,7 @@ export function Stadium({
             {draw && (
               <div className="mw-operator-draw">
                 <p className="mw-eyebrow">
-                  {draw.round
-                    ? `Draw order · round ${draw.round}`
-                    : draw.pendingRound
-                      ? `Round ${draw.pendingRound} not published yet`
-                      : "Barrel order, no round configured"}
+                  Wallets in the qualifying barrel · the raffle runs outside this page
                 </p>
                 <div className="mw-reveal-grid">
                   {draw.arenas.map((a) => (
@@ -507,27 +503,15 @@ export function Stadium({
                           </li>
                         ))}
                       </ul>
-                      {a.total > 5 && (
-                        <p className="mw-reveal-counts">+{a.total - 5} more on record</p>
-                      )}
+                      <p className="mw-reveal-counts">
+                        {a.total} wallet{a.total === 1 ? "" : "s"} to hand over
+                      </p>
                       {!bothSealed && (
                         <p className="mw-reveal-warn">
                           Seal both arenas before using this for the prize.
                         </p>
                       )}
-                      {draw.pendingRound && (
-                        <p className="mw-reveal-warn">
-                          Round {draw.pendingRound} is not published yet. The order
-                          appears here as soon as drand releases it, minutes after
-                          the close.
-                        </p>
-                      )}
-                      {!draw.round && !draw.pendingRound && (
-                        <p className="mw-reveal-warn">
-                          No drand round configured, so this is the barrel order,
-                          not the draw order.
-                        </p>
-                      )}
+
                     </div>
                   ))}
                 </div>

@@ -3,9 +3,13 @@
  * The Last Barrel — final draw.
  *
  * Reads every Action event the contract emitted, rebuilds who ended in which
- * barrel, finds the qualifying barrel per arena, and orders its players with a
- * drand seed. Prints the top 5 and writes the full order to a JSON file so the
- * result can be reproduced later by anyone with the same round.
+ * barrel, finds the qualifying barrel per arena, and prints the wallets that are
+ * in it. Those wallets are the participants for the raffle, which is run
+ * elsewhere.
+ *
+ * With --round it also orders them with a drand round, which makes the order
+ * reproducible. Without it, the list comes out in the order people first
+ * entered, which is all you need to hand the list over.
  *
  * Usage, from mingles/frontend:
  *
@@ -139,11 +143,16 @@ for (const arena of ARENAS) {
 // ------------------------------------------------------------------ seed ---
 
 const round = arg("round");
-const url = `${DRAND}/${QUICKNET}/public/${round ?? "latest"}`;
-const beacon = await (await fetch(url)).json();
+let beacon = null;
 
-console.log(`drand     round ${beacon.round}`);
-console.log(`seed      ${beacon.randomness}`);
+if (round) {
+  const url = `${DRAND}/${QUICKNET}/public/${round}`;
+  beacon = await (await fetch(url)).json();
+  console.log(`drand     round ${beacon.round}`);
+  console.log(`seed      ${beacon.randomness}`);
+} else {
+  console.log("drand     none (list order, no seed)");
+}
 
 // ------------------------------------------------------------------ draw ---
 
@@ -151,7 +160,13 @@ function score(seed, arena, wallet) {
   return createHash("sha256").update(`${seed}:${arena}:${wallet}`).digest("hex");
 }
 
-const result = { contract, chain: chain.id, round: beacon.round, seed: beacon.randomness, arenas: [] };
+const result = {
+  contract,
+  chain: chain.id,
+  round: beacon?.round ?? null,
+  seed: beacon?.randomness ?? null,
+  arenas: [],
+};
 
 for (const arena of ARENAS) {
   const players = [...(final.get(arena.id) ?? new Map()).entries()];
@@ -175,10 +190,16 @@ for (const arena of ARENAS) {
     .filter(([, barrel]) => winning.includes(barrel))
     .map(([wallet, barrel]) => ({ wallet, barrel }));
 
-  const order = candidates
-    .map((c) => ({ ...c, key: score(beacon.randomness, arena.id, c.wallet) }))
-    .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
-    .map((c, i) => ({ position: i + 1, ...c }));
+  const order = beacon
+    ? candidates
+        .map((c) => ({ ...c, key: score(beacon.randomness, arena.id, c.wallet) }))
+        .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+        .map((c, i) => ({ position: i + 1, wallet: c.wallet, barrel: LETTERS[c.barrel] }))
+    : candidates.map((c, i) => ({
+        position: i + 1,
+        wallet: c.wallet,
+        barrel: LETTERS[c.barrel],
+      }));
 
   console.log(`\n=== ${arena.name} (${arena.sub}) ===`);
   console.log(
@@ -191,17 +212,26 @@ for (const arena of ARENAS) {
   );
   console.log(`players   ${players.length}, candidates ${candidates.length}`);
 
-  const top = order.slice(0, 5);
-  for (const row of top) {
-    console.log(`  #${row.position}  ${row.wallet}  barrel ${LETTERS[row.barrel]}`);
+  for (const row of order) {
+    console.log(`  ${row.wallet}  (barrel ${row.barrel})`);
   }
-  if (order.length > 5) console.log(`  … ${order.length - 5} more in the file`);
 
   result.arenas.push({ ...arena, counts, winning, candidates: candidates.length, order });
 }
 
-const file = `draw-${beacon.round}.json`;
-writeFileSync(file, JSON.stringify(result, null, 2));
+const suffix = beacon ? `round-${beacon.round}` : "list";
+const jsonFile = `mudwater-${suffix}.json`;
+writeFileSync(jsonFile, JSON.stringify(result, null, 2));
 
-console.log(`\nWritten to ${file}`);
-console.log("Re-run with the same --round to reproduce this exact order.");
+const rows = ["arena,barrel,wallet"];
+for (const arena of result.arenas) {
+  for (const c of arena.order ?? []) {
+    rows.push(`${arena.name},${c.barrel},${c.wallet}`);
+  }
+}
+const csvFile = `mudwater-${suffix}.csv`;
+writeFileSync(csvFile, rows.join("\n") + "\n");
+
+console.log(`\nwritten  ${jsonFile}`);
+console.log(`written  ${csvFile}  (${rows.length - 1} wallets)`);
+if (beacon) console.log("Re-run with the same --round to reproduce this exact order.");
