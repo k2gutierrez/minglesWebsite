@@ -203,6 +203,15 @@ export function Journey({
             {bound ? (
               <>
                 <p className="mw-step-done">{short(player?.wallet ?? "")}</p>
+                {/* The bound address is a label; the wallet still needs its own
+                    control so it can be disconnected or switched. */}
+                <div className="mw-step-row">
+                  <ConnectButton
+                    chainStatus="full"
+                    showBalance={false}
+                    accountStatus="address"
+                  />
+                </div>
                 <p
                   className={
                     !gate
