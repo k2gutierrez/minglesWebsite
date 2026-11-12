@@ -105,10 +105,7 @@ export default function TermsPage() {
           required by ApeChain to confirm your own transactions. Gas is paid to the
           network, not to us, and is not a purchase of anything.
         </p>
-        <p>
-          A Barrel Pass is not for sale and has no monetary value. It is an authorisation
-          that lets your wallet move between barrels.
-        </p>
+
       </section>
 
       <section id="how-to-enter">

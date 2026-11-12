@@ -43,7 +43,7 @@ export const LEGAL = {
 
   /** Countries/regions where entry is not allowed. */
   excludedJurisdictions:
-    "Entry is void where prohibited or restricted by law, and where a promotion of this kind would require a registration, licence or permit the Organiser does not hold. No specific territory is excluded beyond that rule; it is your responsibility to know the law where you live.",
+    "any territory where a promotion of this kind would require a registration, licence or permit the Organiser does not hold. No other territory is excluded; it is your responsibility to know the law where you live.",
 
   /** What the winner actually receives. */
   prizeDescription:
