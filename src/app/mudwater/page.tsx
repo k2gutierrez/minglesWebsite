@@ -156,8 +156,9 @@ export default function MudwaterPage() {
           <div className="mw-section-head">
             <h2>How it ends</h2>
             <p>
-              Two arenas, two winners, one published draw. The five candidates
-              per arena are reviewed on a livestream before the pack is sent.
+              Two arenas, two winners. The candidates of each arena are reviewed
+              on a livestream before the pack is sent, and the result is
+              announced by Mingles.
             </p>
           </div>
 
@@ -181,12 +182,13 @@ export default function MudwaterPage() {
               </p>
             </div>
             <div>
-              <h3>The review</h3>
+              <h3>Who counts</h3>
               <p>
-                Declared posts and wallets are checked by hand before a pack
-                moves. Posts must stay public until the prize is awarded. A
-                rejection only passes the chance down the fixed order; it never
-                rewrites the numbers from the close.
+                Only wallets registered here take part. The contract is open, so
+                a wallet can enter a barrel without ever signing in, but it has
+                no X account behind it, cannot be contacted and is skipped.
+                Posts must stay public until the prize is awarded, and a
+                rejection never rewrites the numbers from the close.
               </p>
             </div>
           </div>
@@ -204,7 +206,9 @@ export default function MudwaterPage() {
             protocol fee and no wager. Eligibility, jurisdictions and full
             promotion terms apply. The Mingles Holders arena requires at least
             one eligible Mingles NFT at the moment of close. Randomness is
-            served by a public drand round published in advance.
+            served by a public drand round published in advance. Only wallets
+            registered through this site take part: the contract is open, but a wallet
+            that entered without an X account here is skipped.
           </p>
         </section>
       </div>

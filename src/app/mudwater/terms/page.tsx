@@ -71,6 +71,13 @@ export default function TermsPage() {
             account, for the duration of the Promotion;
           </li>
           <li>
+            <strong>register before the close.</strong> The game contract is open: any
+            wallet can write to it without visiting this site. A wallet that did so
+            without being linked to an X account here is not a participant, is not
+            eligible, and is skipped when the qualifying barrel is resolved. The
+            registration has to be in place before the closing time;
+          </li>
+          <li>
             for the Mingles Arena, hold at least one Mingles NFT at the moment of each
             move. The game contract checks the balance itself on every entry and every
             change of barrel, so the arena is closed to a wallet holding none. The
@@ -193,10 +200,12 @@ export default function TermsPage() {
         <h2>7. Verification and disqualification</h2>
         <p>
           Candidates are reviewed by hand before any prize is delivered. The review checks
-          that the X account is genuine and still accessible; that the declared posts are
-          still public and match what was declared; that the holder requirement is met at
-          the close for the Holders arena; and that the wallet is not part of a
-          coordinated cluster of wallets used to manipulate a barrel population.
+          that the wallet is linked to an X account on this site, which is the only way a
+          wallet can be identified and contacted; that the X account is genuine and still
+          accessible; that the declared posts are still public and match what was
+          declared; that the holder requirement is met at the close for the Holders arena;
+          and that the wallet is not part of a coordinated cluster of wallets used to
+          manipulate a barrel population.
         </p>
         <p>
           A candidate has <strong>24 hours</strong> from notification to respond. If a
