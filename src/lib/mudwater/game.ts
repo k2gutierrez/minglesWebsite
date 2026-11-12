@@ -18,18 +18,6 @@ const erc721Abi = parseAbi([
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
-/**
- * Mingles ERC721 that gates the holders arena, if the gate is on.
- *
- * Missing, blank, the zero address and anything that is not an address all mean
- * "gate off". The zero address is the contract's own way of saying it, so the
- * two agree and nobody has to remember which side wants an empty string.
- */
-export function collectionAddress(): Address | null {
-  const raw = (process.env.MUDWATER_COLLECTION_ADDRESS ?? "").trim();
-  if (!raw || raw.toLowerCase() === ZERO || !isAddress(raw)) return null;
-  return raw;
-}
 
 /**
  * Whether the wallet holds a Mingles. `null` means the gate is off, which is
