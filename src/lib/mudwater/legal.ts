@@ -43,13 +43,13 @@ export const LEGAL = {
 
   /** Countries/regions where entry is not allowed. */
   excludedJurisdictions:
-    "Entry is void where prohibited or restricted by law, and where a promotion of this kind would require a registration, licence or permit the Organiser does not hold. The Organiser may publish a list of excluded territories before entries open.",
+    "Entry is void where prohibited or restricted by law, and where a promotion of this kind would require a registration, licence or permit the Organiser does not hold. No specific territory is excluded beyond that rule; it is your responsibility to know the law where you live.",
 
   /** What the winner actually receives. */
   prizeDescription:
     "two (2) Mudwater packs, one for each arena, delivered as digital assets on the Solana network",
   prizeArv:
-    "no purchase is necessary, there is no cash alternative, and no retail price is stated for the Promotion",
+    "The packs are collectible items with no commercial value and no retail price. No purchase is necessary, there is no cash alternative, and the packs cannot be exchanged for money",
 
   governingLaw:
     "the laws of the State of Wyoming, United States, excluding its conflict of law rules",

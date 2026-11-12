@@ -222,8 +222,9 @@ export default function TermsPage() {
           <Fill value={LEGAL.prizeDescription} />.
         </p>
         <p>
-          <Fill value={LEGAL.prizeArv} />. Each prize is a digital asset, not a bottle or
-          any other physical good, and it carries no right to any alcoholic product.
+          <Fill value={LEGAL.prizeArv} />. Each prize is a digital collectible, not a
+          bottle or any other physical good, and it carries no right to any alcoholic
+          product.
           A prize is personal to the winner, cannot be exchanged for cash, and cannot be
           transferred. If a prize becomes unavailable for reasons outside our control, we
           may substitute it with one of equal or greater value.
