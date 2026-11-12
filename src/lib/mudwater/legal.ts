@@ -75,3 +75,4 @@ export const IS_DRAFT = PENDING_FIELDS.length > 0;
 export const SITE_URL = "https://www.mingles.wtf";
 export const TERMS_PATH = "/mudwater/terms";
 export const PRIVACY_PATH = "/mudwater/privacy";
+export const SERVICE_PATH = "/mudwater/terms-of-service";

@@ -4,6 +4,7 @@ import {
   LEGAL,
   PENDING_FIELDS,
   PRIVACY_PATH,
+  SERVICE_PATH,
   TERMS_PATH,
 } from "@/lib/mudwater/legal";
 
@@ -45,14 +46,26 @@ export function LegalShell({
   intro,
   children,
 }: {
-  current: "terms" | "privacy";
+  current: "terms" | "privacy" | "service";
   kicker: string;
   title: string;
   intro: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const other = current === "terms" ? PRIVACY_PATH : TERMS_PATH;
-  const otherLabel = current === "terms" ? "Privacy policy" : "Official rules";
+  const links: Record<string, { href: string; label: string }[]> = {
+    terms: [
+      { href: SERVICE_PATH, label: "Terms of service" },
+      { href: PRIVACY_PATH, label: "Privacy policy" },
+    ],
+    privacy: [
+      { href: SERVICE_PATH, label: "Terms of service" },
+      { href: TERMS_PATH, label: "Official rules" },
+    ],
+    service: [
+      { href: TERMS_PATH, label: "Official rules" },
+      { href: PRIVACY_PATH, label: "Privacy policy" },
+    ],
+  };
 
   return (
     <main id="main" className="mw-page">
@@ -73,7 +86,11 @@ export function LegalShell({
 
           <footer className="mw-doc-foot">
             <Link href="/mudwater">← Back to The Last Barrel</Link>
-            <Link href={other}>{otherLabel}</Link>
+            {links[current].map((link) => (
+              <Link key={link.href} href={link.href}>
+                {link.label}
+              </Link>
+            ))}
           </footer>
         </article>
       </div>

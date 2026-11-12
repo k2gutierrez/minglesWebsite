@@ -194,6 +194,8 @@ export default function MudwaterPage() {
           <p className="mw-legal-links">
             <Link href="/mudwater/terms">Official rules</Link>
             <span>·</span>
+            <Link href="/mudwater/terms-of-service">Terms of service</Link>
+            <span>·</span>
             <Link href="/mudwater/privacy">Privacy policy</Link>
           </p>
 
