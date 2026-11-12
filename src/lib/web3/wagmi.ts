@@ -1,7 +1,9 @@
 "use client";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import type { Chain } from "viem";
 import { fallback, http } from "wagmi";
 import { apeChain } from "viem/chains";
+import { apeChainCurtis } from "./chains";
 import { raffleChain, raffleRpcUrls } from "./chains";
 
 /**
@@ -26,14 +28,27 @@ const projectId =
     ? process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
     : "mingles-dev-placeholder";
 
+/**
+ * Every chain the wallet may need: ApeChain, Curtis for testing, and the raffle
+ * chain when it is a different one. Listing both game networks means a wrong
+ * MUDWATER_CHAIN_ID shows a switch button instead of a silent mismatch.
+ */
+const extra: Chain[] = [];
+if (raffleChain.id !== apeChain.id && raffleChain.id !== apeChainCurtis.id) {
+  extra.push(raffleChain);
+}
+const walletChains = [apeChain, apeChainCurtis, ...extra] as readonly [
+  Chain,
+  ...Chain[],
+];
+
 export const wagmiConfig = getDefaultConfig({
   appName: "Mingles",
   appDescription: "Collectible identity. Real-world spirit.",
   projectId,
   // Curtis solo se añade cuando la rifa apunta a testnet; el resto del sitio
   // sigue viviendo en ApeChain mainnet.
-  chains:
-    raffleChain.id === apeChain.id ? [apeChain] : [apeChain, raffleChain],
+  chains: walletChains,
   transports: {
     [apeChain.id]: http(),
     ...(raffleChain.id === apeChain.id

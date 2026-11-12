@@ -211,9 +211,14 @@ export function Journey({
                 </p>
               </>
             ) : (
+              <>
+              <p className="mw-step-hint">
+                ApeChain mainnet. If your wallet is on another network, it will ask
+                to switch.
+              </p>
               <div className="mw-step-row">
                 <ConnectButton
-                  chainStatus="icon"
+                  chainStatus="full"
                   showBalance={false}
                   accountStatus="address"
                 />
@@ -226,6 +231,7 @@ export function Journey({
                   {busy === "link" ? "Signing…" : "Sign to link"}
                 </button>
               </div>
+              </>
             )}
           </div>
         </li>
