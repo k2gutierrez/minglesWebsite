@@ -21,7 +21,8 @@
         {
           "position": 1,
           "wallet": "0x051d3f8840a437ef2c43b2fa05e797db0176a0ce",
-          "barrel": "B"
+          "barrel": "B",
+          "handle": "Memo_Chimal"
         }
       ]
     },
@@ -42,7 +43,8 @@
         {
           "position": 1,
           "wallet": "0x051d3f8840a437ef2c43b2fa05e797db0176a0ce",
-          "barrel": "B"
+          "barrel": "B",
+          "handle": "Memo_Chimal"
         }
       ]
     }

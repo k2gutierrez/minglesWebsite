@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
-import { json, ApiError } from "@/lib/server/http";
+import { json, ApiError, requireUser } from "@/lib/server/http";
+import { boundWallet, ensurePlayer } from "@/lib/mudwater/session";
+import { readOwner } from "@/lib/mudwater/game";
 import { contractAddress } from "@/lib/mudwater/game";
 import { mudwaterLogClient as logClientFor } from "@/lib/mudwater/chain";
 
@@ -50,9 +52,9 @@ function score(randomness: string, arena: number, wallet: string) {
  * them: the order needs the announced drand round and lives in the draw script,
  * which anybody can run and check.
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return await read();
+    return await read(request);
   } catch (error) {
     return json(
       { error: error instanceof Error ? error.message : String(error) },
@@ -61,7 +63,54 @@ export async function GET() {
   }
 }
 
-async function read() {
+/**
+ * Which X account each wallet belongs to.
+ *
+ * Only the operator may see this: it is personal data, and the chain has no idea
+ * it exists. The caller has to be signed in with X and have bound the very
+ * wallet that owns the contract.
+ */
+async function handleMap(
+  request: Request,
+  wallets: string[],
+): Promise<Map<string, string> | null> {
+  if (!request.headers.get("authorization")) return null;
+
+  try {
+    const { user, db } = await requireUser(request);
+    const player = await ensurePlayer(db, user);
+    const wallet = await boundWallet(db, player.id);
+    const owner = await readOwner(contractAddress()!);
+
+    if (!wallet || wallet.address.toLowerCase() !== owner.toLowerCase()) {
+      return null;
+    }
+
+    const [bound, players] = await Promise.all([
+      db.from("mw_wallets").select("address, player_id"),
+      db.from("mw_players").select("id, handle"),
+    ]);
+
+    if (bound.error || players.error) return null;
+
+    const byId = new Map((players.data ?? []).map((row) => [row.id, row.handle]));
+    const wanted = new Set(wallets.map((w) => w.toLowerCase()));
+    const map = new Map<string, string>();
+
+    for (const row of bound.data ?? []) {
+      const address = String(row.address).toLowerCase();
+      if (!wanted.has(address)) continue;
+      const handle = byId.get(row.player_id);
+      if (handle) map.set(address, handle);
+    }
+
+    return map;
+  } catch {
+    return null;
+  }
+}
+
+async function read(request: Request) {
   const contract = contractAddress();
   if (!contract) throw new ApiError(503, "The game contract is not configured.");
 
@@ -88,6 +137,11 @@ async function read() {
     a.blockNumber === b.blockNumber
       ? a.logIndex - b.logIndex
       : Number(a.blockNumber - b.blockNumber),
+  );
+
+  const identities = await handleMap(
+    request,
+    [...new Set(logs.map((log) => String(log.args.wallet).toLowerCase()))],
   );
 
   const announced = Number(process.env.MUDWATER_DRAND_ROUND ?? 0);
@@ -128,7 +182,10 @@ async function read() {
       name: arena === 0 ? "Mingles Arena" : "ApeChain Arena",
       counts,
       winning: winning.map((b) => LETTERS[b]),
-      candidates: ordered,
+      candidates: ordered.map((c) => ({
+        ...c,
+        handle: identities?.get(c.wallet.toLowerCase()) ?? null,
+      })),
       total: ordered.length,
     };
   });

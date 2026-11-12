@@ -152,7 +152,7 @@ export function Stadium({
       counts: number[];
       winning: string[];
       total: number;
-      candidates: { position: number; wallet: string; barrel: string }[];
+      candidates: { position: number; wallet: string; barrel: string; handle?: string | null }[];
     }[];
   } | null>(null);
   const [revealing, setRevealing] = useState(false);
@@ -268,7 +268,15 @@ export function Stadium({
     setRevealing(true);
     setError(null);
     try {
-      const response = await fetch("/api/mudwater/draw", { cache: "no-store" });
+      const { data: session } = (await getSupabase()?.auth.getSession()) ?? {
+        data: null,
+      };
+      const access = session?.session?.access_token;
+
+      const response = await fetch("/api/mudwater/draw", {
+        cache: "no-store",
+        headers: access ? { authorization: `Bearer ${access}` } : undefined,
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error ?? "Could not read the log.");
       setDraw(data);

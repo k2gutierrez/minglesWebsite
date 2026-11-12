@@ -22,6 +22,7 @@
 
 import { createHash } from "node:crypto";
 import { writeFileSync } from "node:fs";
+import { createClient } from "@supabase/supabase-js";
 import { createPublicClient, http, parseAbiItem } from "viem";
 import { apeChain } from "viem/chains";
 import { apeChainCurtis } from "../src/lib/web3/chains.ts";
@@ -142,6 +143,48 @@ for (const arena of ARENAS) {
 
 // ------------------------------------------------------------------ seed ---
 
+// ------------------------------------------------------------- identities ---
+//
+// The chain knows wallet addresses and nothing else. Which X account each wallet
+// belongs to only exists in our database, so this is where the two are joined.
+// The service role key is used because this runs on the operator's machine, not
+// in a browser.
+
+async function handlesByWallet(wallets) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    console.log("ident.    no service role key, handles not resolved");
+    return new Map();
+  }
+
+  const admin = createClient(url, key, { auth: { persistSession: false } });
+
+  const [walletsResult, playersResult] = await Promise.all([
+    admin.from("mw_wallets").select("address, player_id"),
+    admin.from("mw_players").select("id, handle"),
+  ]);
+
+  if (walletsResult.error || playersResult.error) {
+    console.log("ident.    could not read the players table");
+    return new Map();
+  }
+
+  const handleById = new Map(
+    (playersResult.data ?? []).map((row) => [row.id, row.handle]),
+  );
+
+  const map = new Map();
+  for (const row of walletsResult.data ?? []) {
+    if (!wallets.includes(row.address.toLowerCase())) continue;
+    map.set(row.address.toLowerCase(), handleById.get(row.player_id) ?? null);
+  }
+
+  console.log(`ident.    ${map.size} of ${wallets.length} resolved to an X account`);
+  return map;
+}
+
 const round = arg("round");
 let beacon = null;
 
@@ -159,6 +202,9 @@ if (round) {
 function score(seed, arena, wallet) {
   return createHash("sha256").update(`${seed}:${arena}:${wallet}`).digest("hex");
 }
+
+const allWallets = [...final.values()].flatMap((arena) => [...arena.keys()]);
+const handles = await handlesByWallet([...new Set(allWallets)]);
 
 const result = {
   contract,
@@ -213,7 +259,11 @@ for (const arena of ARENAS) {
   console.log(`players   ${players.length}, candidates ${candidates.length}`);
 
   for (const row of order) {
-    console.log(`  ${row.wallet}  (barrel ${row.barrel})`);
+    const handle = handles.get(row.wallet.toLowerCase());
+    row.handle = handle ?? null;
+    console.log(
+      `  ${row.wallet}  ${handles.has(row.wallet.toLowerCase()) ? `@${handle}` : "(no X account on record)"}  (barrel ${row.barrel})`,
+    );
   }
 
   result.arenas.push({ ...arena, counts, winning, candidates: candidates.length, order });
@@ -223,10 +273,10 @@ const suffix = beacon ? `round-${beacon.round}` : "list";
 const jsonFile = `mudwater-${suffix}.json`;
 writeFileSync(jsonFile, JSON.stringify(result, null, 2));
 
-const rows = ["arena,barrel,wallet"];
+const rows = ["arena,barrel,handle,wallet"];
 for (const arena of result.arenas) {
   for (const c of arena.order ?? []) {
-    rows.push(`${arena.name},${c.barrel},${c.wallet}`);
+    rows.push(`${arena.name},${c.barrel},${c.handle ?? ""},${c.wallet}`);
   }
 }
 const csvFile = `mudwater-${suffix}.csv`;
