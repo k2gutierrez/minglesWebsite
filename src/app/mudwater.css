@@ -28,6 +28,9 @@
 }
 
 .mw-page {
+  /* The stadium backdrop bleeds 5vw past both edges, which on a phone made the
+     whole document wider than the screen and cut every card on the right. */
+  overflow-x: clip;
   --mw-champagne: #aea35d;
   --mw-bog: #000000;
   --mw-mist: #dcd7b7;
@@ -676,6 +679,43 @@
   font-size: 9px;
   letter-spacing: 0.1em;
   color: var(--mw-fog);
+}
+
+.mw-cooldown {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.mw-cooldown-clock {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mw-fog-text);
+  white-space: nowrap;
+}
+
+.mw-cooldown-clock b {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--mw-display);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--mw-champagne);
+  font-variant-numeric: tabular-nums;
+}
+
+.mw-cooldown-note {
+  font-family: var(--mw-copy);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+  color: var(--mw-prose);
+  text-transform: none;
+  max-width: 460px;
 }
 
 .mw-arena-foot {
@@ -1789,6 +1829,80 @@
    RESPONSIVE
    -------------------------------------------------------------------------- */
 
+/* The four steps were a four column grid on every screen, so on a phone each
+   card was ~90px wide and the words stacked one per line. */
+@media (max-width: 1000px) {
+  .mw-steps-live {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .mw-steps-live {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mw-step {
+    padding: 12px 13px;
+  }
+
+  .mw-step-title {
+    font-size: 14px;
+  }
+
+  .mw-eligible {
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+  }
+
+  .mw-button-play,
+  .mw-button {
+    max-width: 100%;
+  }
+
+  .mw-cooldown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .mw-cooldown-clock b {
+    font-size: 22px;
+  }
+
+  .mw-switch button {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 9px 6px;
+  }
+
+  .mw-stadium::before {
+    inset: -20px 0 -30px;
+  }
+
+  .mw-barrels {
+    gap: 4px;
+  }
+
+  .mw-barrel-svg {
+    max-width: 96px;
+  }
+
+
+  .mw-facts li {
+    padding-right: 14px;
+    margin-right: 14px;
+  }
+
+  .mw-hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mw-hud-item {
+    min-width: 0;
+  }
+}
+
 @media (max-width: 1180px) {
   .mw-stadium-grid {
     grid-template-columns: 156px minmax(0, 1fr) 240px;
@@ -1989,6 +2103,9 @@
 
 @media (max-width: 720px) {
   .mw-page {
+  /* The stadium backdrop bleeds 5vw past both edges, which on a phone made the
+     whole document wider than the screen and cut every card on the right. */
+  overflow-x: clip;
     font-size: 14px;
   }
 

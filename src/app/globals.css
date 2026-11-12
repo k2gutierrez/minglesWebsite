@@ -133,6 +133,21 @@ svg {
   font-size: 8px;
   letter-spacing: 0.13em;
 }
+/* On a phone the two headline strings together are wider than the screen, and
+   that alone made every page lay out past the viewport. */
+@media (max-width: 560px) {
+  .topline {
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    height: auto;
+    padding: 6px 4.5%;
+  }
+
+  .topline span:last-child {
+    display: none;
+  }
+}
+
 .topline span:first-child {
   color: var(--coral);
 }

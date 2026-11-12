@@ -630,9 +630,15 @@ export function Stadium({
                   ) : !verified ? (
                     <>Finish the steps above to start playing.</>
                   ) : cooldownLeft > 0 ? (
-                    <>
-                      Next move in <b>{clock(cooldownLeft)}</b>
-                    </>
+                    <span className="mw-cooldown">
+                      <span className="mw-cooldown-clock">
+                        Next move in <b>{clock(cooldownLeft)}</b>
+                      </span>
+                      <span className="mw-cooldown-note">
+                        You move once every 5 minutes in each arena. If your
+                        barrel fills up, use that move to leave.
+                      </span>
+                    </span>
                   ) : own?.entered ? (
                     <>
                       You are in Barrel {"ABC"[own.barrel]}. Tap another barrel to
