@@ -21,6 +21,7 @@ export interface GameState {
   chainId: number;
   contract: string;
   deadline: number;
+  startAt: number;
   counts: { holders: number[]; open: number[] };
   sealed: { holders: boolean; open: boolean };
   owner: string;

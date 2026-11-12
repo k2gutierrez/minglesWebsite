@@ -194,10 +194,12 @@ export function Stadium({
     return () => window.clearInterval(id);
   }, []);
 
-  // The close comes from the chain, never from a local guess.
+  // The clock counts to the opening before the game starts, and to the close
+  // after it. Both come from the chain, never from a local guess.
   useEffect(() => {
+    const opens = remote?.startAt && remote.startAt * 1000 > Date.now();
     const targetMs = remote?.configured
-      ? remote.deadline * 1000
+      ? (opens ? remote.startAt : remote.deadline) * 1000
       : snapshot.closesAt
         ? Date.parse(snapshot.closesAt)
         : Date.now() + 17 * 3600 * 1000;
@@ -206,7 +208,7 @@ export function Stadium({
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
-  }, [snapshot.closesAt, remote?.deadline, remote?.configured]);
+  }, [snapshot.closesAt, remote?.deadline, remote?.startAt, remote?.configured]);
 
   // Confirmation is the game beat: say it, then refresh the board a couple of
   // times while the node catches up.
@@ -361,6 +363,7 @@ export function Stadium({
 
   const total = useMemo(() => shown.reduce((s, a) => s + a.total, 0), [shown]);
   const gateOn = Boolean(remote?.collection);
+  const notOpen = Boolean(remote?.startAt && now < remote.startAt);
   const closed = remaining !== null && remaining <= 0;
   const isOwner = Boolean(
     address && remote?.owner && address.toLowerCase() === remote.owner.toLowerCase(),
@@ -406,7 +409,7 @@ export function Stadium({
             <b>{remote?.configured ? total : "—"}</b>
           </div>
           <div className="mw-hud-item">
-            <span>Closes in</span>
+            <span>{notOpen ? "Opens in" : "Closes in"}</span>
             <b className="mw-hud-clock">{countdown}</b>
           </div>
           <div className="mw-hud-item">
@@ -546,7 +549,8 @@ export function Stadium({
             const own: ArenaPlayerState | null =
               arena.id === "holders" ? (player?.holders ?? null) : (player?.open ?? null);
             const gated = arena.id === "holders" && player?.isHolder === false;
-            const canPlay = verified && !gated && Boolean(remote?.configured);
+            const canPlay =
+              verified && !gated && Boolean(remote?.configured) && !notOpen;
             const cooldownLeft = own?.entered
               ? Math.max(0, own.lastAction + COOLDOWN - now)
               : 0;
@@ -608,6 +612,8 @@ export function Stadium({
                     <>Sealed. These counts are final and nobody can change them.</>
                   ) : closed ? (
                     <>The game is closed. The final counts are published by the operator.</>
+                  ) : notOpen ? (
+                    <>The barrels open when the clock reaches zero. Get ready.</>
                   ) : gated ? (
                     <>This arena is for Mingles holders. Your wallet holds none.</>
                   ) : !verified ? (

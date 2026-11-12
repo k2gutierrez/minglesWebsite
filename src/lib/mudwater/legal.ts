@@ -28,10 +28,10 @@ export const LEGAL = {
   disputesEmail: "mingles@mingles.wtf",
 
   /** Readable UTC, shown as-is next to the word UTC. */
-  startAt: "12 November 2026 at 06:00",
-  closeAt: "15 November 2026 at 05:59",
-  startAtLocal: "12 November 2026 at 00:00",
-  closeAtLocal: "14 November 2026 at 23:59",
+  startAt: "12 November 2026 at 18:00",
+  closeAt: "14 November 2026 at 18:00",
+  startAtLocal: "12 November 2026 at 12:00",
+  closeAtLocal: "14 November 2026 at 12:00",
 
   /** The NFT the holders arena checks. */
   collection: "0x6579cfd742d8982a7cdc4c00102d3087f6c6dd8e",

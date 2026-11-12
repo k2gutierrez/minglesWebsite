@@ -140,6 +140,15 @@ export async function readCounts(address: Address): Promise<Counts> {
   };
 }
 
+export async function readStart(address: Address): Promise<number> {
+  const value = await mudwaterPublicClient().readContract({
+    address,
+    abi: gameAbi,
+    functionName: "i_start",
+  });
+  return Number(value);
+}
+
 export async function readDeadline(address: Address): Promise<number> {
   const client = mudwaterPublicClient();
   const deadline = await client.readContract({

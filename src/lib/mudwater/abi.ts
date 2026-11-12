@@ -15,6 +15,7 @@ export const gameAbi = parseAbi([
   "function s_position(uint8 arena, address wallet) view returns (uint8)",
   "function s_entered(uint8 arena, address wallet) view returns (bool)",
   "function s_lastAction(uint8 arena, address wallet) view returns (uint64)",
+  "function i_start() view returns (uint64)",
   "function i_deadline() view returns (uint64)",
   "function owner() view returns (address)",
   "function i_collection() view returns (address)",
