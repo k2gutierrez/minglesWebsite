@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from "wagmi";
 import { getSupabase } from "@/lib/supabase";
@@ -27,6 +27,7 @@ const CARDS = [
 type CardKey = (typeof CARDS)[number]["key"];
 
 const SHARE_URL = "https://www.mingles.wtf/mudwater";
+const STORAGE_KEY = "mw-shared-card";
 
 function short(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -50,6 +51,21 @@ export function Journey({
 
   const { address, isConnected, connector } = useAccount();
   const { signMessageAsync } = useSignMessage();
+
+  // On a phone, tapping a card usually opens the X app and the browser drops the
+  // page. Without this the player comes back to a step with no confirmation
+  // button and cannot move on.
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved === "a" || saved === "b" || saved === "c") {
+        setCard(saved);
+        setOpened(true);
+      }
+    } catch {
+      // Private mode. Nothing to remember, nothing to break.
+    }
+  }, []);
 
   const call = useCallback(async (path: string, payload: unknown) => {
     const { data } = (await getSupabase()?.auth.getSession()) ?? { data: null };
@@ -113,21 +129,24 @@ export function Journey({
     }
   }
 
-  function share(key: CardKey) {
+  function intent(key: CardKey) {
     const chosen = CARDS.find((c) => c.key === key);
-    if (!chosen) return;
+    if (!chosen) return "#";
 
-    window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        chosen.text,
-      )}&url=${encodeURIComponent(SHARE_URL)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      chosen.text,
+    )}&url=${encodeURIComponent(SHARE_URL)}`;
+  }
 
+  function remember(key: CardKey) {
     setCard(key);
     setOpened(true);
     setError(null);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, key);
+    } catch {
+      // Private mode: the confirmation still shows for this visit.
+    }
   }
 
   async function confirm() {
@@ -135,6 +154,11 @@ export function Journey({
     setError(null);
     try {
       await call("/api/mudwater/pass", { card });
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // ignore
+      }
       window.location.reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save your post.");
@@ -264,16 +288,24 @@ export function Journey({
               <>
                 <div className="mw-cards">
                   {CARDS.map((c) => (
-                    <button
+                    <a
                       key={c.key}
-                      type="button"
                       className={card === c.key ? "mw-card is-picked" : "mw-card"}
-                      disabled={busy !== null || !bound}
-                      onClick={() => share(c.key)}
+                      href={bound ? intent(c.key) : undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-disabled={busy !== null || !bound}
+                      onClick={(event) => {
+                        if (!bound) {
+                          event.preventDefault();
+                          return;
+                        }
+                        remember(c.key);
+                      }}
                       aria-label={c.text}
                     >
                       <span className="mw-card-letter">{c.letter}</span>
-                    </button>
+                    </a>
                   ))}
                 </div>
                 {opened && (
