@@ -77,6 +77,9 @@ export function Journey({
 
   function walletMessage(e: unknown) {
     const text = e instanceof Error ? e.message : "";
+    if (/connector not connected|not connected/i.test(text)) {
+      return "That wallet disconnected. Press Connect Wallet and approve it again.";
+    }
     if (/not been authorized|4100|rejected|denied/i.test(text)) {
       return "Your wallet didn't approve the signature. Unlock it and try again.";
     }
@@ -85,10 +88,16 @@ export function Journey({
 
   async function link() {
     if (!address) return;
+
+    if (!connector) {
+      setError("That wallet is not connected any more. Press Connect Wallet and approve it in your wallet.");
+      return;
+    }
+
     setBusy("link");
     setError(null);
     try {
-      await connector?.getAccounts?.().catch(() => undefined);
+      await connector.getAccounts().catch(() => undefined);
       const challenge = await call("/api/mudwater/wallet", { address });
       const signature = await signMessageAsync({ message: challenge.message });
       await call("/api/mudwater/wallet/verify", {

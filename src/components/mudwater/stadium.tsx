@@ -299,10 +299,19 @@ export function Stadium({
       if (own?.entered && now < own.lastAction + COOLDOWN) return;
 
       setError(null);
+
+      // The wallet can drop between the page load and the click: the UI keeps
+      // showing the account while the connector is gone. Saying so is better
+      // than sending a transaction that cannot be signed.
+      if (!address || !connector) {
+        setError("Your wallet is not connected any more. Reconnect it in step 02 and tap the barrel again.");
+        return;
+      }
+
       setTarget({ arena, barrel });
 
       try {
-        await connector?.getAccounts?.().catch(() => undefined);
+        await connector.getAccounts().catch(() => undefined);
 
         await writeContractAsync({
           address: remote.contract as `0x${string}`,
@@ -313,14 +322,16 @@ export function Stadium({
       } catch (e) {
         const message = e instanceof Error ? e.message : "";
         setError(
-          /not been authorized|4100|rejected|denied/i.test(message)
-            ? "Your wallet didn't approve the move. Unlock it and try again."
-            : message.split("\n")[0].slice(0, 160) || "The move failed.",
+          /connector not connected|not connected/i.test(message)
+            ? "Your wallet disconnected. Reconnect it in step 02 and try again."
+            : /not been authorized|4100|rejected|denied/i.test(message)
+              ? "Your wallet didn't approve the move. Unlock it and try again."
+              : message.split("\n")[0].slice(0, 160) || "The move failed.",
         );
         setTarget(null);
       }
     },
-    [remote, now, writeContractAsync, connector],
+    [remote, now, writeContractAsync, connector, address],
   );
 
   const liveArenas = useMemo(() => {
