@@ -232,9 +232,19 @@ for (const arena of ARENAS) {
     .filter((b) => b.n === lowest && b.n > 0)
     .map((b) => b.barrel);
 
-  const candidates = players
+  const inWinningBarrel = players
     .filter(([, barrel]) => winning.includes(barrel))
     .map(([wallet, barrel]) => ({ wallet, barrel }));
+
+  // The contract is open: a wallet can enter without ever registering, and then
+  // there is no X account to contact. The rules say such a wallet is not a
+  // participant, so it is left out of the list handed to the raffle.
+  const candidates = inWinningBarrel.filter((c) =>
+    handles.has(c.wallet.toLowerCase()),
+  );
+  const skipped = inWinningBarrel.filter(
+    (c) => !handles.has(c.wallet.toLowerCase()),
+  );
 
   const order = beacon
     ? candidates
@@ -257,6 +267,10 @@ for (const arena of ARENAS) {
     }`,
   );
   console.log(`players   ${players.length}, candidates ${candidates.length}`);
+  if (skipped.length) {
+    console.log(`skipped   ${skipped.length} wallet(s) with no X account on record`);
+    for (const c of skipped) console.log(`  ✗ ${c.wallet}  (barrel ${LETTERS[c.barrel]})`);
+  }
 
   for (const row of order) {
     const handle = handles.get(row.wallet.toLowerCase());

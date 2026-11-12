@@ -182,10 +182,19 @@ async function read(request: Request) {
       name: arena === 0 ? "Mingles Arena" : "ApeChain Arena",
       counts,
       winning: winning.map((b) => LETTERS[b]),
-      candidates: ordered.map((c) => ({
-        ...c,
-        handle: identities?.get(c.wallet.toLowerCase()) ?? null,
-      })),
+      // Only registered wallets reach the raffle: without an X account there is
+      // nobody to contact, and the rules already say they are skipped.
+      candidates: ordered
+        .map((c) => ({
+          ...c,
+          handle: identities?.get(c.wallet.toLowerCase()) ?? null,
+        }))
+        // Only when the caller is the operator, and therefore the identities are
+        // known, can a wallet be ruled out for having no X account.
+        .filter((c) => (identities ? c.handle !== null : true)),
+      skipped: identities
+        ? ordered.filter((c) => !identities.get(c.wallet.toLowerCase())).length
+        : null,
       total: ordered.length,
     };
   });
