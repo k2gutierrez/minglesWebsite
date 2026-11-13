@@ -18,6 +18,40 @@ const erc721Abi = parseAbi([
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
+/**
+ * A tiny cache in front of the chain reads.
+ *
+ * The board polls every few seconds from every player at once, and each request
+ * used to make around fifteen RPC calls. That is how we got rate limited during
+ * the event. Prices are cheap here: the immutable values never change, and the
+ * live ones are fine a second or two old.
+ */
+const memo = new Map<string, { at: number; value: unknown }>();
+const inflight = new Map<string, Promise<unknown>>();
+
+async function cached<T>(key: string, ttl: number, read: () => Promise<T>): Promise<T> {
+  const hit = memo.get(key);
+  if (hit && Date.now() - hit.at < ttl) return hit.value as T;
+
+  const running = inflight.get(key);
+  if (running) return running as Promise<T>;
+
+  const promise = read()
+    .then((value) => {
+      memo.set(key, { at: Date.now(), value });
+      return value;
+    })
+    .finally(() => inflight.delete(key));
+
+  inflight.set(key, promise);
+  return promise;
+}
+
+/** Long lived reads: the contract cannot change these. */
+const FOREVER = 10 * 60 * 1000;
+/** Live reads: a second behind is fine, a dead RPC is not. */
+const LIVE = 1_500;
+
 
 /**
  * Whether the wallet holds a Mingles. `null` means the gate is off, which is
@@ -47,11 +81,13 @@ export async function readCollection(): Promise<Address | null> {
   if (!address) return null;
 
   try {
-    const value = await mudwaterPublicClient().readContract({
-      address,
-      abi: gameAbi,
-      functionName: "i_collection",
-    });
+    const value = await cached(`${address}:collection`, FOREVER, () =>
+      mudwaterPublicClient().readContract({
+        address,
+        abi: gameAbi,
+        functionName: "i_collection",
+      }),
+    );
 
     return value === "0x0000000000000000000000000000000000000000"
       ? null
@@ -75,7 +111,8 @@ export interface Counts {
 export async function readSealed(
   address: Address,
 ): Promise<{ holders: boolean; open: boolean }> {
-  const client = mudwaterPublicClient();
+  return cached(`${address}:sealed`, LIVE, async () => {
+    const client = mudwaterPublicClient();
 
   const [holders, open] = await Promise.all([
     client.readContract({
@@ -92,58 +129,66 @@ export async function readSealed(
     }),
   ]);
 
-  return { holders, open };
+    return { holders, open };
+  });
 }
 
 /** The wallet that owns the contract. It has no powers, it is a label. */
 export async function readOwner(address: Address): Promise<string> {
-  return mudwaterPublicClient().readContract({
-    address,
-    abi: gameAbi,
-    functionName: "owner",
-  });
+  return cached(`${address}:owner`, FOREVER, () =>
+    mudwaterPublicClient().readContract({
+      address,
+      abi: gameAbi,
+      functionName: "owner",
+    }),
+  );
 }
 
 export async function readCounts(address: Address): Promise<Counts> {
-  const client = mudwaterPublicClient();
+  return cached(`${address}:counts`, LIVE, async () => {
+    const client = mudwaterPublicClient();
 
-  const [holders, open] = await Promise.all([
-    client.readContract({
-      address,
-      abi: gameAbi,
-      functionName: "counts",
-      args: [0],
-    }),
-    client.readContract({
-      address,
-      abi: gameAbi,
-      functionName: "counts",
-      args: [1],
-    }),
-  ]);
+    const [holders, open] = await Promise.all([
+      client.readContract({
+        address,
+        abi: gameAbi,
+        functionName: "counts",
+        args: [0],
+      }),
+      client.readContract({
+        address,
+        abi: gameAbi,
+        functionName: "counts",
+        args: [1],
+      }),
+    ]);
 
-  return {
-    holders: [Number(holders[0]), Number(holders[1]), Number(holders[2])],
-    open: [Number(open[0]), Number(open[1]), Number(open[2])],
-  };
+    return {
+      holders: [Number(holders[0]), Number(holders[1]), Number(holders[2])],
+      open: [Number(open[0]), Number(open[1]), Number(open[2])],
+    } as Counts;
+  });
 }
 
 export async function readStart(address: Address): Promise<number> {
-  const value = await mudwaterPublicClient().readContract({
+  const value = await cached(`${address}:start`, FOREVER, () =>
+    mudwaterPublicClient().readContract({
     address,
     abi: gameAbi,
-    functionName: "i_start",
-  });
+      functionName: "i_start",
+    }),
+  );
   return Number(value);
 }
 
 export async function readDeadline(address: Address): Promise<number> {
-  const client = mudwaterPublicClient();
-  const deadline = await client.readContract({
-    address,
-    abi: gameAbi,
-    functionName: "i_deadline",
-  });
+  const deadline = await cached(`${address}:deadline`, FOREVER, () =>
+    mudwaterPublicClient().readContract({
+      address,
+      abi: gameAbi,
+      functionName: "i_deadline",
+    }),
+  );
   return Number(deadline);
 }
 

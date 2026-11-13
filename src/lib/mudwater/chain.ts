@@ -52,8 +52,23 @@ export function mudwaterLogClient() {
 export function mudwaterPublicClient() {
   const { chain, rpc } = mudwaterChain();
 
+  // The configured RPC is tried first, but a dead or rate limited provider must
+  // never take the game down: the chain's public endpoints are next in line.
+  const urls = [...new Set([rpc, ...chain.rpcUrls.default.http])].filter((url) =>
+    /^https?:\/\//i.test(url ?? ""),
+  );
+
+  if (urls.length === 1) {
+    return createPublicClient({
+      chain,
+      transport: http(urls[0], { timeout: 10_000, retryCount: 1 }),
+    });
+  }
+
   return createPublicClient({
     chain,
-    transport: http(rpc, { timeout: 10_000, retryCount: 1 }),
+    transport: fallback(
+      urls.map((url) => http(url, { timeout: 10_000, retryCount: 1 })),
+    ),
   });
 }

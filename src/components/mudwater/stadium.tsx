@@ -185,7 +185,7 @@ export function Stadium({
   useEffect(() => {
     if (!live) return;
     void loadRemote();
-    const id = window.setInterval(() => void loadRemote(), 3_000);
+    const id = window.setInterval(() => void loadRemote(), 4_000);
     return () => window.clearInterval(id);
   }, [live, loadRemote]);
 
